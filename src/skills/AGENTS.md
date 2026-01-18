@@ -1,0 +1,25 @@
+This folder contains **portable "Skills"**: small, reusable playbooks agents can invoke to perform common operations consistently across environments.
+
+## How to use skills
+
+- **Pick the smallest skill that fits** the task and follow its `SKILL.md` as the source-of-truth.
+- **Don't wait for the user to ask** if a skill should be used; decide proactively.
+- **Keep outputs provider- and environment-agnostic** unless the skill explicitly calls out adapter-specific behavior.
+- **If you are unable to load a required skill**, ask for help and STOP.
+
+## Skill Registry
+
+### `memory`
+- **Path**: `skills/memory/SKILL.md`
+- **Purpose**: Read/write/update/delete project memory entries (decisions, patterns, anti-patterns, lessons).
+- **Use when**: You observe a reusable decision/lesson/pattern worth capturing, or need to recall prior choices.
+
+### `openspec-change-proposal`
+- **Path**: `skills/openspec-change-proposal/SKILL.md`
+- **Purpose**: Draft/apply/archive OpenSpec change proposals and enforce following `openspec/AGENTS.md`.
+- **Use when**: Work involves proposals/specs/plans, implementing an OpenSpec change, or archiving a change.
+
+### `spawn-subagent`
+- **Path**: `skills/spawn-subagent/SKILL.md`
+- **Purpose**: Spawn a subagent with fresh context and bounded scope, then integrate results back.
+- **Use when**: You need parallel research/exploration/specialized review without polluting the main thread.

@@ -1,0 +1,12 @@
+.DS_Store
+*Zone.Identifier
+
+.cursor/
+.github/
+.opencode/
+.claude/
+.codex/
+.gemini/
+.workflow/
+.serena/
+openspec/
