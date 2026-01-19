@@ -41,6 +41,69 @@ Note: `-f` overwrites templates from claptrap, `-n` preserves user-created `proj
 
 If `.workflow/memory/project.md` was newly created (did not exist before), then read the file, analyze the target project, and fill in the document with relevant details. If the file already exists, then skip this step.
 
+# Step 2.5 - Customize Models for Provider
+
+Agent and command files support provider-specific model mappings via a `models:` block in their YAML frontmatter. This step rewrites the `model:` field to match the target provider.
+
+**Frontmatter format:**
+```yaml
+---
+name: Example Agent
+description: "..."
+model: claude-sonnet-4.5           # default/fallback model
+models:                            # provider-specific overrides (optional)
+  cursor: anthropic/claude-sonnet-4.5
+  github-copilot: claude-sonnet-4.5
+  claude: sonnet
+  opencode: anthropic/claude-sonnet-4-5
+  gemini: gemini-2.5-pro
+  codex: gpt-5.1-codex
+---
+```
+
+**Processing rules:**
+1. For each `.md` file in `.workflow/agents/` and `.workflow/commands/`:
+2. Parse the YAML frontmatter (between `---` delimiters)
+3. If `models:` block exists and contains a key matching `$PROVIDER` (case-insensitive, spaces→hyphens):
+   - Replace the `model:` value with the provider-specific value
+   - Remove the entire `models:` block from the frontmatter
+4. If no matching provider key exists, keep the default `model:` value and remove the `models:` block
+5. Write the modified file back
+
+**Provider key mapping:**
+| $PROVIDER       | Frontmatter key   |
+|-----------------|-------------------|
+| Cursor          | cursor            |
+| Github Copilot  | github-copilot    |
+| OpenCode        | opencode          |
+| Claude          | claude            |
+| Codex           | codex             |
+| Gemini          | gemini            |
+
+**Example transformation** (for `$PROVIDER=Claude`):
+
+Before:
+```yaml
+---
+name: Code Reviewer
+model: github-copilot/claude-sonnet-4.5
+models:
+  cursor: anthropic/claude-sonnet-4.5
+  claude: sonnet
+  gemini: gemini-2.5-pro
+---
+```
+
+After:
+```yaml
+---
+name: Code Reviewer
+model: sonnet
+---
+```
+
+Process all files in `.workflow/agents/` and `.workflow/commands/` directories. Print a summary showing each file and its resolved model.
+
 # Step 3 - Setup `.gitignore`
 
 Open or create `.gitignore` and add the following lines if not already present:

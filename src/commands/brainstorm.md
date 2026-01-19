@@ -1,7 +1,14 @@
 ---
 name: brainstorm
 description: "You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Integrates memory context and can spawn Research/Explore subagents."
-model: github-copilot/claude-opus-4.5
+model: claude-opus-4.5
+models:
+  cursor: anthropic/claude-opus-4.5
+  github-copilot: claude-opus-4.5
+  claude: opus
+  opencode: anthropic/claude-opus-4-5
+  gemini: gemini-2.5-pro
+  codex: gpt-5.2-codex
 ---
 
 # Brainstorming Ideas Into Designs
