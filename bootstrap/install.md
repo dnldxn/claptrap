@@ -190,7 +190,9 @@ Ensure ripgrep is installed (https://github.com/BurntSushi/ripgrep#installation)
 
 ## Serena MCP
 
-Check if Serena MCP is installed and configured for the current environment. If not installed, print the following prompt for the user to copy into another window:
+Check if Serena MCP is installed and configured for the current environment.  Most providers have a command line option to list the installed MCP servers (e.g. `claude mcp list`, `agent mcp list`, etc).
+
+If not installed, print the following prompt for the user to copy into another window:
 
 ```
 Install and configure Serena MCP for my environment.

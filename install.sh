@@ -46,7 +46,7 @@ echo "  PROVIDER_DIR=$PROVIDER_DIR"
 export PROVIDER
 export PROVIDER_DIR
 # copilot --allow-all --model 'claude-haiku-4.5' --disable-mcp-server github-mcp-server --prompt "$(cat $CLAPTRAP_PATH/bootstrap/install.md)"
-# claude --model 'sonnet' --add-dir "$CLAPTRAP_PATH" --output-format text --tools "Bash,Read,Edit,Write,Glob,Grep,WebFetch" --allowedTools "Bash(printenv CLAPTRAP_PATH)" --no-chrome "$(cat $CLAPTRAP_PATH/bootstrap/install.md)"
+claude --model 'sonnet' --add-dir "$CLAPTRAP_PATH" --output-format text --tools "Bash,Read,Edit,Write,Glob,Grep,WebFetch" --allowedTools "Bash(printenv CLAPTRAP_PATH)" --no-chrome "$(cat $CLAPTRAP_PATH/bootstrap/install.md)"
 # codex -m gpt-5.1-codex-mini exec "$(cat $CLAPTRAP_PATH/bootstrap/install.md)"
 # gemini --model gemini-3-flash-preview --include-directories "$CLAPTRAP_PATH" "$(cat $CLAPTRAP_PATH/bootstrap/install.md)"
-gemini --yolo --include-directories "$CLAPTRAP_PATH" "$(cat $CLAPTRAP_PATH/bootstrap/install.md)"
+# gemini --model gemini-3-flash-preview --yolo --include-directories "$CLAPTRAP_PATH" "$(cat $CLAPTRAP_PATH/bootstrap/install.md)"
