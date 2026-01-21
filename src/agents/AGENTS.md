@@ -4,9 +4,9 @@ This folder contains provider-neutral agent definitions used by command-driven w
 
 ## Core Pipeline (Command-Driven)
 
-1. **Propose** (`/propose-change`)
-   - Spawns: `proposer.md`, `plan-reviewer.md`
-   - Output: change proposal, task checklist, spec deltas, plan approval/revision
+1. **Propose** (`/propose`)
+   - Spawns: `alignment-reviewer.md`, `feasibility-reviewer.md`
+   - Output: change proposal(s), task checklist(s), spec deltas, alignment + feasibility status
 2. **Apply + Review** (`/implement-change`)
    - Spawns: `developer.md`, `code-reviewer.md`
    - Output: code changes, updated tasks, review findings, and fixes
@@ -15,11 +15,11 @@ This folder contains provider-neutral agent definitions used by command-driven w
 
 ## Agent Spawning Map
 
-- **`proposer.md`** — Spawned by: `/propose-change`
-- **`plan-reviewer.md`** — Spawned by: `/propose-change`
+- **`alignment-reviewer.md`** — Spawned by: `/propose`, `/brainstorm` (via `design-to-proposal`)
+- **`feasibility-reviewer.md`** — Spawned by: `/propose`, `/brainstorm` (via `design-to-proposal`)
 - **`developer.md`** — Spawned by: `/implement-change`
 - **`code-reviewer.md`** — Spawned by: `/implement-change`
-- **`research.md`** — Spawned by: `/brainstorm`, `/propose-change`, `/implement-change`
+- **`research.md`** — Spawned by: `/brainstorm`, `/propose`, `/implement-change`
 - **`ui-designer.md`** — Spawned by: `/brainstorm` when UI/UX artifacts are required
 - **`refactor.md`** — Spawned by: `/implement-change` for refactor-only changes
 

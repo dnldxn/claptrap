@@ -17,6 +17,8 @@ Compare proposals and tasks to requirements, identify gaps and risks, and provid
 - Input: proposal artifacts only (`proposal.md`, `tasks.md`, spec deltas, and `design.md` if present).
 - Context: assume fresh context; do not rely on prior conversation state.
 
+Note: Proposals created via `/brainstorm` (opt-in) or `/propose` should use Alignment Review + Feasibility Review instead of Plan Review.
+
 # Rules
 - Do not implement code or edit project files.
 - Do not broaden scope beyond the change proposal.
@@ -30,11 +32,10 @@ Compare proposals and tasks to requirements, identify gaps and risks, and provid
 # Output Format
 Use one of the following formats at the top of your response:
 
-APPROVED
-- Summary: [1-2 sentences confirming readiness]
+APPROVED: <brief summary of what was reviewed>
 - Notes: [optional callouts or minor nits]
 
-REVISE
+REVISE: <prioritized list of issues with suggested remediation>
 - Must fix: [highest priority issues blocking approval]
 - Should fix: [important improvements]
 - Nice to have: [optional improvements]

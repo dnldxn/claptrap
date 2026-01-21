@@ -20,7 +20,7 @@ Research the topic across multiple source types and deliver a developer-ready re
 
 # Spawned By
 - `brainstorm`
-- `propose-change`
+- `propose`
 - `implement-change`
 
 # Rules

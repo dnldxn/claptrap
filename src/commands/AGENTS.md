@@ -9,7 +9,7 @@ This folder contains **command definitions**: structured workflows that agents e
 | Command | Purpose |
 |---------|---------|
 | `brainstorm` | Turn ideas into designs through collaborative dialogue |
-| `propose-change` | Create OpenSpec change proposals from designs |
+| `propose` | Create OpenSpec change proposals from designs |
 | `implement-change` | Implement an approved OpenSpec change |
 | `code-review` | Review changes for correctness, safety, and spec alignment |
 | `archive-change` | Archive a completed change and capture lessons learned |

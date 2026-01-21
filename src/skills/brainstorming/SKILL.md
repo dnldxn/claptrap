@@ -18,6 +18,7 @@ Start by understanding the current project context, then ask questions one at a 
 Load the following skills:
 - `memory`
 - `spawn-subagent`
+- `design-to-proposal`
 
 ## The Process
 
@@ -27,13 +28,13 @@ Load the following skills:
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
-- If external documentation about a library, tool, framework, API, or any other technical topic could be relevant, spawn the Research subagent to research the topic and present the findings. Do not research the topic yourself.
+- If external documentation about a library, tool, framework, API, or any other technical topic could be relevant, spawn the Research subagent to research the topic and present the findings **unless** the user invoked `/brainstorm --no-research`. Do not research the topic yourself.
 
 **Exploring approaches:**
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
-- If codebase context (existing patterns, dependencies, structure) is needed, spawn the Explore subagent to gather it.
+- If codebase context (existing patterns, dependencies, structure) is needed, spawn the Explore subagent to gather it **unless** the user invoked `/brainstorm --no-explore`.
 
 **Presenting the design:**
 - Once you believe you understand what you're building, present the design
@@ -73,10 +74,18 @@ Load the following skills:
 - Create `<feature-slug>` from the design title using kebab-case.
 - Use `.workflow/designs/TEMPLATE.md` as the starting point and populate all relevant sections.
 
+After the design is finalized:
+- If the user invoked `/brainstorm --no-propose`, skip proposal creation entirely and STOP.
+- Otherwise prompt: "Would you like to create an OpenSpec proposal from this design?"
+	- If the user opts in, invoke the `design-to-proposal` skill.
+	- If the user opts out, STOP and remind them they can run `/propose <design-path>` later.
+
 ## Workflow Steps
 
 1. Read memory for relevant past designs/decisions/patterns.
 2. Ask clarifying questions one at a time; spawn Research if external docs could help.
 3. Explore approaches; spawn Explore if codebase context is needed.
 4. Draft and validate the design in sections with user feedback.
-5. Optionally write significant decisions to memory (be selective).
+5. Write final design to `.workflow/designs/<feature-slug>/design.md`.
+6. Optionally create an OpenSpec proposal from the design (see Output).
+7. If any significant decisions were made, write them to memory before stopping (be selective).

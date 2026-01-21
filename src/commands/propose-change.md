@@ -17,7 +17,7 @@ If you are unable to find the design doc, ask for help and STOP.  Acknowledge th
 
 Load the following skills:
 - `memory`
-- `openspec-change-proposal`
+- `openspec`
 - `spawn-subagent`
 
 ## Plan Review

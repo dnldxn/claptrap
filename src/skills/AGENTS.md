@@ -14,10 +14,15 @@ This folder contains **portable "Skills"**: small, reusable playbooks agents can
 - **Purpose**: Read/write/update/delete project memory entries (decisions, patterns, anti-patterns, lessons).
 - **Use when**: You observe a reusable decision/lesson/pattern worth capturing, or need to recall prior choices.
 
-### `openspec-change-proposal`
-- **Path**: `skills/openspec-change-proposal/SKILL.md`
+### `openspec`
+- **Path**: `skills/openspec/SKILL.md`
 - **Purpose**: Draft/apply/archive OpenSpec change proposals and enforce following `openspec/AGENTS.md`.
 - **Use when**: Work involves proposals/specs/plans, implementing an OpenSpec change, or archiving a change.
+
+### `design-to-proposal`
+- **Path**: `skills/design-to-proposal/SKILL.md`
+- **Purpose**: Create OpenSpec proposals from an existing design, then run alignment + feasibility review.
+- **Use when**: You have a design and want to produce one or more reviewed OpenSpec proposals.
 
 ### `spawn-subagent`
 - **Path**: `skills/spawn-subagent/SKILL.md`

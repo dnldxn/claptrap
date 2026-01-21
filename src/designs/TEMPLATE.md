@@ -1,5 +1,5 @@
-<!-- Naming: designs/<feature-slug>/design.md (feature-slug in kebab-case) -->
-<!-- Optional supporting files: designs/<feature-slug>/diagrams/, research.md, notes.md -->
+<!-- Naming: .workflow/designs/<feature-slug>/design.md (feature-slug in kebab-case) -->
+<!-- Optional supporting files: .workflow/designs/<feature-slug>/diagrams/, research.md, notes.md -->
 
 # Design: <Feature Name>
 Date: YYYY-MM-DD
@@ -36,3 +36,6 @@ Describe what we are building and why it matters.
 
 ## Next Steps
 - If approved, create an OpenSpec proposal in `openspec/changes/<change-id>/`.
+
+## OpenSpec Proposals
+- Placeholder: proposals created from this design will be listed here.

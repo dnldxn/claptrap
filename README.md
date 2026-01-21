@@ -30,7 +30,7 @@ chmod +x "$CLAPTRAP_PATH/install.sh"
 
 ```bash
 /brainstorm
-/propose-change <design-id>
+/propose <design-path>
 /implement-change <change-name>
 /code-review <change-name>
 /archive-change <change-name>
@@ -39,8 +39,8 @@ chmod +x "$CLAPTRAP_PATH/install.sh"
 
 ## Designs
 
-Design exploration documents live in `src/designs/`. Use `src/designs/TEMPLATE.md` and
-store new designs at `src/designs/<feature-slug>/design.md` (kebab-case feature slug).
+After installation, design exploration documents live in `.workflow/designs/`. Use `.workflow/designs/TEMPLATE.md` and
+store new designs at `.workflow/designs/<feature-slug>/design.md` (kebab-case feature slug).
 
 ## OpenSpec Commands
 

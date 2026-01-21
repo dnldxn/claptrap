@@ -12,3 +12,8 @@ models:
 ---
 
 Invoke the `brainstorming` skill and follow it exactly as presented to you.
+
+Supports flags:
+- `--no-research`
+- `--no-explore`
+- `--no-propose`

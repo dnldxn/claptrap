@@ -15,7 +15,7 @@ Finish an OpenSpec change by marking all remaining Tasks complete and archiving 
 
 Load the following skills:
 - `memory`
-- `openspec-change-proposal`
+- `openspec`
 
 ## Workflow Steps
 

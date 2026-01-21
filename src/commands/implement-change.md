@@ -19,7 +19,7 @@ Implement an approved OpenSpec change using `tasks.md` as the source of truth. D
 
 Load the following skills:
 - `memory`
-- `openspec-change-proposal`
+- `openspec`
 - `spawn-subagent`
 
 ## Required Reading

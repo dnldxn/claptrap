@@ -208,11 +208,11 @@ Reference agents by name and describe when they're spawned:
 ```markdown
 ## Agent Spawning Map
 
-- **`proposer.md`** -- Spawned by: `/propose-change`
-- **`plan-reviewer.md`** -- Spawned by: `/propose-change`
+- **`alignment-reviewer.md`** -- Spawned by: `/propose`
+- **`feasibility-reviewer.md`** -- Spawned by: `/propose`
 - **`developer.md`** -- Spawned by: `/implement-change`
 - **`code-reviewer.md`** -- Spawned by: `/implement-change`
-- **`research.md`** -- Spawned by: `/brainstorm`, `/propose-change`, `/implement-change`
+- **`research.md`** -- Spawned by: `/brainstorm`, `/propose`, `/implement-change`
 ```
 
 ### Spawned By Declaration (in Agent Files)
@@ -220,7 +220,7 @@ Reference agents by name and describe when they're spawned:
 ```markdown
 # Spawned By
 - `brainstorm`
-- `propose-change`
+- `propose`
 - `implement-change`
 ```
 
