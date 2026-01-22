@@ -19,7 +19,11 @@ For the full workflow and how agents fit together, see `src/agents/AGENTS.md`.
 
 ## Installation
 
-```bash
+Ask an AI agent to:
+
+```
+Create a new user-specific shell command/alias (called claptrap-install) that executes the following statements:
+
 export CLAPTRAP_PATH="$HOME/projects/claptrap"
 chmod +x "$CLAPTRAP_PATH/install.sh"
 "$CLAPTRAP_PATH/install.sh"
