@@ -1,6 +1,8 @@
 ---
 name: brainstorming
 description: Turn ideas into fully formed designs through collaborative dialogue, memory context, and targeted research.
+metadata:
+   source: https://skills.sh/obra/superpowers/brainstorming
 ---
 
 # Brainstorming Ideas Into Designs

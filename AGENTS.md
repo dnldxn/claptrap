@@ -59,37 +59,38 @@ When adding content, prefer this structure (names can be adjusted, but keep the 
 - **`/src/`** — Installable content (symlinked/copied to target projects)
   - **`/src/agents/`** — Provider-neutral agent definitions.
   - **`/src/commands/`** — Slash command workflows that orchestrate agents.
-  - **`/src/skills/`** — Reusable playbooks for common operations.
+  - **`/src/skills/`** — Reusable playbooks for common operations (includes memory system).
   - **`/src/code-conventions/`** — Code conventions and style guidance.
-  - **`/src/memory/`** — Templates for project memory system.
   - **`/src/designs/`** — Design document templates and examples.
+- **`/bootstrap/`** — Installation scripts and templates for setting up claptrap in target projects.
+- **`/docs/`** — Environment-specific documentation and research notes.
 - **Top-level (this repo only)**
   - `README.md` (human intro)
   - `AGENTS.md` (this doc: operational guidance for agents working on this repo)
-  - `openspec/` (this repo's change management)
-  - `research/`, `experimental/` (internal notes and experiments)
+  - `GOALS.md` (project goals and roadmap)
+  - `experimental/` (internal experiments)
 
 If dotfolders exist (e.g., `.claude`, `.codex`, `.github`, `.opencode`), treat them as **generated adapter outputs** rather than the canonical source. Canonical source should live under `/src/`, then be rendered/copied/symlinked as needed.
 
 
 ## Agent roles (baseline set)
 
-The `README.md` describes a common SDLC chain of roles. Keep the following contract boundaries clear:
+The following agents exist in `/src/agents/`. Keep the contract boundaries clear:
 
-- **UI Designer**
+- **UI Designer** (`ui-designer.md`)
   - Produces UI specs: layouts, components, UX constraints, accessibility notes, states, and acceptance criteria.
-- **Planner**
-  - Produces an implementation plan: sequencing, files to change, risk areas, and rollback plan if applicable.
-- **Plan Approver**
+- **Plan Reviewer** (`plan-reviewer.md`)
   - Checks plan vs. requirements; requests small iterative edits; prevents scope creep.
-- **Developer**
-  - Implements the plan; minimizes unrelated changes; keeps diffs understandable.
-- **Code Reviewer**
+- **Alignment Reviewer** (`alignment-reviewer.md`)
+  - Validates that proposals align with project goals and constraints.
+- **Feasibility Reviewer** (`feasibility-reviewer.md`)
+  - Assesses technical feasibility and identifies implementation risks.
+- **Code Reviewer** (`code-reviewer.md`)
   - Reviews for correctness, security, performance, maintainability, and alignment with plan/spec.
-- **Resolver**
-  - Applies fixes from review; ensures the feedback loop completes.
-- **Refactor**
+- **Refactor** (`refactor.md`)
   - Performs targeted refactors with explicit intent and measurable improvements.
+- **Research** (`research.md`)
+  - Researches documentation and writes concise developer references.
 
 ### Handoffs and artifacts
 

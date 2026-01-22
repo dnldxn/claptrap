@@ -28,3 +28,13 @@ This folder contains **portable "Skills"**: small, reusable playbooks agents can
 - **Path**: `skills/spawn-subagent/SKILL.md`
 - **Purpose**: Spawn a subagent with fresh context and bounded scope, then integrate results back.
 - **Use when**: You need parallel research/exploration/specialized review without polluting the main thread.
+
+### `gemini`
+- **Path**: `skills/gemini/SKILL.md`
+- **Purpose**: Use the Google Gemini CLI to analyze code, review plans, and process large contexts (>200k tokens).
+- **Use when**: Comprehensive code reviews across multiple files, plan reviews, big context analysis, or multi-file pattern analysis.
+
+### `frontend-design`
+- **Path**: `skills/frontend-design/SKILL.md`
+- **Purpose**: Create distinctive, production-grade frontend interfaces with bold aesthetics.
+- **Use when**: Building components, pages, or applications that require visually striking, memorable design with intentional aesthetic direction.

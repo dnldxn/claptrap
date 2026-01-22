@@ -1,3 +1,11 @@
+---
+name: codex
+description: Use the OpenAI Codex CLI to analyze code, plan, and perform other tasks.
+metadata:
+   source: https://skills.sh/softaworks/agent-toolkit/codex
+---
+
+
 # Codex Skill Guide
 
 ## Running a Task

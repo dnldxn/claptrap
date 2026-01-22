@@ -11,4 +11,4 @@ models:
   codex: gpt-5.2-codex
 ---
 
-Invoke the `brainstorming` skill and follow it exactly as presented to you.
+Invoke the `brainstorming` skill and follow it EXACTLY as presented to you.
