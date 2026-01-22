@@ -8,7 +8,7 @@ This folder contains provider-neutral agent definitions used by command-driven w
    - Spawns: `alignment-reviewer.md`, `feasibility-reviewer.md`
    - Output: change proposal(s), task checklist(s), spec deltas, alignment + feasibility status
 2. **Apply + Review** (`/implement-change`)
-   - Spawns: `developer.md`, `code-reviewer.md`
+   - Spawns: `code-reviewer.md`, `refactor.md` (for refactor-only changes)
    - Output: code changes, updated tasks, review findings, and fixes
 3. **Archive** (`/archive-change`)
    - No agent; completes the OpenSpec archive step
@@ -17,7 +17,7 @@ This folder contains provider-neutral agent definitions used by command-driven w
 
 - **`alignment-reviewer.md`** — Spawned by: `/propose`, `/brainstorm` (via `design-to-proposal`)
 - **`feasibility-reviewer.md`** — Spawned by: `/propose`, `/brainstorm` (via `design-to-proposal`)
-- **`developer.md`** — Spawned by: `/implement-change`
+- **`plan-reviewer.md`** — Spawned by: `/propose` for plan validation
 - **`code-reviewer.md`** — Spawned by: `/implement-change`
 - **`research.md`** — Spawned by: `/brainstorm`, `/propose`, `/implement-change`
 - **`ui-designer.md`** — Spawned by: `/brainstorm` when UI/UX artifacts are required

@@ -1,0 +1,5 @@
+# Memories
+
+Project memories captured during development. Agents should read this file for context and add new memories when significant decisions, patterns, or lessons emerge.
+
+---
