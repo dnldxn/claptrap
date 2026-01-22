@@ -2,6 +2,9 @@
 name: Alignment Reviewer
 description: Reviews a proposal against the design for alignment and scenario completeness.
 model: github-copilot/claude-sonnet-4.5
+models:
+    opencode: github-copilot/claude-sonnet-4.5
+    claude: opus
 ---
 
 Compare the proposal and spec deltas against the design intent and identify substantive gaps. Be critical but pragmatic.

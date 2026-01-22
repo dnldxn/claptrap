@@ -2,6 +2,9 @@
 name: Feasibility Reviewer
 description: Reviews a proposal task breakdown for realism, sequencing, and completeness.
 model: github-copilot/claude-sonnet-4.5
+models:
+    opencode: openai/gpt-5.2-codex
+    claude: sonnet
 ---
 
 Evaluate whether the proposal's task breakdown is implementable and realistically sequenced. Be critical but pragmatic.

@@ -3,10 +3,10 @@
 Claptrap Installer - Sets up AI agent workflows for your project.
 
 Usage:
-    python install.py <claptrap-path>
+    cd /path/to/your/project
+    python ~/projects/claptrap/bootstrap/install.py
 """
 
-import argparse
 import re
 import shutil
 import subprocess
@@ -152,26 +152,43 @@ def transform_frontmatter(content: str, provider_key: str) -> str:
     frontmatter = fm_match.group(1)
     rest = content[fm_match.end():]
     
-    # Extract models: block
-    models_match = re.search(r"^models:\n((?:  .+\n)+)", frontmatter, re.MULTILINE)
-    if not models_match:
-        return content
-    
-    # Parse models block
+    # Extract + remove models: block (line-based to handle varying indentation and missing trailing newline)
     models = {}
-    for line in models_match.group(1).strip().split("\n"):
-        m = re.match(r"  (\S+):\s*(.+)", line)
-        if m:
-            models[m.group(1)] = m.group(2).strip()
-    
+    frontmatter_lines = frontmatter.splitlines()
+    kept_lines = []
+    found_models_block = False
+
+    i = 0
+    while i < len(frontmatter_lines):
+        line = frontmatter_lines[i]
+        if re.match(r"^models:\s*$", line):
+            found_models_block = True
+            i += 1
+            while i < len(frontmatter_lines) and re.match(r"^[ \t]+", frontmatter_lines[i]):
+                model_line = frontmatter_lines[i]
+                m = re.match(r"^[ \t]+(\S+):\s*(.+?)\s*$", model_line)
+                if m:
+                    models[m.group(1)] = m.group(2)
+                i += 1
+            continue
+
+        kept_lines.append(line)
+        i += 1
+
+    if not found_models_block:
+        return content
+
     # Get provider-specific model or keep default
     if provider_key in models:
         new_model = models[provider_key]
         # Replace model: line
-        frontmatter = re.sub(r"^model:\s*.+$", f"model: {new_model}", frontmatter, flags=re.MULTILINE)
-    
-    # Remove models: block
-    frontmatter = re.sub(r"^models:\n((?:  .+\n)+)", "", frontmatter, flags=re.MULTILINE)
+        frontmatter = "\n".join(kept_lines)
+        if re.search(r"^model:\s*.*$", frontmatter, flags=re.MULTILINE):
+            frontmatter = re.sub(r"^model:\s*.*$", f"model: {new_model}", frontmatter, count=1, flags=re.MULTILINE)
+        else:
+            frontmatter = (frontmatter + "\n" if frontmatter else "") + f"model: {new_model}"
+    else:
+        frontmatter = "\n".join(kept_lines)
     
     return f"---\n{frontmatter.strip()}\n---{rest}"
 
@@ -320,13 +337,9 @@ def check_serena_mcp(provider_key: str) -> bool | None:
 # Main Installation
 # ============================================================================
 
-parser = argparse.ArgumentParser(description="Install Claptrap AI agent workflows into your project.")
-parser.add_argument("claptrap_path", type=Path, help="Path to the claptrap repository")
-args = parser.parse_args()
-
 header("Claptrap Installer")
 
-claptrap_path = args.claptrap_path.resolve()
+claptrap_path = Path(__file__).resolve().parent.parent
 target_dir = Path.cwd()
 
 info(f"Claptrap path: {claptrap_path}")

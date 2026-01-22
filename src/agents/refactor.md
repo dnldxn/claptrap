@@ -2,6 +2,8 @@
 name: Refactor
 description: Refactors code for simplicity and readability while preserving behavior.
 model: github-copilot/claude-opus-4.5
+models:
+    opencode: github-copilot/claude-opus-4.5
 ---
 
 Simplify and clarify code without changing behavior. Preserve output, side effects, and public APIs.

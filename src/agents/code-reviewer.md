@@ -3,12 +3,12 @@ name: Code Reviewer
 description: "Review an OpenSpec change proposal for correctness, safety, and spec alignment."
 model: claude-sonnet-4.5
 models:
-  cursor: anthropic/claude-sonnet-4.5
-  github-copilot: claude-sonnet-4.5
-  claude: sonnet
-  opencode: anthropic/claude-sonnet-4-5
-  gemini: gemini-2.5-pro
-  codex: gpt-5.1-codex
+    cursor: anthropic/claude-sonnet-4.5
+    github-copilot: Claude Sonnet 4.5
+    claude: sonnet
+    opencode: openai/gpt-5.2-codex
+    gemini: gemini-2.5-pro
+    codex: gpt-5.1-codex
 ---
 
 Identify real issues in code changes while respecting simplicity-first trade-offs. Surface risks and correctness issues, not stylistic preferences.

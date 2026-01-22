@@ -2,6 +2,10 @@
 name: implement-change
 description: "Implement an approved OpenSpec change with bounded review iteration."
 model: openai/gpt-5.2-codex
+models:
+    opencode: openai/gpt-5.2-codex
+    claude: sonnet
+    github-copilot: GPT-5.2-Codex
 ---
 
 ## Overview
@@ -9,7 +13,7 @@ model: openai/gpt-5.2-codex
 Implement an approved OpenSpec change using `tasks.md` as the source of truth. Deliver minimal, correct code changes that follow existing patterns, then run a bounded Code Review cycle to validate correctness, safety, and plan alignment.
 
 **Inputs:**
-- `change-id`: $ARGUMENTS (the approved proposal under `openspec/changes/<change-id>/`)
+- `change-id`: List all of the open OpenSpec changes and let the user pick one.
 
 **Outputs:**
 - Code changes implementing the proposal
