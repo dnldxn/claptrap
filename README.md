@@ -59,7 +59,7 @@ openspec update                    # Update integration
 
 ## Memory System
 
-The repository includes a lightweight memory system for capturing project context, decisions, patterns, anti-patterns, and lessons learned. See `src/skills/memory/SKILL.md` for usage details. The template is at `src/memory/project.md.template`.
+The repository includes a lightweight memory system to capture and retain project decisions, patterns, anti-patterns, and lessons learned. See `src/skills/memory/SKILL.md` for usage details.
 
 ## Old / Deprecated / Reference
 

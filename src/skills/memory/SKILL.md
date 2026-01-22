@@ -1,99 +1,85 @@
 ---
 name: memory
-description: Read and write project memory files for decisions, patterns, and lessons.
+description: Capture and retain project decisions, patterns, anti-patterns, and lessons learned.
 ---
 
 # Memory Skill
 
 ## What this skill does
-Provides a lightweight memory system that lets agents record and retrieve project context, decisions, patterns, anti-patterns, and lessons.
+
+Provides a lightweight memory system that lets agents record and retrieve project decisions, patterns, anti-patterns, and lessons in a single file (`.workflow/memories.md`).
 
 ## When to activate
-Trigger this skill when **you (the agent)** believe project memory should be **read, written, updated, or deleted**.
+
+Trigger this skill when **you (the agent)** need to **read or write** project memory.
 
 ### Agent autonomy rules
+
 - **Do not wait for the user to ask** to record or maintain memory. Decide proactively.
-- **Be selective**: only write memory that is likely to be reused in future work (avoid transient notes).
-- **Prefer update over duplication**: if a memory already exists, update it instead of writing a new, overlapping entry.
-- **Prefer update over delete**: delete only when an entry is clearly incorrect, redundant, or harmful.
-- **Never store secrets**: do not write API keys, tokens, credentials, private customer data, or copied logs that may contain sensitive information.
+- **Generate then filter**: At the end of significant work, always generate 1-3 candidate memories, then critically evaluate each one.
+- **Be selective**: For each candidate, ask "Would this help a future agent working on this codebase?" Only add memories that pass this bar — it's okay to reject all candidates.
+- **Prefer update over duplication**: If a memory already exists on the topic, update it instead of adding a new entry.
+- **Prefer update over delete**: Delete only when an entry is clearly incorrect, redundant, or harmful.
+- **Never store secrets**: Do not write API keys, tokens, credentials, private customer data, or logs that may contain sensitive information.
 
-### Common activation signals (agent-observed)
+### Common activation signals
+
 - A **non-obvious decision** was made (trade-off, constraint, convention) that future work could accidentally undo.
-- A **pattern** emerged that should be repeated (e.g., “how we structure prompts”, “how we name change IDs”).
-- An **anti-pattern** caused avoidable pain and should be prevented going forward.
-- A **lesson** was learned after implementing/reviewing/debugging a change.
-- You need to **recall** prior choices (“what did we decide about X?”) to avoid re-litigating or conflicting guidance.
+- A **pattern** emerged that should be repeated.
+- An **anti-pattern** caused avoidable pain and should be prevented.
+- A **lesson** was learned after implementing, reviewing, or debugging a change.
+- You need to **recall** prior choices to avoid conflicting guidance.
 
-## Memory-read operation
+## File location
 
-**Inputs**
-- `query` (string): what to search for
-- `types` (optional list): `decision`, `pattern`, `anti-pattern`, `lesson`
-- `tags` (optional list): tag filters
-- `limit` (optional int, default 5): maximum results
+All memories live in a single file: `.workflow/memories.md`
 
-**Behavior rules**
-- Always include `.memory/project.md` in results.
-- Match by title, tags, and content.
-- Return most recent matches first.
+## Memory format
 
-## Memory-write operation
+```markdown
+# Memories
 
-**Inputs**
-- `type` (string): `decision`, `pattern`, `anti-pattern`, `lesson`
-- `title` (string): descriptive name
-- `context` (string): what prompted this
-- `summary` (string): 2-3 sentences, standalone
-- `details` (string): concise explanation
-- `tags` (list): relevant tags
-- `related` (optional string): change-id or design slug
+Project memories captured during development. Agents should read this file for context and add new memories when significant decisions, patterns, or lessons emerge.
 
-**Behavior rules**
-- Auto-generate filename as `YYYY-MM-DD-<slug>.md`.
-- Place file in the matching subdirectory under `.workflow/memory/`.
-- Validate that `details` does not exceed 150 words.
-- Validate that `summary` can stand alone without `details`.
+---
 
-## Memory-update operation
+## Use batch inserts for large datasets
+Type: pattern | Date: 2025-01-15 | Tags: database, performance
 
-Use this when an existing memory is **still the right topic** but the content is outdated, incomplete, or contradicted by a newer decision.
+Bulk operations are 10x faster than individual inserts. Always batch when inserting more than 100 rows.
 
-**Inputs**
-- `path` (string): path to the existing `.workflow/memory` file to update
-- `context` (string): what changed and why this update is needed
-- `summary` (string): updated 2-3 sentence standalone summary
-- `details` (string): updated details (still \<= 150 words)
-- `tags` (list): updated tags (add/remove as needed)
-- `related` (optional string): change-id or design slug
+---
+```
 
-**Behavior rules**
-- Keep the existing filename (do not “rename by date”).
-- If the file has frontmatter, preserve `Date:` and add `Updated: YYYY-MM-DD` (or update it if it already exists).
-- If the old content is now wrong, replace it (don’t append long “history” sections).
-- Avoid making multiple near-duplicate memories; consolidate into the best single entry.
+### Format rules
 
-## Memory-delete operation
+- **Heading**: `## <descriptive title>` — use imperative or declarative statement
+- **Metadata line**: `Type: <type> | Date: YYYY-MM-DD | Tags: tag1, tag2`
+- **Body**: 1-3 sentences, standalone (understandable without external context)
+- **Separator**: `---` between entries
+- **Ordering**: Newest entries at the top (after the file header)
 
-Use this only when a memory entry is clearly **incorrect**, **duplicative**, or **actively misleading**.
+### Valid types
 
-**Inputs**
-- `path` (string): path to the `.workflow/memory` file to delete
-- `reason` (string): brief explanation for why deletion is the right action
+| Type | When to use |
+| --- | --- |
+| decision | Significant trade-offs or choices |
+| pattern | Approaches that worked well |
+| anti-pattern | Approaches to avoid |
+| lesson | Post-change learnings |
 
-**Behavior rules**
-- Prefer **update** if the memory is mostly correct but needs revision.
-- Prefer **update + merge** if two memories overlap (choose the better entry to keep, delete the other).
+## How to edit
 
-## Conciseness rules
-- Summary must be understandable without reading Details.
-- Details must be 150 words or fewer.
-- Prefer linking to deeper context instead of repeating it.
+- **Read**: Open `.workflow/memories.md` and scan for relevant context
+- **Add**: Insert new entry at the top (after the header section), with `---` separator
+- **Update**: Edit the existing entry in place
+- **Delete**: Remove the entry and its separator (only when incorrect, redundant, or misleading)
 
-## Memory type reference
-| Type | Folder | When to use |
-| --- | --- | --- |
-| decision | `.workflow/memory/decisions/` | Significant trade-offs or choices |
-| pattern | `.workflow/memory/patterns/` | Approaches that worked well |
-| anti-pattern | `.workflow/memory/anti-patterns/` | Approaches to avoid |
-| lesson | `.workflow/memory/lessons/` | Post-change learnings |
+## Generate-then-filter workflow
+
+At the end of significant work:
+
+1. **Generate candidates (Required)** — Generate 1-3 potential memories from the work just completed
+2. **Critically evaluate** — For each candidate, ask: "Would this help a future agent working on this codebase?"
+3. **Be selective** — Only add memories that pass the bar; it's fine to generate candidates and reject all of them
+4. **Write survivors** — Add any memories that passed evaluation to `.workflow/memories.md`

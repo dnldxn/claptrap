@@ -18,16 +18,23 @@ openspec update                             # OR upgrade existing OpenSpec
 # Step 2 - Initialize .workflow Directory
 
 ```bash
-mkdir -p .workflow/{code-conventions,designs,memory}
+mkdir -p .workflow/{code-conventions,designs}
 
 cp -rf "$CLAPTRAP_PATH"/src/code-conventions/* .workflow/code-conventions/
-cp -f "$CLAPTRAP_PATH"/src/memory/TEMPLATE.md .workflow/memory/
-cp -n "$CLAPTRAP_PATH"/src/memory/project.md.template .workflow/memory/project.md
 cp -f "$CLAPTRAP_PATH"/src/designs/TEMPLATE.md .workflow/designs/
 cp -rf "$CLAPTRAP_PATH"/src/designs/example-feature .workflow/designs/
-```
 
-If `.workflow/memory/project.md` was newly created (did not exist before), analyze the target project and fill it in.  If it already existed, do not modify it.
+# Create memories.md if it doesn't exist
+if [ ! -f .workflow/memories.md ]; then
+  cat > .workflow/memories.md << 'EOF'
+# Memories
+
+Project memories captured during development. Agents should read this file for context and add new memories when significant decisions, patterns, or lessons emerge.
+
+---
+EOF
+fi
+```
 
 # Step 3 - Copy Agents, Commands, Skills to Provider Directory
 

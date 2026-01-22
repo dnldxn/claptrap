@@ -16,8 +16,7 @@ Input:
 
 Outputs:
 - Archived change under `openspec/changes/archive/`
-- Updated specs (unless `--skip-specs` is used)
-- Lessons learned entry written to memory
+- Updated specs
 
 ## Task Completion
 
@@ -50,15 +49,8 @@ Load the following skills:
 ## Workflow Steps
 
 1. Read `tasks.md` and mark any open tasks complete.
-2. Archive the OpenSpec change proposal (pass `--skip-specs` if provided).
+2. Archive the OpenSpec change proposal.
 3. Run post-archive validation.
-4. Optionally write lessons learned to memory (be selective).
+4. Use the `memory` skill to determine if memories should be captured.
 5. Update design doc status if applicable.
 6. STOP.
-
-## Flags
-
-`--skip-specs`: Pass through when archiving tooling-only changes.
-
-Example:
-- `/openspec-archive add-linting --skip-specs`
