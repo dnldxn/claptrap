@@ -10,9 +10,9 @@
 - **Trust your own code**: Save error handling for external boundaries
 
 # Project Rules
+- **BEFORE** you start any work, you are **strictly required** to list all available Skills, then load any that are relevant to the task at hand.  If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.  IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.  This is not optional.
 - If anything is unclear, ask the user for clarification until satisfied. Do not proceed until you have a clear understanding of the requirements.
-- Instructions that are directly provided should supersede any other instructions loaded later.
-- If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.  IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.  This is not optional.
+- Instructions that are directly provided should supersede any other instructions loaded later. 
 
 # Project Code Conventions / Style Guides
 You are **strictly required** to read and adhere to the project code conventions in the `.workflow/code-conventions/` directory.

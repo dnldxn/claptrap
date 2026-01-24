@@ -34,6 +34,43 @@ alias claptrap-install='python3 "$HOME/projects/claptrap/bootstrap/install.py"'
 See `bootstrap/README.md` for detailed installation options and environment-specific setup.
 
 
+## OpenCode Setup
+
+```bash
+# OpenAI Codex adapter for OpenCode
+# https://github.com/numman-ali/opencode-openai-codex-auth
+npx -y opencode-openai-codex-auth@latest
+
+# Cursor adapter for OpenCode
+# https://github.com/POSO-PocketSolutions/opencode-cursor-auth
+opencode run --model=opencode/minimax-m2.1-free "Install the Cursor adapter for OpenCode.  Instructions: https://github.com/POSO-PocketSolutions/opencode-cursor-auth?tab=readme-ov-file#install"
+
+opencode auth login
+# For Cursor:
+# - Select provider: Other
+# - Provider id: cursor
+# - Method: Login via cursor-agent (opens browser)
+
+```
+
+## Zed IDE
+
+Click the "+ Add Agent" -> "Add Custom Agent", then add this to the "agent_servers" section:
+```json
+    "Cursor": {
+      "type": "custom",
+      "command": "npx",
+      "args": ["@blowmage/cursor-agent-acp"],
+      "env": {},
+    },
+    "Copilot": {
+      "type": "custom",
+      "command": "copilot",
+      "args": ["--acp"],
+      "env": {},
+    },
+```
+
 ## Usage
 
 ```bash
