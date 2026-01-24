@@ -13,4 +13,4 @@ package-lock.json
 .gemini/
 .workflow/
 .serena/
-openspec/
+/openspec/
