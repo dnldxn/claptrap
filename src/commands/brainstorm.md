@@ -12,3 +12,5 @@ models:
 ---
 
 Invoke the `brainstorming` skill and follow it EXACTLY as presented to you.
+
+**User Idea:** $ARGUMENTS

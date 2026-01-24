@@ -186,15 +186,50 @@ This is a TypeScript monorepo using pnpm workspaces.
 
 ### Available Models
 
-Models vary by subscription and region. Common models include:
+> **Note**: For the complete and current list of supported models, visit:  
+> https://docs.github.com/en/copilot/reference/ai-models/supported-models#supported-ai-models-in-copilot
 
-| Model | Description |
-|-------|-------------|
-| `claude-sonnet-4` | Claude Sonnet 4 (default for Coding Agent) |
-| `claude-sonnet-4.5` | Claude Sonnet 4.5 |
-| `gpt-4o` | GPT-4o |
-| `gpt-4-turbo` | GPT-4 Turbo |
+Models vary by subscription, plan, and region. Supported models include:
+
+**Anthropic:**
+| Model | Notes |
+|-------|-------|
+| `claude-opus-4.5` | Latest Opus |
+| `claude-opus-4.1` | Closing down: 2026-02-17 |
+| `claude-sonnet-4.5` | Latest Sonnet |
+| `claude-sonnet-4` | Default for Coding Agent |
+| `claude-haiku-4.5` | Latest Haiku |
+
+**OpenAI:**
+| Model | Notes |
+|-------|-------|
+| `gpt-5.2` | Latest GPT-5 |
+| `gpt-5.2-codex` | Codex variant |
+| `gpt-5.1` | GPT-5.1 |
+| `gpt-5.1-codex` | Codex variant |
+| `gpt-5.1-codex-max` | High-capacity Codex |
+| `gpt-5.1-codex-mini` | Lightweight Codex (public preview) |
+| `gpt-5` | Closing down: 2026-02-17 |
+| `gpt-5-codex` | Closing down: 2026-02-17 |
+| `gpt-5-mini` | Lightweight model |
+| `gpt-4.1` | GPT-4.1 |
+
+**Google:**
+| Model | Notes |
+|-------|-------|
+| `gemini-3-pro` | Latest Gemini Pro (public preview) |
+| `gemini-3-flash` | Latest Gemini Flash (public preview) |
 | `gemini-2.5-pro` | Gemini 2.5 Pro |
+
+**xAI:**
+| Model | Notes |
+|-------|-------|
+| `grok-code-fast-1` | Complimentary access (extension ongoing) |
+
+**Fine-tuned:**
+| Model | Notes |
+|-------|-------|
+| `raptor-mini` | Fine-tuned GPT-5 mini (public preview) |
 
 ### Model Specification Syntax
 
@@ -402,7 +437,23 @@ copilot \
 
 ---
 
-## 8. Additional Features
+## 8. MCP Server Integration
+
+Connect to external tools and data sources through MCP servers.  See `bootstrap/mcp_setup.md` for instructions on how to install and configure various MCP Servers in each environment.
+
+### Managing MCP Tools
+
+Use the `--allow-tool` and `--deny-tool` flags to control MCP server tool access:
+
+```bash
+copilot --allow-tool 'My-MCP-Server' # Allow all tools from an MCP server
+copilot --allow-tool 'My-MCP-Server(tool_name)' # Allow specific tool from an MCP server
+copilot --deny-tool 'My-MCP-Server(tool_name)' # Deny specific tool from an MCP server
+```
+
+---
+
+## 9. Additional Features
 
 ### Custom Instructions Hierarchy
 
@@ -416,27 +467,6 @@ Instructions are loaded in order of specificity:
 - Stores context per repository
 - Remembers decisions and patterns
 - Available in public preview
-
-### MCP Server Integration
-
-Configure MCP servers in `~/.copilot/mcp-config.json`:
-
-```json
-{
-  "servers": {
-    "my-database": {
-      "url": "http://localhost:8080",
-      "tools": ["query", "insert", "update"]
-    }
-  }
-}
-```
-
-Or via slash command:
-
-```bash
-/mcp add my-server http://localhost:8080
-```
 
 ### Hooks
 
@@ -463,7 +493,7 @@ Supported in:
 
 ---
 
-## Quick Reference
+## 10. Quick Reference
 
 ### Command Cheatsheet
 
@@ -499,7 +529,8 @@ copilot --resume
 | Repo instructions | `.github/copilot-instructions.md` |
 | Path instructions | `.github/instructions/*.instructions.md` |
 | Agent instructions | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` |
-| MCP config | `~/.copilot/mcp-config.json` |
+| MCP config (user) | `~/.copilot/mcp-config.json` |
+| MCP config (project) | `.copilot/mcp-config.json` |
 
 ### Agent Frontmatter Template
 

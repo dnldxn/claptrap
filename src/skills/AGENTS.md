@@ -38,3 +38,8 @@ This folder contains **portable "Skills"**: small, reusable playbooks agents can
 - **Path**: `skills/frontend-design/SKILL.md`
 - **Purpose**: Create distinctive, production-grade frontend interfaces with bold aesthetics.
 - **Use when**: Building components, pages, or applications that require visually striking, memorable design with intentional aesthetic direction.
+
+### `snowflake`
+- **Path**: `skills/snowflake/SKILL.md`
+- **Purpose**: Execute SQL queries against Snowflake databases and maintain a data dictionary of queried tables.
+- **Use when**: Querying, retrieving, or exploring data in Snowflake.

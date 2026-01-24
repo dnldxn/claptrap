@@ -33,6 +33,9 @@ alias claptrap-install='python3 "$HOME/projects/claptrap/bootstrap/install.py"'
 
 See `bootstrap/README.md` for detailed installation options and environment-specific setup.
 
+## MCP Servers
+
+See `bootstrap/mcp_setup.md` for instructions on how to install and configure various MCP Servers in each environment.
 
 ## OpenCode Setup
 
@@ -43,15 +46,13 @@ npx -y opencode-openai-codex-auth@latest
 
 # Cursor adapter for OpenCode
 # https://github.com/POSO-PocketSolutions/opencode-cursor-auth
-opencode run --model=opencode/minimax-m2.1-free "Install the Cursor adapter for OpenCode.  Instructions: https://github.com/POSO-PocketSolutions/opencode-cursor-auth?tab=readme-ov-file#install"
+opencode run --model=anthropic/claude-haiku-4-5 "Install the Cursor adapter for OpenCode.  Instructions: https://github.com/POSO-PocketSolutions/opencode-cursor-auth?tab=readme-ov-file#install"
 
 opencode auth login
 # For Cursor:
 # - Select provider: Other
 # - Provider id: cursor
 # - Method: Login via cursor-agent (opens browser)
-
-```
 
 ## Zed IDE
 

@@ -392,34 +392,14 @@ claude --permission-mode plan
 - Toggle in session: `Shift+Tab`
 
 ### MCP (Model Context Protocol)
-Connect to external tools and data sources:
+
+Connect to external tools and data sources through MCP servers.  See `bootstrap/mcp_setup.md` for instructions on how to install and configure various MCP Servers in each environment.
+
+**Managing MCP Servers:**
 ```bash
-# Add HTTP server
-claude mcp add --transport http notion https://mcp.notion.com/mcp
-
-# Add stdio server
-claude mcp add --transport stdio db -- npx -y @bytebase/dbhub --dsn "postgresql://..."
-
-# Manage servers
 claude mcp list
 claude mcp get github
 claude mcp remove github
-/mcp  # In Claude Code
-```
-
-**Configuration (`.mcp.json`):**
-```json
-{
-  "mcpServers": {
-    "api-server": {
-      "type": "http",
-      "url": "${API_BASE_URL}/mcp",
-      "headers": {
-        "Authorization": "Bearer ${API_KEY}"
-      }
-    }
-  }
-}
 ```
 
 ### LSP Servers (`.lsp.json`)

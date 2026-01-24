@@ -68,9 +68,6 @@ PROVIDERS = {
     "opencode": {
         "name": "OpenCode",
         "dir": ".opencode",
-        "agents_dir": "agent",
-        "commands_dir": "command",
-        "skills_dir": "skill",
         "mcp_cmd": ["opencode", "mcp", "list"],
     },
     "claude": {
@@ -462,6 +459,12 @@ step(7, "Checking Tools")
 # ripgrep
 if check_ripgrep(): success("ripgrep (rg) is installed")
 else: warning("ripgrep not found - install from https://github.com/BurntSushi/ripgrep")
+
+
+# MCP
+# ```bash
+# claude --model haiku --tools "WebFetch,Edit,Read,Bash" -p "$(cat mcp_setup.md)"
+# ```
 
 # Serena MCP
 serena_status = check_serena_mcp(provider_key)
