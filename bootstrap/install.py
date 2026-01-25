@@ -41,7 +41,7 @@ def step(num: int, msg: str) -> None:
     print(f"\n{Colors.BOLD}[{num}]{Colors.RESET} {msg}")
 
 # ============================================================================
-# Skill Installation Configuration
+# Installation Configuration
 # ============================================================================
 
 GLOBAL_SKILLS = [
@@ -66,6 +66,8 @@ GLOBAL_SKILLS = [
     #     "skill": "subagent-driven-development",
     # },
 ]
+
+MCP_SERVERS = ['serena', 'context7', 'snowflake']
 
 # ============================================================================
 # Provider Configuration (Data-Driven)
@@ -115,7 +117,7 @@ PROVIDERS = {
 }
 
 # Provider key order for menu display
-PROVIDER_ORDER = ["cursor", "github-copilot", "opencode", "claude", "codex", "gemini"]
+PROVIDER_ORDER = ["opencode", "cursor", "github-copilot", "claude", "codex", "gemini"]
 
 def get_provider(key: str) -> dict:
     """Get provider config merged with defaults."""
@@ -343,8 +345,8 @@ def check_ripgrep() -> bool:
     """Check if ripgrep is installed."""
     return shutil.which("rg") is not None
 
-def check_serena_mcp(provider_key: str) -> bool | None:
-    """Check if Serena MCP is configured. Returns None if can't check."""
+def check_mcp_server(provider_key: str, server_name: str) -> bool | None:
+    """Check if an MCP server is configured. Returns None if can't check."""
     cfg = get_provider(provider_key)
     mcp_cmd = cfg.get("mcp_cmd")
     
@@ -353,9 +355,13 @@ def check_serena_mcp(provider_key: str) -> bool | None:
     try:
         result = run_cmd(mcp_cmd)
         if result.returncode == 0:
-            return "serena" in result.stdout.lower()
+            return server_name.lower() in result.stdout.lower()
     except FileNotFoundError: pass  # CLI not installed
     return None
+
+def check_serena_mcp(provider_key: str) -> bool | None:
+    """Check if Serena MCP is configured. Returns None if can't check."""
+    return check_mcp_server(provider_key, "serena")
 
 def install_global_skills() -> tuple[int, int]:
     """Install global skills from configured list. Returns (success_count, total_count)."""
@@ -509,21 +515,18 @@ step(8, "Checking Tools")
 if check_ripgrep(): success("ripgrep (rg) is installed")
 else: warning("ripgrep not found - install from https://github.com/BurntSushi/ripgrep")
 
+# Step 9: Check MCP servers
+step(9, "Checking MCP Servers")
 
-# MCP
-# ```bash
-# claude --model haiku --tools "WebFetch,Edit,Read,Bash" -p "$(cat mcp_setup.md)"
-# ```
-
-# Serena MCP
-serena_status = check_serena_mcp(provider_key)
-if serena_status is True: success("Serena MCP is configured")
-elif serena_status is False:
-    warning("Serena MCP not configured")
-    print(f"\n  {Colors.DIM}To install, ask your AI assistant:{Colors.RESET}")
-    print(f"  {Colors.CYAN}Install and configure Serena MCP for {cfg['name']}{Colors.RESET}")
-    print(f"  {Colors.DIM}Docs: https://oraios.github.io/serena/02-usage/030_clients.html{Colors.RESET}")
-else: info(f"Could not check Serena MCP status for {cfg['name']}")
+for server in MCP_SERVERS:
+    status = check_mcp_server(provider_key, server)
+    if status is True:
+        success(f"{server} MCP is configured")
+    elif status is False:
+        warning(f"{server} MCP not configured")
+        print(f"\n  {Colors.DIM}To install, ask your AI assistant:{Colors.RESET}")
+    else:
+        info(f"Could not check {server} MCP status for {cfg['name']}")
 
 # Done
 header("Installation Complete! 🎉")
