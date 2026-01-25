@@ -7,7 +7,7 @@ description: Capture and retain project decisions, patterns, anti-patterns, and 
 
 ## What this skill does
 
-Provides a lightweight memory system that lets agents record and retrieve project decisions, patterns, anti-patterns, and lessons in a single file (`.workflow/memories.md`).
+Provides a lightweight memory system that lets agents record and retrieve project decisions, patterns, anti-patterns, and lessons in a single file (`.claptrap/memories.md`).
 
 ## When to activate
 
@@ -32,7 +32,7 @@ Trigger this skill when **you (the agent)** need to **read or write** project me
 
 ## File location
 
-All memories live in a single file: `.workflow/memories.md`
+All memories live in a single file: `.claptrap/memories.md`
 
 ## Memory format
 
@@ -70,7 +70,7 @@ Bulk operations are 10x faster than individual inserts. Always batch when insert
 
 ## How to edit
 
-- **Read**: Open `.workflow/memories.md` and scan for relevant context
+- **Read**: Open `.claptrap/memories.md` and scan for relevant context
 - **Add**: Insert new entry at the top (after the header section), with `---` separator
 - **Update**: Edit the existing entry in place
 - **Delete**: Remove the entry and its separator (only when incorrect, redundant, or misleading)
@@ -82,4 +82,4 @@ At the end of significant work:
 1. **Generate candidates (Required)** — Generate 1-3 potential memories from the work just completed
 2. **Critically evaluate** — For each candidate, ask: "Would this help a future agent working on this codebase?"
 3. **Be selective** — Only add memories that pass the bar; it's fine to generate candidates and reject all of them
-4. **Write survivors** — Add any memories that passed evaluation to `.workflow/memories.md`
+4. **Write survivors** — Add any memories that passed evaluation to `.claptrap/memories.md`

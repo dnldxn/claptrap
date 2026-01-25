@@ -9,7 +9,7 @@ proposals, so brainstorm output is discoverable and reusable.
 
 ## Scope
 ### In Scope
-- Add a top-level `.workflow/designs/` directory for design artifacts.
+- Add a top-level `.claptrap/designs/` directory for design artifacts.
 - Provide a reusable template for future design docs.
 - Include an example design that demonstrates each section.
 
@@ -18,15 +18,15 @@ proposals, so brainstorm output is discoverable and reusable.
 - Enforcing a specific diagram tool or format.
 
 ## Acceptance Criteria
-- [ ] `.workflow/designs/TEMPLATE.md` exists with all required sections.
-- [ ] `.workflow/designs/<feature-slug>/design.md` is the documented structure.
+- [ ] `.claptrap/designs/TEMPLATE.md` exists with all required sections.
+- [ ] `.claptrap/designs/<feature-slug>/design.md` is the documented structure.
 - [ ] Example design demonstrates realistic content for every section.
 
 ## Architecture Overview
 ### Components
-- `.workflow/designs/`: Root directory for all design exploration.
-- `.workflow/designs/TEMPLATE.md`: Standardized template for new designs.
-- `.workflow/designs/example-feature/`: Reference example for contributors.
+- `.claptrap/designs/`: Root directory for all design exploration.
+- `.claptrap/designs/TEMPLATE.md`: Standardized template for new designs.
+- `.claptrap/designs/example-feature/`: Reference example for contributors.
 
 ### Data Flow Diagram
 - Placeholder: add a simple flow diagram showing brainstorm -> design -> proposal.
@@ -34,7 +34,7 @@ proposals, so brainstorm output is discoverable and reusable.
 ## Key Decisions
 | Choice | Rationale |
 | --- | --- |
-| Use `.workflow/designs/<feature-slug>/design.md` | Keeps content grouped by feature. |
+| Use `.claptrap/designs/<feature-slug>/design.md` | Keeps content grouped by feature. |
 | Include a template | Reduces setup time and increases consistency. |
 
 ## Open Questions

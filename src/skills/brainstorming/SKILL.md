@@ -70,9 +70,9 @@ Load the following skills:
 
 ## Output
 
-- Write the final design to `.workflow/designs/<feature-slug>/design.md`.
+- Write the final design to `.claptrap/designs/<feature-slug>/design.md`.
 - Create `<feature-slug>` from the design title using kebab-case.
-- Use `.workflow/designs/TEMPLATE.md` as the starting point and populate all relevant sections.
+- Use `.claptrap/designs/TEMPLATE.md` as the starting point and populate all relevant sections.
 
 After the design is finalized prompt: "Would you like to create an OpenSpec proposal from this design?"
 	- If the user opts in, invoke the `design-to-proposal` skill.
@@ -84,6 +84,6 @@ After the design is finalized prompt: "Would you like to create an OpenSpec prop
 2. Ask clarifying questions one at a time; spawn Research if external docs could help.
 3. Explore approaches; spawn Explore if codebase context is needed.
 4. Draft and validate the design in sections with user feedback.
-5. Write final design to `.workflow/designs/<feature-slug>/design.md`.
+5. Write final design to `.claptrap/designs/<feature-slug>/design.md`.
 6. Optionally create an OpenSpec proposal from the design (see Output).
 7. Use the `memory` skill to determine if memories should be captured.

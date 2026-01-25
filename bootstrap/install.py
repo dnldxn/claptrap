@@ -41,6 +41,33 @@ def step(num: int, msg: str) -> None:
     print(f"\n{Colors.BOLD}[{num}]{Colors.RESET} {msg}")
 
 # ============================================================================
+# Skill Installation Configuration
+# ============================================================================
+
+GLOBAL_SKILLS = [
+    {
+        "repo": "https://github.com/anthropics/skills",
+        "skill": "skill-creator",
+    },
+    {
+        "repo": "https://github.com/anthropics/skills",
+        "skill": "frontend-design",
+    },
+    # {
+    #     "repo": "https://github.com/softaworks/agent-toolkit",
+    #     "skill": "codex",
+    # },
+    # {
+    #     "repo": "https://github.com/obra/superpowers",
+    #     "skill": "brainstorming",
+    # },
+    # {
+    #     "repo": "https://github.com/obra/superpowers",
+    #     "skill": "subagent-driven-development",
+    # },
+]
+
+# ============================================================================
 # Provider Configuration (Data-Driven)
 # ============================================================================
 
@@ -259,7 +286,7 @@ def update_gitignore(target_dir: Path) -> None:
         ".gemini/",
         ".github/",
         ".opencode/",
-        ".workflow/",
+        ".claptrap/",
         ".serena/",
     ]
     
@@ -330,6 +357,18 @@ def check_serena_mcp(provider_key: str) -> bool | None:
     except FileNotFoundError: pass  # CLI not installed
     return None
 
+def install_global_skills() -> tuple[int, int]:
+    """Install global skills from configured list. Returns (success_count, total_count)."""
+    success_count = 0
+    
+    for skill in GLOBAL_SKILLS:
+        info(f"Installing {skill['skill']} from {skill['repo']}...")
+        result = run_cmd(["npx", "skills", "add", "--yes", "--global", skill["repo"], "--skill", skill["skill"]])
+        if result.returncode == 0: success_count += 1
+        else: warning(f"Failed to install {skill['skill']}")
+    
+    return success_count, len(GLOBAL_SKILLS)
+
 # ============================================================================
 # Main Installation
 # ============================================================================
@@ -389,9 +428,19 @@ result = run_cmd(cmd, capture=False)
 if result.returncode == 0: success(f"OpenSpec {action}")
 else: warning(f"openspec {cmd[1]} failed (exit code {result.returncode}) - {fallback}")
 
-# Step 3: Create .workflow directory
-step(3, "Workflow Directory Setup")
-workflow_dir = target_dir / ".workflow"
+# Step 3: Install global skills
+step(3, "Installing Global Skills")
+success_count, total_count = install_global_skills()
+if success_count == total_count:
+    success(f"Installed {success_count}/{total_count} global skills")
+elif success_count > 0:
+    warning(f"Installed {success_count}/{total_count} global skills (some failed)")
+else:
+    warning("No skills were installed successfully")
+
+# Step 4: Create .claptrap directory
+step(4, "Workflow Directory Setup")
+workflow_dir = target_dir / ".claptrap"
 
 # Code conventions
 conv_src = claptrap_path / "src" / "code-conventions"
@@ -416,8 +465,8 @@ if not memories_file.exists():
     success("Created memories.md")
 else: info("memories.md already exists, skipping")
 
-# Step 4: Copy agents, commands, skills
-step(4, f"Installing to {cfg['dir']}")
+# Step 5: Copy agents, commands, skills
+step(5, f"Installing to {cfg['dir']}")
 provider_dir = target_dir / cfg["dir"]
 
 # Agents
@@ -445,16 +494,16 @@ success(f"Copied {skills_count} skill files → {cfg['skills_dir']}/")
 # Clean up AGENTS.md/README.md from provider dir (they confuse AI harnesses)
 cleanup_provider_dir(provider_dir)
 
-# Step 5: Update .gitignore
-step(5, "Configuring .gitignore")
+# Step 6: Update .gitignore
+step(6, "Configuring .gitignore")
 update_gitignore(target_dir)
 
-# Step 6: Update AGENTS.md
-step(6, "Updating AGENTS.md")
+# Step 7: Update AGENTS.md
+step(7, "Updating AGENTS.md")
 update_agents_md(target_dir, claptrap_path)
 
-# Step 7: Check tools
-step(7, "Checking Tools")
+# Step 8: Check tools
+step(8, "Checking Tools")
 
 # ripgrep
 if check_ripgrep(): success("ripgrep (rg) is installed")
@@ -480,5 +529,5 @@ else: info(f"Could not check Serena MCP status for {cfg['name']}")
 header("Installation Complete! 🎉")
 print(f"\n  Provider: {Colors.BOLD}{cfg['name']}{Colors.RESET}")
 print(f"  Config:   {Colors.CYAN}{cfg['dir']}/{Colors.RESET}")
-print(f"  Workflow: {Colors.CYAN}.workflow/{Colors.RESET}")
+print(f"  Workflow: {Colors.CYAN}.claptrap/{Colors.RESET}")
 print()

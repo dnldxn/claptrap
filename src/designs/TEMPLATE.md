@@ -1,5 +1,5 @@
-<!-- Naming: .workflow/designs/<feature-slug>/design.md (feature-slug in kebab-case) -->
-<!-- Optional supporting files: .workflow/designs/<feature-slug>/diagrams/, research.md, notes.md -->
+<!-- Naming: .claptrap/designs/<feature-slug>/design.md (feature-slug in kebab-case) -->
+<!-- Optional supporting files: .claptrap/designs/<feature-slug>/diagrams/, research.md, notes.md -->
 
 # Design: <Feature Name>
 Date: YYYY-MM-DD

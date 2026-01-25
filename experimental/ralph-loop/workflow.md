@@ -45,15 +45,15 @@ These are **files and conventions**, not tool-specific configs.
   - **Optional (recommended)**:
     - run automated/unit tests (fast + full), if you have them
     - any safety constraints (“no drive-by refactors”, “no secrets”, etc.)
-- **`.workflow/.code-conventions/`** (repo-local style guides)
+- **`.claptrap/.code-conventions/`** (repo-local style guides)
   - **Purpose**: the *source of truth* for coding style and patterns the implementation agents MUST follow.
-  - **Rule**: implementation agents MUST read and strictly follow any relevant guides in `.workflow/.code-conventions/` (e.g., `.workflow/.code-conventions/python.md`, `.workflow/.code-conventions/snowflake.md`) before making changes.
+  - **Rule**: implementation agents MUST read and strictly follow any relevant guides in `.claptrap/.code-conventions/` (e.g., `.claptrap/.code-conventions/python.md`, `.claptrap/.code-conventions/snowflake.md`) before making changes.
 - **`openspec/`** (OpenSpec specs + change lifecycle artifacts)
   - **Purpose**: the durable statement of intent (“bones”) plus an explicit, reviewable “change folder” for each feature/fix.
   - **Structure**:
     - `openspec/specs/`: current “living” specifications
     - `openspec/changes/`: active changes containing `proposal.md`, `tasks.md`, and spec deltas
-  - **Convenience**: you can add `.workflow/.openspec` as a symlink to `openspec/` for a dot-prefixed alias.
+  - **Convenience**: you can add `.claptrap/.openspec` as a symlink to `openspec/` for a dot-prefixed alias.
 
 ### Optional (recommended) artifacts
 
@@ -73,10 +73,10 @@ Reference for OpenSpec commands: [Fission-AI/OpenSpec](https://github.com/Fissio
 1. **Set paths**
    - `CLAPTRAP_PATH`: absolute path to this repo
    - `PROJECT_PATH`: absolute path to the target project repo
-2. **Symlink `.workflow/.code-conventions/` and create `.workflow/.prompts/` in the project**
+2. **Symlink `.claptrap/.code-conventions/` and create `.claptrap/.prompts/` in the project**
 3. **Ensure the project has a project-specific `AGENTS.md`**
 4. **Install + initialize OpenSpec in the project**
-5. **Create `.workflow/.prompts/` files from the templates in `workflow.md`**
+5. **Create `.claptrap/.prompts/` files from the templates in `workflow.md`**
 6. **Enable agent tools**
    - Required capabilities: filesystem read/write, terminal exec, repo search (`rg`), optional browser/docs
    - If your environment supports MCP, enable MCP servers that provide those capabilities
@@ -97,7 +97,7 @@ cd "$PROJECT_PATH"
 
 # 1) Inject the workflow + conventions (symlinks)
 mkdir -p "$PROJECT_PATH/.workflow"
-ln -sfn "$CLAPTRAP_PATH/code-conventions" "$PROJECT_PATH/.workflow/.code-conventions"
+ln -sfn "$CLAPTRAP_PATH/code-conventions" "$PROJECT_PATH/.claptrap/.code-conventions"
 
 # 2) Ensure AGENTS.md exists (project-specific commands go here)
 if [ ! -f "$PROJECT_PATH/AGENTS.md" ]; then
@@ -115,7 +115,7 @@ if [ ! -f "$PROJECT_PATH/AGENTS.md" ]; then
 ## Safety / constraints
 - No drive-by refactors.
 - No unrelated bugfixes.
-- Follow .workflow/.code-conventions/* strictly.
+- Follow .claptrap/.code-conventions/* strictly.
 EOF
 fi
 
@@ -125,7 +125,7 @@ openspec init
 openspec update
 
 # 4) Create prompt files by extracting the fenced blocks from workflow.md
-mkdir -p "$PROJECT_PATH/.workflow/.prompts"
+mkdir -p "$PROJECT_PATH/.claptrap/.prompts"
 
 extract_prompt () {
   local header="$1" out="$2"
@@ -137,20 +137,20 @@ extract_prompt () {
   ' "$CLAPTRAP_PATH/workflow.md" > "$out"
 }
 
-extract_prompt "^### `\\.workflow/\\.prompts/propose.md`" "$PROJECT_PATH/.workflow/.prompts/propose.md"
-extract_prompt "^### `\\.workflow/\\.prompts/apply.md`"   "$PROJECT_PATH/.workflow/.prompts/apply.md"
-extract_prompt "^### `\\.workflow/\\.prompts/review.md`"  "$PROJECT_PATH/.workflow/.prompts/review.md"
-extract_prompt "^### `\\.workflow/\\.prompts/resolve.md`" "$PROJECT_PATH/.workflow/.prompts/resolve.md"
+extract_prompt "^### `\\.claptrap/\\.prompts/propose.md`" "$PROJECT_PATH/.claptrap/.prompts/propose.md"
+extract_prompt "^### `\\.claptrap/\\.prompts/apply.md`"   "$PROJECT_PATH/.claptrap/.prompts/apply.md"
+extract_prompt "^### `\\.claptrap/\\.prompts/review.md`"  "$PROJECT_PATH/.claptrap/.prompts/review.md"
+extract_prompt "^### `\\.claptrap/\\.prompts/resolve.md`" "$PROJECT_PATH/.claptrap/.prompts/resolve.md"
 
-ln -sfn "$PROJECT_PATH/openspec" "$PROJECT_PATH/.workflow/.openspec"
+ln -sfn "$PROJECT_PATH/openspec" "$PROJECT_PATH/.claptrap/.openspec"
 
 echo "OpenSpec workflow injected."
-echo "- $PROJECT_PATH/.workflow/ (directory)"
-echo "- $PROJECT_PATH/.workflow/.code-conventions/ (symlink)"
+echo "- $PROJECT_PATH/.claptrap/ (directory)"
+echo "- $PROJECT_PATH/.claptrap/.code-conventions/ (symlink)"
 echo "- $PROJECT_PATH/AGENTS.md"
 echo "- $PROJECT_PATH/openspec/ (created by openspec init)"
-echo "- $PROJECT_PATH/.workflow/.prompts/*.md"
-echo "- $PROJECT_PATH/.workflow/.openspec -> $PROJECT_PATH/openspec (symlink)"
+echo "- $PROJECT_PATH/.claptrap/.prompts/*.md"
+echo "- $PROJECT_PATH/.claptrap/.openspec -> $PROJECT_PATH/openspec (symlink)"
 ```
 
 To refresh OpenSpec integration in a project (after upgrading tools or switching IDEs), run:
@@ -192,7 +192,7 @@ project/
   openspec/
     specs/                  # current “living” specs
     changes/                # active changes with proposal/tasks/spec deltas
-  .workflow/
+  .claptrap/
     .code-conventions/
       python.md             # if applicable
       snowflake.md          # if applicable
@@ -208,9 +208,9 @@ project/
 ```
 
 - **`AGENTS.md` (required, repo root)**: operational “how to run this repo” instructions (install/build/typecheck/etc.) and safety constraints.
-- **`.workflow/.code-conventions/` (required)**: style guides that implementation agents MUST read and follow.
-  - **`.workflow/.code-conventions/python.md`**: Python conventions (if the repo contains Python).
-  - **`.workflow/.code-conventions/snowflake.md`**: Snowflake SQL conventions (if the repo contains Snowflake SQL).
+- **`.claptrap/.code-conventions/` (required)**: style guides that implementation agents MUST read and follow.
+  - **`.claptrap/.code-conventions/python.md`**: Python conventions (if the repo contains Python).
+  - **`.claptrap/.code-conventions/snowflake.md`**: Snowflake SQL conventions (if the repo contains Snowflake SQL).
 - **`openspec/specs/` (required)**: the repo’s current “living” specification set.
 - **`openspec/changes/<change>/` (created per change)**: a self-contained unit of work with:
   - `proposal.md`: what/why is changing
@@ -219,9 +219,9 @@ project/
   - `specs/**`: spec deltas to review before archiving
 - **`DECISIONS.md` (optional)**: short record of key tradeoffs/architecture decisions that future agents should not “re-litigate”.
 - **`NOTES.md` (optional)**: scratchpad for non-durable thinking; not meant to be loaded every run.
-- **`.workflow/.prompts/*.md` (optional)**: saved prompt text for OpenSpec propose/apply/review/archive roles.
-  - Purpose: enables “dumb loops” (`<agent-cli> < .workflow/.prompts/apply.md`) and keeps prompts portable.
-  - If your environment uses a different prompt location, treat `.workflow/.prompts/` as the canonical source and copy/symlink as needed.
+- **`.claptrap/.prompts/*.md` (optional)**: saved prompt text for OpenSpec propose/apply/review/archive roles.
+  - Purpose: enables “dumb loops” (`<agent-cli> < .claptrap/.prompts/apply.md`) and keeps prompts portable.
+  - If your environment uses a different prompt location, treat `.claptrap/.prompts/` as the canonical source and copy/symlink as needed.
 
 ---
 
@@ -410,7 +410,7 @@ Archive the change to merge spec deltas into living specs:
 These are **templates** you can paste into any environment that supports prompt files or saved prompts.
 Do not treat the exact wording as magical; the structure is what matters.
 
-### `.workflow/.prompts/propose.md` (OpenSpec Proposal / Planner)
+### `.claptrap/.prompts/propose.md` (OpenSpec Proposal / Planner)
 
 ```text
 ROLE: Planner (OpenSpec Proposal)
@@ -424,7 +424,7 @@ Rules:
 - Do not implement code.
 ```
 
-### `.workflow/.prompts/apply.md` (OpenSpec Apply / Developer)
+### `.claptrap/.prompts/apply.md` (OpenSpec Apply / Developer)
 
 ```text
 ROLE: Developer
@@ -439,7 +439,7 @@ Core principles:
 - If something is ambiguous, stop and ask brief clarifying questions (don’t guess).
 
 Before writing or editing code:
-- read and follow all relevant docs in .workflow/.code-conventions/ (these are mandatory)
+- read and follow all relevant docs in .claptrap/.code-conventions/ (these are mandatory)
 
 Process:
 1) Select the highest priority incomplete task checkbox from tasks.md.
@@ -452,7 +452,7 @@ Stop when:
 - the selected task is complete AND verification passes.
 ```
 
-### `.workflow/.prompts/review.md` (Code Reviewer)
+### `.claptrap/.prompts/review.md` (Code Reviewer)
 
 ```text
 ROLE: Code Reviewer
@@ -462,13 +462,13 @@ Review the changes for correctness, safety, performance, and maintainability.
 Core principles:
 - Simplicity-first: prefer clear working code over complex “best practices”.
 - Focus on real issues; skip minor style preferences and theoretical perfectionism.
-- Enforce `.workflow/.code-conventions/*` strictly.
+- Enforce `.claptrap/.code-conventions/*` strictly.
 - Be specific: file/line oriented, actionable fixes, categorized by priority.
 - Tests are optional; recommend them only when risk/complexity justifies.
 
 Check alignment with:
 - openspec/specs/* and openspec/changes/<change>/specs/* (the intended behavior)
-- .workflow/.code-conventions/* (style/pattern adherence is required)
+- .claptrap/.code-conventions/* (style/pattern adherence is required)
 
 Output in three sections:
 - Must fix
@@ -478,7 +478,7 @@ Output in three sections:
 Do not propose scope expansion unless it is required to meet acceptance criteria.
 ```
 
-### `.workflow/.prompts/resolve.md` (Resolver)
+### `.claptrap/.prompts/resolve.md` (Resolver)
 
 ```text
 ROLE: Resolver
@@ -488,7 +488,7 @@ Apply ONLY the "Must fix" (and any explicitly approved) review items.
 Core principles:
 - Make the smallest change that resolves each issue.
 - Avoid refactors unless required to fix the issue.
-- Follow `.workflow/.code-conventions/*` strictly.
+- Follow `.claptrap/.code-conventions/*` strictly.
 - Ask brief clarifying questions if a review item is ambiguous.
 
 Run verification from AGENTS.md.
@@ -504,7 +504,7 @@ These are patterns you can translate to your tool of choice:
 ```bash
 # Propose loop (run until the OpenSpec change is approved)
 while true; do
-  <agent-cli> < .workflow/.prompts/propose.md
+  <agent-cli> < .claptrap/.prompts/propose.md
   # stop manually when proposal/spec delta/tasks look good
 done
 ```
@@ -512,7 +512,7 @@ done
 ```bash
 # Apply loop (one task per iteration)
 while true; do
-  <agent-cli> < .workflow/.prompts/apply.md
+  <agent-cli> < .claptrap/.prompts/apply.md
   # stop manually when tasks.md has no remaining tasks
 done
 ```

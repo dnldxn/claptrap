@@ -126,6 +126,17 @@ The `context` arg can be one of the following:
 Command: `uvx`
 Args: `--from git+https://github.com/oraios/serena serena start-mcp-server --context <context> --project-from-cwd --open-web-dashboard false`
 
+### context7 MCP
+
+Context7 MCP pulls up-to-date, version-specific documentation and code examples straight from the source — and places them directly into your prompt.
+
+https://github.com/upstash/context7
+
+Command: `npx`
+Args: `-y @upstash/context7-mcp --api-key <api-key>`
+
+The API key is optional, but is recommended for higher rate limits.
+
 ### Snowflake MCP
 
 This Snowflake MCP server provides tooling for Snowflake Cortex AI, object management, and SQL orchestration.  See [Snowflake documentation](https://github.com/Snowflake-Labs/mcp) for more details.

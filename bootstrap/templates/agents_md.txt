@@ -1,6 +1,16 @@
 <!-- CLAPTRAP:START -->
 
-# Core Principles
+# Global AI Rules (Canonical)
+
+## Non-negotiables (Stop-gates).  These are **NOT** optional.
+
+1) If any requirement is unclear or conflicting, STOP and ask questions before acting.
+2) Before making edits, identify the available agent tools/features for this environment (tools/skills/rules/agents/commands) and use the relevant ones.
+3) If project code/style conventions exist at `.claptrap/code-conventions/`, you are **strictly required** to read and adhere to them.  If the directory doesn’t exist, ask where conventions live (don’t guess).
+   - Python: `.claptrap/code-conventions/python.md`
+   - Snowflake SQL (including SQL in code): `.claptrap/code-conventions/snowflake.md`
+
+## Core Coding Principles
 - **Simple over Clever**: Always favor the simplest solution that meets requirements. Avoid over-engineering.
 - **Minimal Complexity**: Reduce moving parts, dependencies, and abstractions to the essential minimum.
 - **Code Quality**: Write maintainable, self-documenting code; follow DRY principles for significant duplications (don't obsess over minor repetition)
@@ -9,15 +19,7 @@
 - **Confident**: Make clear recommendations rather than presenting multiple options
 - **Trust your own code**: Save error handling for external boundaries
 
-# Project Rules
-- **BEFORE** you start any work, you are **strictly required** to list all available Skills, then load any that are relevant to the task at hand.  If you think there is even a 1% chance a skill might apply to what you are doing, you ABSOLUTELY MUST invoke the skill.  IF A SKILL APPLIES TO YOUR TASK, YOU DO NOT HAVE A CHOICE. YOU MUST USE IT.  This is not optional.
-- If anything is unclear, ask the user for clarification until satisfied. Do not proceed until you have a clear understanding of the requirements.
-- Instructions that are directly provided should supersede any other instructions loaded later. 
-
-# Project Code Conventions / Style Guides
-You are **strictly required** to read and adhere to the project code conventions in the `.workflow/code-conventions/` directory.
-
-- For Python code, the conventions are in `.workflow/code-conventions/python.md`.
-- For Snowflake SQL code (including SQL in Python files), the conventions are in `.workflow/code-conventions/snowflake.md`.
+## Misc
+- If available, ask context7 MCP for updated technical documentation when using a new library, framework, or tool
 
 <!-- CLAPTRAP:END -->

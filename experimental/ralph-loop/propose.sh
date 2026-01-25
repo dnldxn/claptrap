@@ -11,7 +11,7 @@ set -euo pipefail
 
 : "${AGENT_CLI:?set AGENT_CLI to your agent CLI command (must accept stdin)}"
 
-PROMPT_FILE="${PROMPT_FILE:-.workflow/.prompts/propose.md}"
+PROMPT_FILE="${PROMPT_FILE:-.claptrap/.prompts/propose.md}"
 
 
 echo "Generating proposal..."

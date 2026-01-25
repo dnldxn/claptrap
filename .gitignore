@@ -12,6 +12,6 @@ package-lock.json
 .claude/
 .codex/
 .gemini/
-.workflow/
+.claptrap/
 .serena/
 /openspec/

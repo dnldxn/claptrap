@@ -8,7 +8,7 @@
 #   AGENT_CLI - the agent CLI command to run (must accept prompt text on stdin)
 #
 # Optional environment variables:
-#   PROMPT_FILE - path to the apply prompt file (default: .workflow/.prompts/apply.md)
+#   PROMPT_FILE - path to the apply prompt file (default: .claptrap/.prompts/apply.md)
 #   MAX_ITERATIONS - maximum number of iterations (default: 10, set to 0 for unlimited)
 #
 # Usage:
@@ -21,7 +21,7 @@
 set -euo pipefail
 
 : "${AGENT_CLI:?set AGENT_CLI to your agent CLI command (e.g., opencode, aider)}"
-PROMPT_FILE="${PROMPT_FILE:-.workflow/.prompts/apply.md}"
+PROMPT_FILE="${PROMPT_FILE:-.claptrap/.prompts/apply.md}"
 MAX_ITERATIONS="${MAX_ITERATIONS:-10}"
 
 if [ ! -f "$PROMPT_FILE" ]; then

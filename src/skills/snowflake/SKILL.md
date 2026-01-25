@@ -15,11 +15,11 @@ Trigger this skill when asked to query, retrieve, or explore data in Snowflake.
 
 ## Data Dictionary
 
-The data dictionary (`.workflow/data_dictionary.md`) tracks tables you've queried, their purpose, and relevant columns.
+The data dictionary (`.claptrap/data_dictionary.md`) tracks tables you've queried, their purpose, and relevant columns.
 
 ### Before querying
 
-**REQUIRED**: You MUST load `.workflow/data_dictionary.md` before executing any SQL query. Do not skip this step.
+**REQUIRED**: You MUST load `.claptrap/data_dictionary.md` before executing any SQL query. Do not skip this step.
 
 1. Read the data dictionary file
 2. Check if your target table is already documented

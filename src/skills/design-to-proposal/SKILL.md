@@ -15,7 +15,7 @@ This skill is used by:
 
 ## Inputs
 
-- A design document path (typically `.workflow/designs/<feature-slug>/design.md`).
+- A design document path (typically `.claptrap/designs/<feature-slug>/design.md`).
 
 ## Skills
 

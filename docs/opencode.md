@@ -298,8 +298,7 @@ description: Read and write project memory for decisions, patterns, and lessons.
 
 ## What this skill does
 
-Provides a lightweight memory system for recording and retrieving project
-decisions, patterns, and lessons learned.
+Provides a lightweight memory system for recording and retrieving project decisions, patterns, and lessons learned.
 
 ## When to activate
 
@@ -309,7 +308,7 @@ decisions, patterns, and lessons learned.
 
 ## How to use
 
-1. Read `.workflow/memories.md` for context
+1. Read `.memories.md` for context
 2. Add new entries at the top with proper format
 3. Update existing entries when information changes
 ```

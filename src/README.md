@@ -1,6 +1,6 @@
 # src/
 
-This directory contains **installable content** that gets symlinked or copied into target projects via `install.sh`.
+This directory contains **installable content** that gets symlinked or copied into target projects via the installer.
 
 ## Contents
 
@@ -14,7 +14,7 @@ This directory contains **installable content** that gets symlinked or copied in
 
 ## Usage
 
-From the target project, run claptrap’s installer to copy this content into `.workflow/` and wire up the provider directory (`.cursor/`, `.github/`, `.opencode/`, etc.):
+From the target project, run claptrap’s installer to copy this content into `.claptrap/` and wire up the provider directory (`.cursor/`, `.github/`, `.opencode/`, etc.):
 
 ```bash
 export CLAPTRAP_PATH="$HOME/projects/claptrap"

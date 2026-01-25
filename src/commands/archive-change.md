@@ -43,7 +43,7 @@ Load the following skills:
 
 ## Design Status Update
 
-- If `.workflow/designs/<change-id>/design.md` exists for the change, update its Status to "Implemented".
+- If `.claptrap/designs/<change-id>/design.md` exists for the change, update its Status to "Implemented".
 - Add a link to the archived change in the design document.
 
 ## Workflow Steps

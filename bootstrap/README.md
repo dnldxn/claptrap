@@ -48,7 +48,7 @@ python ~/projects/claptrap/bootstrap/install.py ~/projects/claptrap
 The installer will:
 - Prompt you to select your AI provider
 - Install or upgrade OpenSpec (shows version changes)
-- Create `.workflow/` with conventions and templates
+- Create `.claptrap/` with conventions and templates
 - Copy agents/commands/skills to your provider's directory
 - Update `.gitignore` with appropriate entries
 - Add claptrap instructions to `AGENTS.md`
@@ -62,7 +62,7 @@ your-project/
 │   ├── agents/
 │   ├── commands/
 │   └── skills/
-├── .workflow/
+├── .claptrap/
 │   ├── code-conventions/
 │   ├── designs/
 │   └── memories.md

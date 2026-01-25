@@ -22,11 +22,6 @@ Research the topic across multiple source types and deliver a developer-ready re
 - Input: query, context, and constraints (scope, versions, and any exclusions).
 - Context: assume fresh context; do not rely on prior conversation state.
 
-# Spawned By
-- `brainstorm`
-- `propose`
-- `implement-change`
-
 # Rules
 - Ask at most one clarifying question if critical details are missing.
 - Prefer sources from the last 12–18 months when possible.
