@@ -81,5 +81,5 @@ At the end of significant work:
 
 1. **Generate candidates (Required)** — Generate 1-3 potential memories from the work just completed
 2. **Critically evaluate** — For each candidate, ask: "Would this help a future agent working on this codebase?"
-3. **Be selective** — Only add memories that pass the bar; it's fine to generate candidates and reject all of them
+3. **Be selective** — Only add memories that pass the bar; it's fine to generate candidates and reject all of them.  Justify your decision.
 4. **Write survivors** — Add any memories that passed evaluation to `.claptrap/memories.md`
