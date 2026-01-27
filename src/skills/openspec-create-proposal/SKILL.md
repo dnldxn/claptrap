@@ -57,6 +57,8 @@ This creates `openspec/changes/<change-name>/` with required files.
 
 Write `openspec/changes/<change-name>/proposal.md` using the template at `templates/proposal.md`.
 
+**Important:** The proposal must be **detailed and comprehensive**, capturing every point from the user's input. Do not summarize away details or reduce scope. The document length should be proportional to the input.  A complex, detailed prompt produces a thorough proposal; a brief prompt produces a concise one.
+
 Transform the user's input into the formal structure:
 
 | Section | Content |
@@ -193,7 +195,9 @@ Convert report generation from synchronous request handling to async job queue p
 ## Tone and Style
 
 The proposal document should:
-- Be **concise** — no fluff, every sentence adds value
+- Be **comprehensive** — capture every point, requirement, and detail from the user's input; nothing should be lost in translation
+- Be **proportional** — the document length should mirror the complexity, scope, and length of the user's prompt (a detailed input deserves a detailed proposal; a concise input produces a concise proposal)
 - Be **specific** — name concrete components, not vague abstractions
 - Use **imperative mood** — "Add X", "Fix Y", not "This will add X"
 - Capture **intent** — the "why" matters as much as the "what"
+- **No summarizing away details** — if the user specified it, include it in the appropriate section
