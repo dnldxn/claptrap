@@ -54,6 +54,10 @@ GLOBAL_SKILLS = [
         "skill": "frontend-design",
     },
     # {
+    #     "repo": "https://github.com/obra/superpowers",
+    #     "skill": "writing-plans",
+    # },
+    # {
     #     "repo": "https://github.com/softaworks/agent-toolkit",
     #     "skill": "codex",
     # },
@@ -369,7 +373,7 @@ def install_global_skills() -> tuple[int, int]:
     
     for skill in GLOBAL_SKILLS:
         info(f"Installing {skill['skill']} from {skill['repo']}...")
-        result = run_cmd(["npx", "skills", "add", "--yes", "--global", skill["repo"], "--skill", skill["skill"]])
+        result = run_cmd(["npx", "-y", "skills", "add", "--yes", "--global", skill["repo"], "--skill", skill["skill"]])
         if result.returncode == 0: success_count += 1
         else: warning(f"Failed to install {skill['skill']}")
     
