@@ -1,6 +1,6 @@
 ---
 name: brainstorm
-description: "Turn ideas into fully formed designs through collaborative dialogue, memory context, and targeted research."
+description: "Turn ideas into fully formed OpenSpec proposals through collaborative dialogue, memory context, and targeted research."
 model: claude-opus-4.5
 models:
   cursor: anthropic/claude-opus-4.5
@@ -11,6 +11,8 @@ models:
   codex: gpt-5.2-codex
 ---
 
-Invoke the `brainstorming` skill and follow it EXACTLY as presented to you.
+Invoke the `brainstorming` skill and follow it EXACTLY as presented to you.  Before and after brainstorming, read and/or write memories as instructed by the `memory` skill.
 
-**User Idea:** $ARGUMENTS
+After brainstorming, invoke the `openspec-create-proposal` skill and follow it EXACTLY as presented to you.
+
+**User Brainstorm Idea/Prompt:** $ARGUMENTS

@@ -61,10 +61,10 @@ GLOBAL_SKILLS = [
     #     "repo": "https://github.com/softaworks/agent-toolkit",
     #     "skill": "codex",
     # },
-    # {
-    #     "repo": "https://github.com/obra/superpowers",
-    #     "skill": "brainstorming",
-    # },
+    {
+        "repo": "https://github.com/obra/superpowers",
+        "skill": "brainstorming",
+    },
     # {
     #     "repo": "https://github.com/obra/superpowers",
     #     "skill": "subagent-driven-development",
@@ -615,7 +615,6 @@ update_gitignore(target_dir)
 
 # Step 7: Update AGENTS.md
 step(7, "Updating AGENTS.md")
-update_agents_md(target_dir / "AGENTS.md", claptrap_path)
 if cfg.get("global_dir"):
     update_agents_md(cfg["global_dir"] / "AGENTS.md", claptrap_path)
 

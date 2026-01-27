@@ -39,11 +39,22 @@ See `bootstrap/mcp_setup.md` for instructions on how to install and configure va
 
 ## OpenCode Setup
 
+### Claude Code Plugin for OpenCode
+```bash
+opencode auth login
+
+# Test
+opencode run --model anthropic/claude-haiku-4-5 "hello"
+```
+
 ### Codex Plugin for OpenCode
 ```bash
 # OpenAI Codex adapter for OpenCode
 # https://github.com/numman-ali/opencode-openai-codex-auth
 npx -y opencode-openai-codex-auth@latest
+
+# Test
+opencode run --model openai/gpt-5.1-codex-mini "hello"
 ```
 
 ### Cursor Plugin for OpenCode
@@ -92,6 +103,9 @@ opencode auth login
 # - Select provider: Other
 # - Provider id: cursor
 # - Method: Login via cursor-agent (opens browser)
+
+# Test
+opencode run --model cursor/opus-4.5-thinking "hello"
 ```
 
 ## Zed IDE
