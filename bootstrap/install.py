@@ -89,6 +89,10 @@ PROVIDERS = {
     "cursor": {
         "name": "Cursor",
         "dir": ".cursor",
+        "global_dir": Path.home() / ".cursor",
+        "has_agents": True,
+        "has_commands": True,
+        "has_skills": False,
         "mcp_cmd": ["agent", "mcp", "list"],
     },
     "github-copilot": {
@@ -97,25 +101,45 @@ PROVIDERS = {
         "commands_dir": "prompts",
         "agent_suffix": ".agent.md",
         "command_suffix": ".prompt.md",
+        "has_agents": True,
+        "has_commands": True,
+        "has_skills": False,
     },
     "opencode": {
         "name": "OpenCode",
         "dir": ".opencode",
+        "global_dir": Path.home() / ".config" / "opencode",
+        "has_agents": True,
+        "has_commands": True,
+        "has_skills": True,
         "mcp_cmd": ["opencode", "mcp", "list"],
     },
     "claude": {
         "name": "Claude",
         "dir": ".claude",
+        "global_dir": Path.home() / ".claude",
+        "has_agents": True,
+        "has_commands": True,
+        "has_skills": True,
         "mcp_cmd": ["claude", "mcp", "list"],
     },
     "codex": {
         "name": "Codex",
         "dir": ".codex",
+        "global_dir": Path.home() / ".codex",
+        "has_agents": False,
+        "has_commands": False,
+        "has_skills": True,
         "mcp_cmd": ["codex", "mcp", "list"],
     },
     "gemini": {
         "name": "Gemini",
         "dir": ".gemini",
+        "global_dir": Path.home() / ".gemini",
+        "has_agents": False,
+        "has_commands": True,
+        "has_skills": False,
+        "commands_format": "toml",
         "mcp_cmd": ["gemini", "mcp", "list"],
     },
 }
@@ -126,6 +150,13 @@ PROVIDER_ORDER = ["opencode", "cursor", "github-copilot", "claude", "codex", "ge
 def get_provider(key: str) -> dict:
     """Get provider config merged with defaults."""
     return {**DEFAULT_PROVIDER, **PROVIDERS[key]}
+
+# Use global path when available, otherwise project-relative.
+def get_provider_display_dir(cfg: dict) -> str:
+    global_dir = cfg.get("global_dir")
+    if global_dir:
+        return str(global_dir)
+    return cfg["dir"]
 
 # ============================================================================
 # Helper Functions
@@ -156,7 +187,7 @@ def select_provider() -> str:
     print("\n🎯 Select your AI provider:\n")
     for i, key in enumerate(PROVIDER_ORDER, 1):
         cfg = get_provider(key)
-        print(f"  {Colors.BOLD}{i}{Colors.RESET}) {cfg['name']} ({cfg['dir']})")
+        print(f"  {Colors.BOLD}{i}{Colors.RESET}) {cfg['name']} ({get_provider_display_dir(cfg)})")
     
     print()
     while True:
@@ -171,6 +202,27 @@ def select_provider() -> str:
             print("\nAborted.")
             raise SystemExit(1)
         print(f"Please enter a number between 1 and {len(PROVIDER_ORDER)}.")
+
+# Return the base install directory for a provider.
+def get_provider_root_dir(provider_key: str) -> Path:
+    cfg = get_provider(provider_key)
+    global_dir = cfg.get("global_dir")
+    if global_dir:
+        return global_dir
+    return target_dir / cfg["dir"]
+
+# Return the install directory for a specific feature.
+def get_install_dir(provider_key: str, feature: str) -> Path:
+    cfg = get_provider(provider_key)
+    base_dir = get_provider_root_dir(provider_key)
+    return base_dir / cfg[f"{feature}_dir"]
+
+def can_install_feature(cfg: dict, feature: str) -> tuple[bool, str | None]:
+    if not cfg.get(f"has_{feature}", False):
+        return False, "not supported"
+    if feature == "commands" and cfg.get("commands_format") == "toml":
+        return False, "requires TOML format (manual setup)"
+    return True, None
 
 def transform_frontmatter(content: str, provider_key: str) -> str:
     """Transform model: in frontmatter based on provider, remove models: block."""
@@ -246,6 +298,7 @@ def copy_and_transform(src_dir: Path, dest_dir: Path, provider_key: str, new_suf
             dest_file = dest_dir / new_name
         
         dest_file.parent.mkdir(parents=True, exist_ok=True)
+        if dest_file.is_symlink(): dest_file.unlink()
         
         # Read, transform, write
         content = src_file.read_text()
@@ -274,12 +327,15 @@ def copy_skills(src_dir: Path, dest_dir: Path) -> int:
     
     return count
 
-def cleanup_provider_dir(provider_dir: Path) -> None:
-    """Remove AGENTS.md and README.md from provider directories (they confuse AI harnesses)."""
-    for pattern in ("AGENTS.md", "README.md"):
-        for f in provider_dir.rglob(pattern):
-            f.unlink()
-            info(f"Removed {f.relative_to(provider_dir.parent)}")
+def cleanup_feature_dirs(feature_dirs: list[Path]) -> None:
+    """Remove AGENTS.md and README.md from feature directories (they confuse AI harnesses)."""
+    for feature_dir in feature_dirs:
+        if not feature_dir.exists():
+            continue
+        for pattern in ("AGENTS.md", "README.md"):
+            for f in feature_dir.rglob(pattern):
+                f.unlink()
+                info(f"Removed {f.relative_to(feature_dir.parent)}")
 
 def update_gitignore(target_dir: Path) -> None:
     """Add provider directories to .gitignore if not present."""
@@ -312,9 +368,37 @@ def update_gitignore(target_dir: Path) -> None:
     else:
         info(".gitignore already configured")
 
-def update_agents_md(target_dir: Path, claptrap_path: Path) -> None:
+def find_legacy_provider_dirs(target_dir: Path) -> dict[str, list[Path]]:
+    legacy_dirs = {}
+    for provider_key in PROVIDERS:
+        cfg = get_provider(provider_key)
+        if "global_dir" not in cfg:
+            continue
+        provider_dir = target_dir / cfg["dir"]
+        feature_dirs = []
+        for feature in ("agents", "commands", "skills"):
+            feature_dir = provider_dir / cfg[f"{feature}_dir"]
+            if feature_dir.exists():
+                feature_dirs.append(feature_dir)
+        if feature_dirs:
+            legacy_dirs[provider_key] = feature_dirs
+    return legacy_dirs
+
+def warn_legacy_provider_dirs(target_dir: Path) -> None:
+    legacy_dirs = find_legacy_provider_dirs(target_dir)
+    if not legacy_dirs: return
+
+    warning("Found existing project-level installations from previous versions")
+    for provider_key, paths in legacy_dirs.items():
+        rel_paths = [str(path.relative_to(target_dir)) for path in paths]
+        rm_targets = " ".join(rel_paths)
+        provider_name = get_provider(provider_key)["name"]
+        print(f"  {Colors.DIM}{provider_name}: rm -rf {rm_targets}{Colors.RESET}")
+
+def update_agents_md(agents_md_path: Path, claptrap_path: Path) -> None:
     """Update AGENTS.md with claptrap content."""
-    agents_md = target_dir / "AGENTS.md"
+    agents_md = agents_md_path
+    agents_md.parent.mkdir(parents = True, exist_ok = True)
     template = claptrap_path / "bootstrap" / "templates" / "agents_md.txt"
     claptrap_content = template.read_text()
     
@@ -329,7 +413,7 @@ def update_agents_md(target_dir: Path, claptrap_path: Path) -> None:
                 content,
                 flags=re.DOTALL
             )
-            success("Updated existing CLAPTRAP section in AGENTS.md")
+            success(f"Updated existing CLAPTRAP section in {agents_md}")
         else:
             # Append after OPENSPEC:END if it exists, otherwise at end
             if "<!-- OPENSPEC:END -->" in content:
@@ -339,11 +423,11 @@ def update_agents_md(target_dir: Path, claptrap_path: Path) -> None:
                 )
             else:
                 content = content + "\n\n" + claptrap_content
-            success("Added CLAPTRAP section to AGENTS.md")
+            success(f"Added CLAPTRAP section to {agents_md}")
         agents_md.write_text(content)
     else:
         agents_md.write_text(claptrap_content)
-        success("Created AGENTS.md with CLAPTRAP section")
+        success(f"Created {agents_md} with CLAPTRAP section")
 
 def check_ripgrep() -> bool:
     """Check if ripgrep is installed."""
@@ -395,7 +479,7 @@ info(f"Target project: {target_dir}")
 step(1, "Provider Selection")
 provider_key = select_provider()
 cfg = get_provider(provider_key)
-success(f"Selected: {cfg['name']} ({cfg['dir']})")
+success(f"Selected: {cfg['name']} ({get_provider_display_dir(cfg)})")
 
 # Step 2: OpenSpec
 step(2, "OpenSpec Installation")
@@ -476,33 +560,54 @@ if not memories_file.exists():
 else: info("memories.md already exists, skipping")
 
 # Step 5: Copy agents, commands, skills
-step(5, f"Installing to {cfg['dir']}")
-provider_dir = target_dir / cfg["dir"]
+provider_root_dir = get_provider_root_dir(provider_key)
+step(5, f"Installing to {provider_root_dir}")
+warn_legacy_provider_dirs(target_dir)
+
+installed_feature_dirs = []
 
 # Agents
-agents_count = copy_and_transform(
-    claptrap_path / "src" / "agents",
-    provider_dir / cfg["agents_dir"],
-    provider_key,
-    cfg["agent_suffix"],
-)
-success(f"Copied {agents_count} agents → {cfg['agents_dir']}/")
+can_install, reason = can_install_feature(cfg, "agents")
+if can_install:
+    agents_dir = get_install_dir(provider_key, "agents")
+    agents_count = copy_and_transform(
+        claptrap_path / "src" / "agents",
+        agents_dir,
+        provider_key,
+        cfg["agent_suffix"],
+    )
+    installed_feature_dirs.append(agents_dir)
+    success(f"Copied {agents_count} agents → {agents_dir}")
+else:
+    warning(f"Skipping agents for {cfg['name']} - {reason}")
 
 # Commands
-commands_count = copy_and_transform(
-    claptrap_path / "src" / "commands",
-    provider_dir / cfg["commands_dir"],
-    provider_key,
-    cfg["command_suffix"],
-)
-success(f"Copied {commands_count} commands → {cfg['commands_dir']}/")
+can_install, reason = can_install_feature(cfg, "commands")
+if can_install:
+    commands_dir = get_install_dir(provider_key, "commands")
+    commands_count = copy_and_transform(
+        claptrap_path / "src" / "commands",
+        commands_dir,
+        provider_key,
+        cfg["command_suffix"],
+    )
+    installed_feature_dirs.append(commands_dir)
+    success(f"Copied {commands_count} commands → {commands_dir}")
+else:
+    warning(f"Skipping commands for {cfg['name']} - {reason}")
 
 # Skills
-skills_count = copy_skills(claptrap_path / "src" / "skills", provider_dir / cfg["skills_dir"])
-success(f"Copied {skills_count} skill files → {cfg['skills_dir']}/")
+can_install, reason = can_install_feature(cfg, "skills")
+if can_install:
+    skills_dir = get_install_dir(provider_key, "skills")
+    skills_count = copy_skills(claptrap_path / "src" / "skills", skills_dir)
+    installed_feature_dirs.append(skills_dir)
+    success(f"Copied {skills_count} skill files → {skills_dir}")
+else:
+    warning(f"Skipping skills for {cfg['name']} - {reason}")
 
-# Clean up AGENTS.md/README.md from provider dir (they confuse AI harnesses)
-cleanup_provider_dir(provider_dir)
+# Clean up AGENTS.md/README.md from feature dirs (they confuse AI harnesses)
+cleanup_feature_dirs(installed_feature_dirs)
 
 # Step 6: Update .gitignore
 step(6, "Configuring .gitignore")
@@ -510,7 +615,9 @@ update_gitignore(target_dir)
 
 # Step 7: Update AGENTS.md
 step(7, "Updating AGENTS.md")
-update_agents_md(target_dir, claptrap_path)
+update_agents_md(target_dir / "AGENTS.md", claptrap_path)
+if cfg.get("global_dir"):
+    update_agents_md(cfg["global_dir"] / "AGENTS.md", claptrap_path)
 
 # Step 8: Check tools
 step(8, "Checking Tools")
@@ -535,6 +642,6 @@ for server in MCP_SERVERS:
 # Done
 header("Installation Complete! 🎉")
 print(f"\n  Provider: {Colors.BOLD}{cfg['name']}{Colors.RESET}")
-print(f"  Config:   {Colors.CYAN}{cfg['dir']}/{Colors.RESET}")
+print(f"  Config:   {Colors.CYAN}{get_provider_display_dir(cfg)}/{Colors.RESET}")
 print(f"  Workflow: {Colors.CYAN}.claptrap/{Colors.RESET}")
 print()

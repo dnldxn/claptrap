@@ -1,21 +1,14 @@
 # Gemini CLI
 
-> Documentation for Gemini CLI customization, syntax, models, tools, and CLI usage.
-> Source: https://geminicli.com/docs/
+**Documentation**: [geminicli.com/docs](https://geminicli.com/docs/)
+
+## Overview
+
+Gemini CLI is Google's agentic coding CLI. It supports custom commands, experimental skills, and context files via `GEMINI.md`.
 
 ---
 
-## 1. Custom Subagents, Slash Commands, Skills
-
-### Supported Features
-
-| Feature | Supported | Description |
-|---------|-----------|-------------|
-| **Custom Slash Commands** | ✅ Yes | Reusable prompt templates defined in `.toml` files |
-| **Agent Skills** | ✅ Experimental | Self-contained directories with `SKILL.md` and optional scripts/assets |
-| **Subagents** | ⚠️ Workaround | Not built-in; simulate via `run_shell_command` launching Gemini CLI non-interactively |
-
-### Directory Structure
+## Directory Structure
 
 ```
 ~/.gemini/
@@ -38,26 +31,27 @@
 └── GEMINI.md                    # Project context/memory file
 ```
 
-### Custom Commands Location
+## Supported Features
 
-- **User-level (global)**: `~/.gemini/commands/`
-- **Project-level (local)**: `<project-root>/.gemini/commands/`
-- Project commands override user commands with the same name
-- Subdirectories create namespaced commands (e.g., `commands/git/commit.toml` → `/git:commit`)
-
-### Skills Location
-
-- **Workspace skills**: `.gemini/skills/`
-- **User skills**: `~/.gemini/skills/`
-- **Extension skills**: Bundled in extensions
+| Feature | Supported | Description |
+|---------|-----------|-------------|
+| **Custom Slash Commands** | Yes | Reusable prompt templates defined in `.toml` files |
+| **Agent Skills** | Experimental | Self-contained directories with `SKILL.md` and optional scripts/assets |
+| **Subagents** | Workaround | Not built-in; simulate via `run_shell_command` launching Gemini CLI non-interactively |
 
 ---
 
-## 2. Frontmatter & File Syntax
+## Custom Commands
 
-### Custom Commands (.toml)
+Custom commands use **TOML v1** format.
 
-Custom commands use **TOML v1** format:
+**Locations**:
+- **User-level**: `~/.gemini/commands/`
+- **Project-level**: `<project-root>/.gemini/commands/`
+- Project commands override user commands with the same name
+- Subdirectories create namespaced commands (e.g., `commands/git/commit.toml` → `/git:commit`)
+
+**File Format**:
 
 ```toml
 # Required field
@@ -70,7 +64,7 @@ Can be multiline.
 description = "Brief description shown in /help"
 ```
 
-#### Special Placeholders
+**Special Placeholders**:
 
 | Placeholder | Description |
 |-------------|-------------|
@@ -78,7 +72,7 @@ description = "Brief description shown in /help"
 | `!{command}` | Execute shell command and embed output |
 | `@{path/to/file}` | Embed file content or directory listing |
 
-#### Example Custom Command
+**Example**:
 
 ```toml
 # ~/.gemini/commands/git/commit.toml
@@ -94,9 +88,33 @@ Focus on being concise and following conventional commit format.
 """
 ```
 
-### Skills (SKILL.md)
+**Triggering Commands**:
 
-Skills use **YAML frontmatter** in Markdown:
+```bash
+/test                    # Basic command
+/git:commit              # Namespaced command
+/git:commit --amend      # With arguments
+```
+
+## Skills
+
+Skills use **YAML frontmatter** in Markdown.
+
+**Locations**:
+- **User-level**: `~/.gemini/skills/`
+- **Project-level**: `.gemini/skills/`
+
+**Directory Structure**:
+
+```
+<skill-name>/
+├── SKILL.md           # Required: frontmatter + instructions
+├── scripts/           # Optional: executable scripts
+├── references/        # Optional: docs, schemas, examples
+└── assets/            # Optional: templates, binaries
+```
+
+**SKILL.md Format**:
 
 ```markdown
 ---
@@ -120,24 +138,29 @@ Your detailed instructions for the agent when this skill is active.
 Reference files in `scripts/`, `references/`, or `assets/` subdirectories.
 ```
 
-#### Required Frontmatter Fields
+**Required Frontmatter Fields**:
 
 | Field | Type | Description |
 |-------|------|-------------|
 | `name` | string | Unique identifier (lowercase, alphanumeric, dashes only) |
 | `description` | string | What the skill does and when to use it |
 
-#### Skill Directory Structure
+**Triggering Skills**:
 
-```
-<skill-name>/
-├── SKILL.md           # Required: frontmatter + instructions
-├── scripts/           # Optional: executable scripts
-├── references/        # Optional: docs, schemas, examples
-└── assets/            # Optional: templates, binaries
+Skills are **automatically activated** when:
+1. User request matches the skill's `description`
+2. Gemini determines the skill is relevant via `activate_skill` tool
+3. User confirms activation (unless auto-approved)
+
+**Manual Skill Management**:
+
+```bash
+/skills                      # List all skills
+/skills enable <skill-name>  # Enable skill
+/skills disable <skill-name> # Disable skill
 ```
 
-### Context Files (GEMINI.md)
+## Context Files (GEMINI.md)
 
 Plain Markdown files (no frontmatter) loaded hierarchically:
 - `~/.gemini/GEMINI.md` (global)
@@ -148,9 +171,7 @@ Can include other files via `@other-file.md` syntax.
 
 ---
 
-## 3. Available Models & Model Specification
-
-### Available Models
+## Available Models
 
 | Model | Description |
 |-------|-------------|
@@ -160,84 +181,17 @@ Can include other files via `@other-file.md` syntax.
 | `gemini-3-pro-preview` | Gemini 3 Pro (preview, requires preview features enabled) |
 | `gemini-3-flash-preview` | Gemini 3 Flash (preview, requires preview features enabled) |
 
-### Model Specification Syntax
-
-#### Interactive Mode
+**Specifying Model**:
 
 ```bash
-# Slash command to open model selection UI
-/model
+gemini --model gemini-2.5-flash    # CLI flag
+gemini -m gemini-2.5-pro           # Short form
+/model                             # Interactive selection
 ```
 
-#### CLI Flag
+Custom commands and skills inherit the session's active model. To use a specific model in a command, spawn a subagent with `-m` flag via shell injection.
 
-```bash
-gemini --model gemini-2.5-flash
-gemini -m gemini-2.5-pro
-```
-
-#### In Custom Commands/Skills
-
-**Not supported** — Custom commands and skills inherit the session's active model. To use a specific model, spawn a subagent with `-m` flag via shell injection.
-
----
-
-## 4. Triggering Slash Commands & Skills
-
-### Triggering Custom Commands
-
-```bash
-# Basic command
-/test
-
-# Namespaced command (from commands/git/commit.toml)
-/git:commit
-
-# With arguments
-/git:commit --amend
-```
-
-### Triggering Skills
-
-Skills are **automatically activated** when:
-1. User request matches the skill's `description`
-2. Gemini determines the skill is relevant via `activate_skill` tool
-3. User confirms activation (unless auto-approved)
-
-#### Manual Skill Management
-
-```bash
-# List all skills
-/skills
-
-# Enable/disable skills
-/skills enable <skill-name>
-/skills disable <skill-name>
-```
-
----
-
-## 5. Triggering Subagents from Commands
-
-Gemini CLI does not have built-in subagent support. Use shell injection to spawn subagents:
-
-```toml
-# Example: Spawning a subagent from a custom command
-description = "Delegate a focused task to a subagent"
-prompt = """
-I need you to perform a specific subtask. Here's the result from a focused analysis:
-
-!{gemini -p "Analyze only the security aspects of this code: @{src/auth.ts}" -m gemini-2.5-flash --allowed-tools read_file}
-
-Based on this analysis, provide recommendations.
-"""
-```
-
----
-
-## 6. Available Tools & Tool Syntax
-
-### Built-in Tools
+## Available Tools
 
 | Tool | Description |
 |------|-------------|
@@ -255,7 +209,7 @@ Based on this analysis, provide recommendations.
 | `write_todos` | Create/manage todo items |
 | `activate_skill` | Activate an agent skill |
 
-### Tool Syntax in Custom Commands
+**Tool Syntax in Custom Commands**:
 
 ```toml
 # Shell command injection
@@ -277,7 +231,7 @@ Here are the files in src/:
 """
 ```
 
-### Specifying Allowed Tools (CLI)
+**Specifying Allowed Tools**:
 
 ```bash
 gemini -p "prompt" --allowed-tools read_file,write_file,run_shell_command
@@ -285,21 +239,25 @@ gemini -p "prompt" --allowed-tools read_file,write_file,run_shell_command
 
 ---
 
-## 7. Non-Interactive CLI Syntax
+## CLI Syntax
 
-### Basic Non-Interactive Invocation
+**Interactive Mode**:
 
 ```bash
-# Using --prompt or -p flag
-gemini --prompt "Your prompt here"
-gemini -p "Your prompt here"
-
-# Piping input
-echo "Your prompt here" | gemini
-cat prompt.txt | gemini
+gemini                   # Launch interactive mode
+/model                   # Change model mid-session
 ```
 
-### CLI Arguments
+**Non-Interactive Mode**:
+
+```bash
+gemini --prompt "Your prompt here"    # Using --prompt flag
+gemini -p "Your prompt here"          # Short form
+echo "Your prompt here" | gemini      # Piping input
+cat prompt.txt | gemini               # From file
+```
+
+**CLI Arguments**:
 
 | Flag | Short | Description |
 |------|-------|-------------|
@@ -310,7 +268,7 @@ cat prompt.txt | gemini
 | `--sandbox` | | Run in sandbox mode |
 | `--include-directories` | | Include additional directories in context |
 
-### Full Example
+**Full Example**:
 
 ```bash
 gemini \
@@ -320,51 +278,26 @@ gemini \
   --allowed-tools read_file,list_directory,search_file_content
 ```
 
-### Specifying Instructions/Context
+## Spawning Subagents
 
-Context is loaded automatically from `GEMINI.md` files. To override the system prompt:
+Gemini CLI does not have built-in subagent support. Use shell injection to spawn subagents:
 
-```bash
-# Set environment variable to point to custom system prompt
-export GEMINI_SYSTEM_MD=".gemini/custom-system.md"
-gemini -p "Your prompt"
+```toml
+description = "Delegate a focused task to a subagent"
+prompt = """
+I need you to perform a specific subtask. Here's the result from a focused analysis:
+
+!{gemini -p "Analyze only the security aspects of this code: @{src/auth.ts}" -m gemini-2.5-flash --allowed-tools read_file}
+
+Based on this analysis, provide recommendations.
+"""
 ```
 
 ---
 
-## 8. Additional Features
+## Configuration
 
-### Context/Memory System
-
-- **Hierarchical GEMINI.md files**: Loaded from home, project root, ancestors, and subdirectories
-- **File imports**: Use `@file.md` to include other markdown files
-- **Memory commands**: `/memory show`, `/memory refresh`, `/memory add`
-
-### Session Management
-
-```bash
-# Save current session
-/chat save my-session
-
-# List saved sessions
-/chat list
-
-# Resume a session
-/chat resume my-session
-```
-
-### Checkpointing
-
-Automatic snapshots before file modifications:
-
-```bash
-# Restore to previous checkpoint
-/restore
-```
-
-### Settings Configuration
-
-Located at `~/.gemini/settings.json` or `<project>/.gemini/settings.json`:
+**Location**: `~/.gemini/settings.json` or `<project>/.gemini/settings.json`
 
 ```json
 {
@@ -381,20 +314,44 @@ Located at `~/.gemini/settings.json` or `<project>/.gemini/settings.json`:
 }
 ```
 
-### Extensions
+**Context Override**:
 
-Support for extension packages with `gemini-extension.json`:
-- Bundle custom commands and skills
-- Exclude/include tools
-- Configure MCP servers
+```bash
+export GEMINI_SYSTEM_MD=".gemini/custom-system.md"
+gemini -p "Your prompt"
+```
 
-### Security Features
+## Session Management
+
+```bash
+/chat save my-session     # Save current session
+/chat list                # List saved sessions
+/chat resume my-session   # Resume a session
+```
+
+## Checkpointing
+
+Automatic snapshots before file modifications:
+
+```bash
+/restore                  # Restore to previous checkpoint
+```
+
+## Memory Commands
+
+```bash
+/memory show              # Show current memory
+/memory refresh           # Refresh memory
+/memory add               # Add to memory
+```
+
+## Security Features
 
 - **Sandbox mode**: Isolate tool execution
 - **Trusted folders**: Configure which directories allow tool access
 - **`.geminiignore`**: Exclude files from context and tool access
 
-### MCP Server Support
+## MCP Server Support
 
 Integration with Model Context Protocol servers for extended capabilities.
 

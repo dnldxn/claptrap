@@ -1,5 +1,9 @@
 # TODO
 
+- Rework `/brainstorm`
+    - Utilize the installed third-party "brainstor" Skill
+    - Init an OpenSpec change using their tools
+    - Create OpenSpec formatted `proposal.md` in the `openspec/changes/<change-name>/` directory
 - Move commands to skills (use installed "skill-creator" Skill)
 - Add best practices and rules for querying tables in the Snowflake Skill
 
