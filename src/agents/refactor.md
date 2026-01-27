@@ -18,7 +18,7 @@ Simplify and clarify code without changing behavior. Preserve output, side effec
 # Rules
 You **MUST**:
 - Strictly adhere to the coding conventions specified in the Input Files section.
-    - Explicitly print out the name of each Principle to confirm your understanding.  Do NOT proceed until you have done this.
+    - If you are unable to find the corresponding style guide, STOP and ask where to find it (don't guess).  Explicitly print out the name and location of the file before you use it.
 - Maintain the same functionality and behavior as the original code; any change in behavior is a failure.
 - Do NOT print the full contents of the new code.  Summarize your changes instead.
 

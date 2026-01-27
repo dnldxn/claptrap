@@ -1,82 +1,64 @@
 #!/usr/bin/env python3
-"""
-Claptrap Installer - Sets up AI agent workflows for your project.
-
-Usage:
-    cd /path/to/your/project
-    python ~/projects/claptrap/bootstrap/install.py
-"""
+# Claptrap Installer - Sets up AI agent workflows for your project.
+# Usage: cd /path/to/your/project && python ~/projects/claptrap/bootstrap/install.py
 
 import re
 import shutil
 import subprocess
 from pathlib import Path
 
-# ============================================================================
+########################################################################################################################
 # Pretty Output
-# ============================================================================
+########################################################################################################################
 
 
 class Colors:
-    GREEN = "\033[92m"
-    YELLOW = "\033[93m"
-    CYAN = "\033[96m"
-    RED = "\033[91m"
-    BOLD = "\033[1m"
-    DIM = "\033[2m"
-    RESET = "\033[0m"
+    GREEN, YELLOW, CYAN, RED, BOLD, DIM, RESET = (
+        "\033[92m",
+        "\033[93m",
+        "\033[96m",
+        "\033[91m",
+        "\033[1m",
+        "\033[2m",
+        "\033[0m",
+    )
 
-def success(msg: str) -> None:
+
+def success(msg):
     print(f"{Colors.GREEN}✓{Colors.RESET} {msg}")
 
-def warning(msg: str) -> None:
+
+def warning(msg):
     print(f"{Colors.YELLOW}⚠{Colors.RESET} {msg}")
 
-def info(msg: str) -> None:
+
+def info(msg):
     print(f"{Colors.CYAN}→{Colors.RESET} {msg}")
 
-def header(msg: str) -> None:
+
+def header(msg):
     print(f"\n{Colors.BOLD}📦 {msg}{Colors.RESET}")
 
-def step(num: int, msg: str) -> None:
+
+def step(num, msg):
     print(f"\n{Colors.BOLD}[{num}]{Colors.RESET} {msg}")
 
-# ============================================================================
+
+########################################################################################################################
 # Installation Configuration
-# ============================================================================
+########################################################################################################################
 
 GLOBAL_SKILLS = [
-    {
-        "repo": "https://github.com/anthropics/skills",
-        "skill": "skill-creator",
-    },
-    {
-        "repo": "https://github.com/anthropics/skills",
-        "skill": "frontend-design",
-    },
-    # {
-    #     "repo": "https://github.com/obra/superpowers",
-    #     "skill": "writing-plans",
-    # },
-    # {
-    #     "repo": "https://github.com/softaworks/agent-toolkit",
-    #     "skill": "codex",
-    # },
-    {
-        "repo": "https://github.com/obra/superpowers",
-        "skill": "brainstorming",
-    },
-    # {
-    #     "repo": "https://github.com/obra/superpowers",
-    #     "skill": "subagent-driven-development",
-    # },
+    {"repo": "https://github.com/anthropics/skills", "skill": "skill-creator"},
+    {"repo": "https://github.com/anthropics/skills", "skill": "frontend-design"},
+    {"repo": "https://github.com/obra/superpowers", "skill": "brainstorming"},
 ]
 
 MCP_SERVERS = ["serena", "context7", "snowflake"]
 
-# ============================================================================
-# Provider Configuration (Data-Driven)
-# ============================================================================
+########################################################################################################################
+# Provider Configuration
+########################################################################################################################
 
 DEFAULT_PROVIDER = {
     "agents_dir": "agents",
@@ -148,88 +130,80 @@ PROVIDERS = {
 # Provider key order for menu display
 PROVIDER_ORDER = ["opencode", "cursor", "github-copilot", "claude", "codex", "gemini"]
 
-def get_provider(key: str) -> dict:
-    """Get provider config merged with defaults."""
+
+def get_provider(key):
     return {**DEFAULT_PROVIDER, **PROVIDERS[key]}
 
-# Use global path when available, otherwise project-relative.
-def get_provider_display_dir(cfg: dict) -> str:
-    global_dir = cfg.get("global_dir")
-    if global_dir:
-        return str(global_dir)
-    return cfg["dir"]
 
-# ============================================================================
+def get_provider_display_dir(cfg):
+    return str(cfg["global_dir"]) if cfg.get("global_dir") else cfg["dir"]
+
+
+########################################################################################################################
 # Helper Functions
-# ============================================================================
+########################################################################################################################
 
-def run_cmd(cmd: list[str], capture: bool = True) -> subprocess.CompletedProcess:
-    """Run a command, optionally capturing output."""
+
+def run_cmd(cmd, capture=True):
     return subprocess.run(cmd, capture_output=capture, text=True, check=False)
 
-def get_openspec_version() -> str | None:
-    """Get installed openspec version, or None if not installed."""
+
+def get_openspec_version():
     result = run_cmd(["npm", "list", "-g", "@fission-ai/openspec", "--depth=0"])
-    if result.returncode == 0:
-        match = re.search(r"@fission-ai/openspec@([\d.]+)", result.stdout)
-        if match:
-            return match.group(1)
-    return None
+    if result.returncode != 0:
+        return None
+    match = re.search(r"@fission-ai/openspec@([\d.]+)", result.stdout)
+    return match.group(1) if match else None
 
-def get_latest_openspec_version() -> str | None:
-    """Get latest openspec version from npm."""
+
+def get_latest_openspec_version():
     result = run_cmd(["npm", "view", "@fission-ai/openspec", "version"])
-    if result.returncode == 0:
-        return result.stdout.strip()
-    return None
+    return result.stdout.strip() if result.returncode == 0 else None
 
-def install_or_upgrade_openspec() -> bool:
-    """Install or upgrade OpenSpec globally. Returns True if successful or already up to date."""
-    current_version = get_openspec_version()
-    latest_version = get_latest_openspec_version()
 
-    if current_version:
-        if latest_version and current_version == latest_version:
-            success(f"OpenSpec v{current_version} is up to date")
+def install_or_upgrade_openspec():
+    current = get_openspec_version()
+    latest = get_latest_openspec_version()
+
+    if current:
+        if latest and current == latest:
+            success(f"OpenSpec v{current} is up to date")
             return True
-
-        version_msg = (
-            f"v{current_version} → v{latest_version}"
-            if latest_version
-            else f"v{current_version} → latest"
-        )
+        version_msg = f"v{current} → v{latest}" if latest else f"v{current} → latest"
         info(f"Upgrading OpenSpec: {version_msg}")
-        result = run_cmd(["npm", "install", "-g", "@fission-ai/openspec@latest"])
-        if result.returncode == 0:
-            success(
-                f"Upgraded to {f'v{latest_version}' if latest_version else 'latest'}"
-            )
-            return True
-        warning("Upgrade failed, continuing with current version")
-        return False
+    else:
+        version_msg = f"v{latest}" if latest else "latest"
+        info(f"Installing OpenSpec ({version_msg})")
 
-    version_msg = f"v{latest_version}" if latest_version else "latest"
-    info(f"Installing OpenSpec ({version_msg})")
     result = run_cmd(["npm", "install", "-g", "@fission-ai/openspec@latest"])
     if result.returncode == 0:
-        success(f"Installed OpenSpec ({version_msg})")
+        action = "Upgraded to" if current else "Installed OpenSpec"
+        success(f"{action} {f'v{latest}' if latest else 'latest'}")
         return True
-    warning(
-        "Installation failed - install manually: npm install -g @fission-ai/openspec@latest"
+
+    msg = (
+        "Upgrade failed, continuing with current version"
+        if current
+        else "Installation failed - install manually: npm install -g @fission-ai/openspec@latest"
     )
+    warning(msg)
     return False
 
-def init_or_update_openspec_project(project_dir: Path, provider_key: str) -> bool:
-    """Initialize or update OpenSpec project configuration. Returns True if successful."""
+
+def init_or_update_openspec_project(project_dir, provider_key):
     openspec_dir = project_dir / "openspec"
     if openspec_dir.exists():
-        cmd = ["openspec", "update"]
-        action = "updated"
-        fallback = "run manually if needed"
+        cmd, action, fallback = (
+            ["openspec", "update"],
+            "updated",
+            "run manually if needed",
+        )
     else:
-        cmd = ["openspec", "init", "--tools", provider_key]
-        action = "initialized"
-        fallback = f"run manually: openspec init --tools {provider_key}"
+        cmd, action, fallback = (
+            ["openspec", "init", "--tools", provider_key],
+            "initialized",
+            f"run manually: openspec init --tools {provider_key}",
+        )
 
     info(f"Running {' '.join(cmd)}...")
     result = run_cmd(cmd, capture=False)
@@ -239,8 +213,8 @@ def init_or_update_openspec_project(project_dir: Path, provider_key: str) -> boo
     warning(f"openspec {cmd[1]} failed (exit code {result.returncode}) - {fallback}")
     return False
 
-def select_provider() -> str:
-    """Interactive provider selection menu."""
+
+def select_provider():
     print("\n🎯 Select your AI provider:\n")
     for i, key in enumerate(PROVIDER_ORDER, 1):
         cfg = get_provider(key)
@@ -253,78 +227,66 @@ def select_provider() -> str:
             idx = int(choice) - 1
             if 0 <= idx < len(PROVIDER_ORDER):
                 return PROVIDER_ORDER[idx]
-        except ValueError:
-            pass
+        except ValueError: pass
         except KeyboardInterrupt:
             print("\nAborted.")
             raise SystemExit(1)
         print(f"Please enter a number between 1 and {len(PROVIDER_ORDER)}.")
 
-# Return the base install directory for a provider.
-def get_provider_root_dir(provider_key: str) -> Path:
-    cfg = get_provider(provider_key)
-    global_dir = cfg.get("global_dir")
-    if global_dir:
-        return global_dir
-    return target_dir / cfg["dir"]
 
-# Return the install directory for a specific feature.
-def get_install_dir(provider_key: str, feature: str) -> Path:
+def get_provider_root_dir(provider_key):
     cfg = get_provider(provider_key)
-    base_dir = get_provider_root_dir(provider_key)
-    return base_dir / cfg[f"{feature}_dir"]
+    return cfg["global_dir"] if cfg.get("global_dir") else target_dir / cfg["dir"]
 
-def can_install_feature(cfg: dict, feature: str) -> tuple[bool, str | None]:
-    if not cfg.get(f"has_{feature}", False):
-        return False, "not supported"
+
+def get_install_dir(provider_key, feature):
+    cfg = get_provider(provider_key)
+    return get_provider_root_dir(provider_key) / cfg[f"{feature}_dir"]
+
+
+def can_install_feature(cfg, feature):
+    if not cfg.get(f"has_{feature}"): return False, "not supported"
     if feature == "commands" and cfg.get("commands_format") == "toml":
         return False, "requires TOML format (manual setup)"
     return True, None
 
-def transform_frontmatter(content: str, provider_key: str) -> str:
-    """Transform model: in frontmatter based on provider, remove models: block."""
-    # Match YAML frontmatter
+
+def transform_frontmatter(content, provider_key):
     fm_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
-    if not fm_match:
-        return content
+    if not fm_match: return content
 
     frontmatter = fm_match.group(1)
     rest = content[fm_match.end() :]
 
-    # Extract + remove models: block (line-based to handle varying indentation and missing trailing newline)
+    # Extract models: block
     models = {}
     frontmatter_lines = frontmatter.splitlines()
     kept_lines = []
-    found_models_block = False
-
     i = 0
+
     while i < len(frontmatter_lines):
         line = frontmatter_lines[i]
         if re.match(r"^models:\s*$", line):
-            found_models_block = True
             i += 1
             while i < len(frontmatter_lines) and re.match(
                 r"^[ \t]+", frontmatter_lines[i]
             ):
-                model_line = frontmatter_lines[i]
-                m = re.match(r"^[ \t]+(\S+):\s*(.+?)\s*$", model_line)
+                m = re.match(r"^[ \t]+(\S+):\s*(.+?)\s*$", frontmatter_lines[i])
                 if m:
                     models[m.group(1)] = m.group(2)
                 i += 1
             continue
-
         kept_lines.append(line)
         i += 1
 
-    if not found_models_block:
-        return content
+    if not models: return content
 
-    # Get provider-specific model or keep default
+    frontmatter = "\n".join(kept_lines)
+
+    # Update model: line if provider-specific model exists
     if provider_key in models:
         new_model = models[provider_key]
-        # Replace model: line
-        frontmatter = "\n".join(kept_lines)
-        if re.search(r"^model:\s*.*$", frontmatter, flags=re.MULTILINE):
+        if re.search(r"^model:\s*.*$", frontmatter, re.MULTILINE):
             frontmatter = re.sub(
                 r"^model:\s*.*$",
                 f"model: {new_model}",
@@ -336,85 +298,68 @@ def transform_frontmatter(content: str, provider_key: str) -> str:
             frontmatter = (
                 frontmatter + "\n" if frontmatter else ""
             ) + f"model: {new_model}"
-    else:
-        frontmatter = "\n".join(kept_lines)
 
     return f"---\n{frontmatter.strip()}\n---{rest}"
 
 
-def copy_and_transform(
-    src_dir: Path, dest_dir: Path, provider_key: str, new_suffix: str
-) -> int:
-    """Copy markdown files, transform frontmatter, apply suffix. Returns count."""
+def copy_and_transform(src_dir, dest_dir, provider_key, new_suffix):
     dest_dir.mkdir(parents=True, exist_ok=True)
     count = 0
 
     for src_file in src_dir.rglob("*.md"):
-        # Skip AGENTS.md and README.md
-        if src_file.name in ("AGENTS.md", "README.md"):
-            continue
+        if src_file.name in ("AGENTS.md", "README.md"): continue
 
-        # Compute relative path and new filename
         rel_path = src_file.relative_to(src_dir)
 
-        # For files in subdirectories, preserve structure
+        # Preserve subdirectory structure
         if len(rel_path.parts) > 1:
-            new_name = rel_path.parts[-1]
-            if new_suffix != ".md":
-                new_name = new_name.replace(".md", new_suffix)
+            new_name = (
+                rel_path.parts[-1].replace(".md", new_suffix)
+                if new_suffix != ".md"
+                else rel_path.parts[-1]
+            )
             dest_file = dest_dir / rel_path.parent / new_name
         else:
-            new_name = src_file.stem + new_suffix
-            dest_file = dest_dir / new_name
+            dest_file = dest_dir / (src_file.stem + new_suffix)
 
         dest_file.parent.mkdir(parents=True, exist_ok=True)
-        if dest_file.is_symlink():
-            dest_file.unlink()
+        if dest_file.is_symlink(): dest_file.unlink()
 
-        # Read, transform, write
-        content = src_file.read_text()
-        content = transform_frontmatter(content, provider_key)
+        content = transform_frontmatter(src_file.read_text(), provider_key)
         dest_file.write_text(content)
         count += 1
 
     return count
 
 
-def copy_skills(src_dir: Path, dest_dir: Path) -> int:
-    """Copy skills directory structure (no transformation needed). Returns count."""
+def copy_skills(src_dir, dest_dir):
     dest_dir.mkdir(parents=True, exist_ok=True)
     count = 0
 
     for src_file in src_dir.rglob("*"):
-        if src_file.is_file():
-            # Skip AGENTS.md and README.md
-            if src_file.name in ("AGENTS.md", "README.md"):
-                continue
+        if not src_file.is_file() or src_file.name in ("AGENTS.md", "README.md"):
+            continue
 
-            rel_path = src_file.relative_to(src_dir)
-            dest_file = dest_dir / rel_path
-            dest_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(src_file, dest_file)
-            count += 1
+        rel_path = src_file.relative_to(src_dir)
+        dest_file = dest_dir / rel_path
+        dest_file.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy2(src_file, dest_file)
+        count += 1
 
     return count
 
 
-def cleanup_feature_dirs(feature_dirs: list[Path]) -> None:
-    """Remove AGENTS.md and README.md from feature directories (they confuse AI harnesses)."""
+def cleanup_feature_dirs(feature_dirs):
     for feature_dir in feature_dirs:
-        if not feature_dir.exists():
-            continue
+        if not feature_dir.exists(): continue
         for pattern in ("AGENTS.md", "README.md"):
             for f in feature_dir.rglob(pattern):
                 f.unlink()
                 info(f"Removed {f.relative_to(feature_dir.parent)}")
 
 
-def update_gitignore(target_dir: Path) -> None:
-    """Add provider directories to .gitignore if not present."""
+def update_gitignore(target_dir):
     gitignore = target_dir / ".gitignore"
-
     entries = [
         ".claude/",
         ".codex/",
@@ -426,9 +371,7 @@ def update_gitignore(target_dir: Path) -> None:
         ".serena/",
     ]
 
-    existing = set()
-    if gitignore.exists():
-        existing = set(gitignore.read_text().splitlines())
+    existing = set(gitignore.read_text().splitlines()) if gitignore.exists() else set()
 
     added = []
     with open(gitignore, "a") as f:
@@ -437,91 +380,83 @@ def update_gitignore(target_dir: Path) -> None:
                 f.write(f"{entry}\n")
                 added.append(entry)
 
-    if added:
-        success(f"Added to .gitignore: {', '.join(added)}")
-    else:
-        info(".gitignore already configured")
+    success(f"Added to .gitignore: {', '.join(added)}") if added else info(".gitignore already configured")
 
 
-def find_legacy_provider_dirs(target_dir: Path) -> dict[str, list[Path]]:
+def find_legacy_provider_dirs(target_dir):
     legacy_dirs = {}
     for provider_key in PROVIDERS:
         cfg = get_provider(provider_key)
         if "global_dir" not in cfg:
             continue
+
         provider_dir = target_dir / cfg["dir"]
-        feature_dirs = []
-        for feature in ("agents", "commands", "skills"):
-            feature_dir = provider_dir / cfg[f"{feature}_dir"]
-            if feature_dir.exists():
-                feature_dirs.append(feature_dir)
-        if feature_dirs:
-            legacy_dirs[provider_key] = feature_dirs
+        feature_dirs = [
+            feature_dir
+            for feature in ("agents", "commands", "skills")
+            if (feature_dir := provider_dir / cfg[f"{feature}_dir"]).exists()
+        ]
+        if feature_dirs: legacy_dirs[provider_key] = feature_dirs
+
     return legacy_dirs
 
 
-def update_agents_md(agents_md_path: Path, claptrap_path: Path) -> None:
-    """Update AGENTS.md with claptrap content."""
-    agents_md = agents_md_path
-    agents_md.parent.mkdir(parents=True, exist_ok=True)
+def update_agents_md(agents_md_path, claptrap_path):
+    agents_md_path.parent.mkdir(parents=True, exist_ok=True)
     template = claptrap_path / "bootstrap" / "templates" / "agents_md.txt"
     claptrap_content = template.read_text()
 
-    if agents_md.exists():
-        content = agents_md.read_text()
-        # Check for existing claptrap block
+    if agents_md_path.exists():
+        content = agents_md_path.read_text()
         if "<!-- CLAPTRAP:START -->" in content:
-            # Replace existing block
             content = re.sub(
                 r"<!-- CLAPTRAP:START -->.*?<!-- CLAPTRAP:END -->",
                 claptrap_content.strip(),
                 content,
                 flags=re.DOTALL,
             )
-            success(f"Updated existing CLAPTRAP section in {agents_md}")
+            success(f"Updated existing CLAPTRAP section in {agents_md_path}")
         else:
-            # Append after OPENSPEC:END if it exists, otherwise at end
-            if "<!-- OPENSPEC:END -->" in content:
-                content = content.replace(
+            insert_after = (
+                "<!-- OPENSPEC:END -->\n\n"
+                if "<!-- OPENSPEC:END -->" in content
+                else ""
+            )
+            content = (
+                content.replace(
                     "<!-- OPENSPEC:END -->",
                     f"<!-- OPENSPEC:END -->\n\n{claptrap_content}",
                 )
-            else:
-                content = content + "\n\n" + claptrap_content
-            success(f"Added CLAPTRAP section to {agents_md}")
-        agents_md.write_text(content)
+                if insert_after
+                else content + "\n\n" + claptrap_content
+            )
+            success(f"Added CLAPTRAP section to {agents_md_path}")
+        agents_md_path.write_text(content)
     else:
-        agents_md.write_text(claptrap_content)
-        success(f"Created {agents_md} with CLAPTRAP section")
+        agents_md_path.write_text(claptrap_content)
+        success(f"Created {agents_md_path} with CLAPTRAP section")
 
-def check_ripgrep() -> bool:
-    """Check if ripgrep is installed."""
+
+def check_ripgrep():
     return shutil.which("rg") is not None
 
-def check_mcp_server(provider_key: str, server_name: str) -> bool | None:
-    """Check if an MCP server is configured. Returns None if can't check."""
+
+def check_mcp_server(provider_key, server_name):
     cfg = get_provider(provider_key)
     mcp_cmd = cfg.get("mcp_cmd")
-
-    if not mcp_cmd:
-        return None
+    if not mcp_cmd: return None
 
     try:
         result = run_cmd(mcp_cmd)
         if result.returncode == 0:
             return server_name.lower() in result.stdout.lower()
-    except FileNotFoundError:
-        pass  # CLI not installed
+    except FileNotFoundError: pass
+
     return None
 
-def check_serena_mcp(provider_key: str) -> bool | None:
-    """Check if Serena MCP is configured. Returns None if can't check."""
-    return check_mcp_server(provider_key, "serena")
 
-def install_global_skills() -> tuple[int, int]:
-    """Install global skills from configured list. Returns (success_count, total_count)."""
+def install_global_skills():
     success_count = 0
-
     for skill in GLOBAL_SKILLS:
         info(f"Installing {skill['skill']} from {skill['repo']}...")
         result = run_cmd(
@@ -537,16 +472,33 @@ def install_global_skills() -> tuple[int, int]:
                 skill["skill"],
             ]
         )
-        if result.returncode == 0:
-            success_count += 1
-        else:
-            warning(f"Failed to install {skill['skill']}")
-
+        if result.returncode == 0: success_count += 1
+        else: warning(f"Failed to install {skill['skill']}")
     return success_count, len(GLOBAL_SKILLS)
 
-# ============================================================================
+
+def install_feature(feature_name, cfg, provider_key, claptrap_path, copy_func):
+    can_install, reason = can_install_feature(cfg, feature_name)
+    if not can_install:
+        warning(f"Skipping {feature_name} for {cfg['name']} - {reason}")
+        return None, 0
+
+    dest_dir = get_install_dir(provider_key, feature_name)
+    src_dir = claptrap_path / "src" / feature_name
+
+    if feature_name == "skills":
+        count = copy_func(src_dir, dest_dir)
+    else:
+        suffix = cfg[f"{feature_name.rstrip('s')}_suffix"]
+        count = copy_func(src_dir, dest_dir, provider_key, suffix)
+
+    success(f"Copied {count} {feature_name} → {dest_dir}")
+    return dest_dir, count
+
+
+########################################################################################################################
 # Main Installation
-# ============================================================================
+########################################################################################################################
 
 header("Claptrap Installer")
 
@@ -582,10 +534,9 @@ step(4, "Workflow Directory Setup")
 workflow_dir = target_dir / ".claptrap"
 
 # Code conventions
-conv_src = claptrap_path / "src" / "code-conventions"
 conv_dest = workflow_dir / "code-conventions"
 conv_dest.mkdir(parents=True, exist_ok=True)
-for f in conv_src.glob("*.md"):
+for f in (claptrap_path / "src" / "code-conventions").glob("*.md"):
     shutil.copy2(f, conv_dest / f.name)
 success(f"Copied code conventions to {conv_dest.relative_to(target_dir)}")
 
@@ -603,8 +554,7 @@ success(f"Copied design templates to {designs_dest.relative_to(target_dir)}")
 # Memories
 memories_file = workflow_dir / "memories.md"
 if not memories_file.exists():
-    memories_template = claptrap_path / "bootstrap" / "templates" / "memories_md.txt"
-    shutil.copy2(memories_template, memories_file)
+    shutil.copy2(claptrap_path / "bootstrap" / "templates" / "memories_md.txt", memories_file)
     success("Created memories.md")
 else:
     info("memories.md already exists, skipping")
@@ -612,50 +562,17 @@ else:
 # Step 5: Copy agents, commands, skills
 provider_root_dir = get_provider_root_dir(provider_key)
 step(5, f"Installing to {provider_root_dir}")
-installed_feature_dirs = []
 
-# Agents
-can_install, reason = can_install_feature(cfg, "agents")
-if can_install:
-    agents_dir = get_install_dir(provider_key, "agents")
-    agents_count = copy_and_transform(
-        claptrap_path / "src" / "agents",
-        agents_dir,
-        provider_key,
-        cfg["agent_suffix"],
-    )
-    installed_feature_dirs.append(agents_dir)
-    success(f"Copied {agents_count} agents → {agents_dir}")
-else:
-    warning(f"Skipping agents for {cfg['name']} - {reason}")
+installed_dirs = []
+for feature, copy_func in [
+    ("agents", copy_and_transform),
+    ("commands", copy_and_transform),
+    ("skills", copy_skills),
+]:
+    dest_dir, _ = install_feature(feature, cfg, provider_key, claptrap_path, copy_func)
+    if dest_dir: installed_dirs.append(dest_dir)
 
-# Commands
-can_install, reason = can_install_feature(cfg, "commands")
-if can_install:
-    commands_dir = get_install_dir(provider_key, "commands")
-    commands_count = copy_and_transform(
-        claptrap_path / "src" / "commands",
-        commands_dir,
-        provider_key,
-        cfg["command_suffix"],
-    )
-    installed_feature_dirs.append(commands_dir)
-    success(f"Copied {commands_count} commands → {commands_dir}")
-else:
-    warning(f"Skipping commands for {cfg['name']} - {reason}")
-
-# Skills
-can_install, reason = can_install_feature(cfg, "skills")
-if can_install:
-    skills_dir = get_install_dir(provider_key, "skills")
-    skills_count = copy_skills(claptrap_path / "src" / "skills", skills_dir)
-    installed_feature_dirs.append(skills_dir)
-    success(f"Copied {skills_count} skill files → {skills_dir}")
-else:
-    warning(f"Skipping skills for {cfg['name']} - {reason}")
-
-# Clean up AGENTS.md/README.md from feature dirs (they confuse AI harnesses)
-cleanup_feature_dirs(installed_feature_dirs)
+cleanup_feature_dirs(installed_dirs)
 
 # Step 6: Update .gitignore
 step(6, "Configuring .gitignore")
@@ -663,21 +580,16 @@ update_gitignore(target_dir)
 
 # Step 7: Update AGENTS.md
 step(7, "Updating AGENTS.md")
-if cfg.get("global_dir"):
-    update_agents_md(cfg["global_dir"] / "AGENTS.md", claptrap_path)
+if cfg.get("global_dir"): update_agents_md(cfg["global_dir"] / "AGENTS.md", claptrap_path)
 
 # Step 8: Check tools
 step(8, "Checking Tools")
-
-# ripgrep
-if check_ripgrep():
-    success("ripgrep (rg) is installed")
-else:
-    warning("ripgrep not found - install from https://github.com/BurntSushi/ripgrep")
+success("ripgrep (rg) is installed") if check_ripgrep() else warning(
+    "ripgrep not found - install from https://github.com/BurntSushi/ripgrep"
+)
 
 # Step 9: Check MCP servers
 step(9, "Checking MCP Servers")
-
 for server in MCP_SERVERS:
     status = check_mcp_server(provider_key, server)
     if status is True:
