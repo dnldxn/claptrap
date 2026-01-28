@@ -436,6 +436,18 @@ def update_agents_md(agents_md_path, claptrap_path):
         agents_md_path.write_text(claptrap_content)
         success(f"Created {agents_md_path} with CLAPTRAP section")
 
+    # CLAUDE.md just points to AGENTS.md
+    if provider_key == "claude": setup_claude_md()
+
+
+def setup_claude_md():
+    claude_md = Path.home() / ".claude" / "CLAUDE.md"
+    claude_md.parent.mkdir(parents=True, exist_ok=True)
+    content = claude_md.read_text() if claude_md.exists() else ""
+    if "@~/.claude/AGENTS.md" not in content:
+        claude_md.write_text("@~/.claude/AGENTS.md\n" + content)
+        success(f"Added @~/.claude/AGENTS.md to {claude_md}")
+
 
 def check_ripgrep():
     return shutil.which("rg") is not None
@@ -449,7 +461,12 @@ def check_mcp_server(provider_key, server_name):
     try:
         result = run_cmd(mcp_cmd)
         if result.returncode == 0:
-            return server_name.lower() in result.stdout.lower()
+            for line in result.stdout.splitlines():
+                if server_name.lower() in line.lower():
+                    if "failed" in line.lower():
+                        return False
+                    return True
+            return False
     except FileNotFoundError: pass
 
     return None
@@ -459,19 +476,7 @@ def install_global_skills():
     success_count = 0
     for skill in GLOBAL_SKILLS:
         info(f"Installing {skill['skill']} from {skill['repo']}...")
-        result = run_cmd(
-            [
-                "npx",
-                "-y",
-                "skills",
-                "add",
-                "--yes",
-                "--global",
-                skill["repo"],
-                "--skill",
-                skill["skill"],
-            ]
-        )
+        result = run_cmd(["npx", "-y", "skills", "add", "--yes", "--global", skill["repo"], "--skill", skill["skill"]])
         if result.returncode == 0: success_count += 1
         else: warning(f"Failed to install {skill['skill']}")
     return success_count, len(GLOBAL_SKILLS)

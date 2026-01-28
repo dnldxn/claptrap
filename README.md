@@ -70,9 +70,7 @@ Add to ~/.config/opencode/opencode.jsonc:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": [
-    "opencode-cursor-auth@1.0.16"
-  ],
+  "plugin": ["opencode-cursor-auth@1.0.16"],
   "provider": {
     "cursor": {
       "npm": "@ai-sdk/openai-compatible",
@@ -107,6 +105,11 @@ opencode auth login
 # Test
 opencode run --model cursor/opus-4.5-thinking "hello"
 ```
+
+### Gemini Plugin for OpenCode
+
+Add `opencode-gemini-auth@latest` to the plugins array in `~/.config/opencode/opencode.jsonc`.
+
 
 ## Zed IDE
 
