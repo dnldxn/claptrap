@@ -21,7 +21,7 @@ Start by understanding the current project context, then ask questions one at a 
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
-- If external documentation about a library, tool, framework, API, or any other technical topic could be relevant, spawn the Research subagent to research the topic and present the findings.  Do not research the topic yourself.
+- If external documentation about a library, tool, framework, API, or any other technical topic could be relevant, spawn the `research` subagent to investigate the topic and present findings.  Do not research the topic yourself.
 
 **Exploring approaches:**
 - Propose 2-3 different approaches with trade-offs
@@ -44,22 +44,6 @@ Start by understanding the current project context, then ask questions one at a 
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design in sections, validate each
 - **Be flexible** - Be willing to go back and clarify when something doesn't make sense
-
-## Subagent Spawning
-
-- Subagents spawn in a fresh context; include all necessary background and constraints.
-- Spawn Research when external documentation would improve accuracy or completeness.
-- Spawn Explore when codebase context (existing patterns, dependencies, structure) is required.
-
-**Research subagent prompt template:**
-- **Query**: [Specific question to answer]
-- **Context**: [Project details, current idea, why research is needed]
-- **Constraints**: [Scope, do not modify code, cite sources if available]
-
-**Explore subagent prompt template:**
-- **What to find**: [Files, patterns, APIs, conventions]
-- **Scope**: [Directories or areas to search]
-- **Constraints**: [No changes, summarize findings]
 
 ## Workflow Steps
 
