@@ -9,6 +9,16 @@ This folder contains **portable "Skills"**: small, reusable playbooks agents can
 
 ## Skill Registry
 
+### `code-conventions`
+- **Path**: `skills/claptrap:code-conventions/SKILL.md`
+- **Purpose**: Load project-specific code style guidelines for a given language.
+- **Use when**: Writing or reviewing code to ensure adherence to project standards.
+
+### `code-review`
+- **Path**: `skills/claptrap:code-review/SKILL.md`
+- **Purpose**: Generic methodology for reviewing code changes against requirements, specs, or proposals.
+- **Use when**: You need to review code changes and produce structured, actionable feedback.
+
 ### `design-to-proposal`
 - **Path**: `skills/design-to-proposal/SKILL.md`
 - **Purpose**: Create OpenSpec proposals from an existing design, then run alignment + feasibility review.

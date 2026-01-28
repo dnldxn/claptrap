@@ -588,11 +588,10 @@ if cfg.get("global_dir"): update_agents_md(cfg["global_dir"] / "AGENTS.md", clap
 
 # Step 8: Check tools
 step(8, "Checking Tools")
-success("ripgrep (rg) is installed") if check_ripgrep() else warning(
-    "ripgrep not found - install from https://github.com/BurntSushi/ripgrep"
-)
+success("ripgrep (rg) is installed") if check_ripgrep() else warning("ripgrep not found - install from https://github.com/BurntSushi/ripgrep")
 
 # Step 9: Check MCP servers
+# opencode run --model google/gemini-3-flash-preview "Install and configure the serena and context7 MCP servers in the Codex environment according to the instructions in @bootstrap/mcp_setup.py"
 step(9, "Checking MCP Servers")
 for server in MCP_SERVERS:
     status = check_mcp_server(provider_key, server)

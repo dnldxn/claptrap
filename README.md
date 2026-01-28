@@ -109,7 +109,12 @@ opencode run --model cursor/opus-4.5-thinking "hello"
 ### Gemini Plugin for OpenCode
 
 Add `opencode-gemini-auth@latest` to the plugins array in `~/.config/opencode/opencode.jsonc`.
+```bash
+opencode auth login
 
+# Test
+opencode run --model google/gemini-3-flash-preview "hello"
+```
 
 ## Zed IDE
 
