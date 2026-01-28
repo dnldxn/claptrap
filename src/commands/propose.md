@@ -23,8 +23,8 @@ If no path is provided, list recent designs under `.claptrap/designs/` and promp
 ## Skills
 
 Load the following skills:
-- `memory`
-- `design-to-proposal`
+- `claptrap:memory`
+- `claptrap:openspec-proposal`
 
 ## Workflow Steps
 

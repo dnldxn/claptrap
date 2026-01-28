@@ -51,7 +51,7 @@ def step(num, msg):
 GLOBAL_SKILLS = [
     {"repo": "https://github.com/anthropics/skills", "skill": "skill-creator"},
     {"repo": "https://github.com/anthropics/skills", "skill": "frontend-design"},
-    {"repo": "https://github.com/obra/superpowers", "skill": "brainstorming"},
+    {"repo": "https://github.com/forrestchang/andrej-karpathy-skills", "skill": "karpathy-guidelines"},
 
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "codex"},
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "gemini"},
@@ -94,7 +94,7 @@ PROVIDERS = {
         "command_suffix": ".prompt.md",
         "has_agents": True,
         "has_commands": True,
-        "has_skills": False,
+        "has_skills": True,
     },
     "opencode": {
         "name": "OpenCode",
@@ -119,7 +119,8 @@ PROVIDERS = {
         "dir": ".codex",
         "global_dir": Path.home() / ".codex",
         "has_agents": False,
-        "has_commands": False,
+        "has_commands": True,
+        "commands_dir": "prompts",
         "has_skills": True,
         "mcp_cmd": ["codex", "mcp", "list"],
     },
@@ -169,53 +170,44 @@ def get_latest_openspec_version():
     return result.stdout.strip() if result.returncode == 0 else None
 
 
-def install_or_upgrade_openspec():
+def setup_openspec(project_dir, provider_key):
+    # Install or upgrade OpenSpec globally
     current = get_openspec_version()
     latest = get_latest_openspec_version()
+    was_upgraded = False
 
-    if current:
-        if latest and current == latest:
-            success(f"OpenSpec v{current} is up to date")
-            return True
-        version_msg = f"v{current} → v{latest}" if latest else f"v{current} → latest"
-        info(f"Upgrading OpenSpec: {version_msg}")
+    if current and latest and current == latest:
+        success(f"OpenSpec v{current} is up to date")
     else:
-        version_msg = f"v{latest}" if latest else "latest"
-        info(f"Installing OpenSpec ({version_msg})")
+        is_new = not current
+        action = "Installing" if is_new else "Upgrading"
+        version = f"v{latest}" if latest else "latest"
+        info(f"{action} OpenSpec ({version})")
 
-    result = run_cmd(["npm", "install", "-g", "@fission-ai/openspec@latest"])
-    if result.returncode == 0:
-        action = "Upgraded to" if current else "Installed OpenSpec"
-        success(f"{action} {f'v{latest}' if latest else 'latest'}")
-        return True
+        result = run_cmd(["npm", "install", "-g", "@fission-ai/openspec@latest"])
+        if result.returncode == 0:
+            success(f"{'Installed' if is_new else 'Upgraded to'} {version}")
+            was_upgraded = True
+        else:
+            msg = "Installation failed - install manually: npm install -g @fission-ai/openspec@latest" if is_new else "Upgrade failed, continuing with current version"
+            warning(msg)
 
-    msg = (
-        "Upgrade failed, continuing with current version"
-        if current
-        else "Installation failed - install manually: npm install -g @fission-ai/openspec@latest"
-    )
-    warning(msg)
-    return False
-
-
-def init_or_update_openspec_project(project_dir, provider_key):
+    # Setup project's openspec directory
     openspec_dir = project_dir / "openspec"
-    if openspec_dir.exists():
-        cmd, action, fallback = (
-            ["openspec", "update"],
-            "updated",
-            "run manually if needed",
-        )
+    if not openspec_dir.exists():
+        cmd = ["openspec", "init", "--tools", provider_key]
+        fallback = f"run manually: openspec init --tools {provider_key}"
+    elif not was_upgraded:
+        success("OpenSpec project is up to date")
+        return True
     else:
-        cmd, action, fallback = (
-            ["openspec", "init", "--tools", provider_key],
-            "initialized",
-            f"run manually: openspec init --tools {provider_key}",
-        )
+        cmd = ["openspec", "update"]
+        fallback = "run manually if needed"
 
     info(f"Running {' '.join(cmd)}...")
     result = run_cmd(cmd, capture=False)
     if result.returncode == 0:
+        action = "initialized" if "init" in cmd else "updated"
         success(f"OpenSpec {action}")
         return True
     warning(f"openspec {cmd[1]} failed (exit code {result.returncode}) - {fallback}")
@@ -524,8 +516,7 @@ success(f"Selected: {cfg['name']} ({get_provider_display_dir(cfg)})")
 
 # Step 2: OpenSpec
 step(2, "OpenSpec Installation")
-install_or_upgrade_openspec()
-init_or_update_openspec_project(target_dir, provider_key)
+setup_openspec(target_dir, provider_key)
 
 # Step 3: Install global skills
 step(3, "Installing Global Skills")

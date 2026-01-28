@@ -1,3 +1,6 @@
+<!-- https://github.com/Fission-AI/OpenSpec/blob/main/schemas/spec-driven/templates/proposal.md -->
+<!-- Naming: openspec/changes/<change-id>/proposal.md -->
+
 ## Why
 
 <!-- Explain the motivation for this change. What problem does this solve? Why now? -->

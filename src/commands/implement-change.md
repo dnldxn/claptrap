@@ -22,9 +22,9 @@ Implement an approved OpenSpec change using `tasks.md` as the source of truth. D
 ## Skills
 
 Load the following skills:
-- `memory`
-- `openspec`
-- `spawn-subagent`
+- `claptrap:memory`
+- `claptrap:openspec`
+- `claptrap:spawn-subagent`
 
 ## Required Reading
 

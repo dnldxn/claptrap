@@ -1,5 +1,5 @@
 ---
-name: openspec-create-proposal
+name: "claptrap:openspec-proposal"
 description: Convert a well-defined idea into a formal OpenSpec proposal.md document, creating the change structure and validating the result.
 ---
 

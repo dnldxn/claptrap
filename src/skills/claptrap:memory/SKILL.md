@@ -1,5 +1,5 @@
 ---
-name: memory
+name: "claptrap:memory"
 description: Capture and retain project decisions, patterns, anti-patterns, and lessons learned.
 ---
 

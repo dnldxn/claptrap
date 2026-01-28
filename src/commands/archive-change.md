@@ -27,8 +27,8 @@ Outputs:
 ## Skills
 
 Load the following skills:
-- `memory`
-- `openspec`
+- `claptrap:memory`
+- `claptrap:openspec`
 
 ## Archive Execution
 
@@ -51,6 +51,6 @@ Load the following skills:
 1. Read `tasks.md` and mark any open tasks complete.
 2. Archive the OpenSpec change proposal.
 3. Run post-archive validation.
-4. Use the `memory` skill to determine if memories should be captured.
+4. Use the `claptrap:memory` skill to determine if memories should be captured.
 5. Update design doc status if applicable.
 6. STOP.

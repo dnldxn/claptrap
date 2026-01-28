@@ -14,8 +14,8 @@ Finish an OpenSpec change by marking all remaining Tasks complete and archiving 
 ## Skills
 
 Load the following skills:
-- `memory`
-- `openspec`
+- `claptrap:memory`
+- `claptrap:openspec`
 
 ## Workflow Steps
 
