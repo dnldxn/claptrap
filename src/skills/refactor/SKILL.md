@@ -1,30 +1,32 @@
 ---
-name: Refactor
-description: Refactors code for simplicity and readability while preserving behavior.
-model: github-copilot/claude-opus-4.5
-models:
-    opencode: github-copilot/claude-opus-4.5
+name: refactor
+description: Refactors code for simplicity and readability while preserving behavior. Use when asked to simplify, clean up, or refactor code without changing its functionality.
 ---
+
+# Refactor Skill
 
 Simplify and clarify code without changing behavior. Preserve output, side effects, and public APIs.
 
+## Core Principles
 
-# Core Principles
-**Simple**: Strive for the simplest and leanest possible solution that meets requirements; reduce complexity.
-**Readability**: Code should be easy to read and understand at a glance. Use clear naming conventions and structure.
-**Conciseness**: Aim to reduce code size without sacrificing the other principles.
-**Minimal Error Handling**: Include error handling only where failures are likely or consequences are severe. Skip defensive checks for unlikely edge cases.
+- **Simple**: Strive for the simplest and leanest possible solution that meets requirements; reduce complexity.
+- **Readability**: Code should be easy to read and understand at a glance. Use clear naming conventions and structure.
+- **Conciseness**: Aim to reduce code size without sacrificing the other principles.
+- **Minimal Error Handling**: Include error handling only where failures are likely or consequences are severe. Skip defensive checks for unlikely edge cases.
 
-# Rules
+## Rules
+
 You **MUST**:
-- Strictly adhere to the coding conventions specified in the Input Files section.
-    - If you are unable to find the corresponding style guide, STOP and ask where to find it (don't guess).  Explicitly print out the name and location of the file before you use it.
+
+- Strictly adhere to the coding conventions specified in the project's code conventions (e.g., `.claptrap/code-conventions/`).
+  - If you are unable to find the corresponding style guide, STOP and ask where to find it (don't guess). Explicitly print out the name and location of the file before you use it.
 - Maintain the same functionality and behavior as the original code; any change in behavior is a failure.
-- Do NOT print the full contents of the new code.  Summarize your changes instead.
+- Do NOT print the full contents of the new code. Summarize your changes instead.
 
-# Guidelines
+## Guidelines
 
-## Code Elimination
+### Code Elimination
+
 - Keep error handling and variable checking to a **bare minimum**; do not handle cases where the variable is likely to have a value
 - Delete unused functions, variables, imports, dependencies. Remove redundant or dead code.
 - Remove dead code paths and unreachable branches
@@ -32,7 +34,8 @@ You **MUST**:
 - Strip unnecessary abstractions and over-engineering
 - Purge commented-out code and debug statements
 
-## Simplification
+### Simplification
+
 - Replace complex patterns with simpler alternatives
 - Inline single-use functions and variables
 - Flatten nested conditionals and loops
@@ -40,7 +43,8 @@ You **MUST**:
 - Apply consistent formatting and naming
 - Use descriptive function and variable names
 
-## Documentation Cleanup
+### Documentation Cleanup
+
 - Use short comments and/or newlines to break big code blocks into smaller sections; prefer self-explanatory code to comments
 - Remove outdated comments and documentation
 - Delete auto-generated boilerplate
@@ -48,10 +52,12 @@ You **MUST**:
 - Remove redundant inline comments
 - Update stale references and links
 
-# Self-Correction
+## Self-Correction Checklist
+
 Once finished, review the refactored code:
+
 - Have I maintained the same functionality and behavior?
-- Does the code follow the project's Python coding conventions?
+- Does the code follow the project's coding conventions?
 - Could any function be simpler?
 - Is every piece of error handling truly necessary?
 - Are comments adding value or just taking space?
@@ -59,5 +65,6 @@ Once finished, review the refactored code:
 - Are there opportunities to use common functions or abstractions?
 - Is the code free of redundancy and dead code?
 
-# Final
+## Final Step
+
 Suggest further simplifications that might be more aggressive, if any. These can include changes in behavior or user experience if it will significantly simplify the code. If none, respond with "No further improvements suggested." If you suggest further updates, provide a brief rationale for each, then ask the user if they would like to apply them.

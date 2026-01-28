@@ -21,7 +21,6 @@ This folder contains provider-neutral agent definitions used by command-driven w
 - **`code-reviewer.md`** — Spawned by: `/implement-change`
 - **`research.md`** — Spawned by: `/brainstorm`, `/propose`, `/implement-change`
 - **`ui-designer.md`** — Spawned by: `/brainstorm` when UI/UX artifacts are required
-- **`refactor.md`** — Spawned by: `/implement-change` for refactor-only changes
 
 ## Subagent Characteristics
 
