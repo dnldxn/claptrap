@@ -52,6 +52,14 @@ GLOBAL_SKILLS = [
     {"repo": "https://github.com/anthropics/skills", "skill": "skill-creator"},
     {"repo": "https://github.com/anthropics/skills", "skill": "frontend-design"},
     {"repo": "https://github.com/obra/superpowers", "skill": "brainstorming"},
+
+    # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "codex"},
+    # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "gemini"},
+
+    # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "mermaid-diagrams"},
+    # {"repo": "https://github.com/obra/superpowers", "skill": "subagent-driven-development"},
+
+    # {"repo": "https://github.com/jezweb/claude-skills", "skill": "streamlit-snowflake"},
 ]
 
 MCP_SERVERS = ["serena", "context7", "snowflake"]

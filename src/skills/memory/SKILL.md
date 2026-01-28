@@ -25,6 +25,8 @@ Trigger this skill when **you (the agent)** need to **read or write** project me
 ### Common activation signals
 
 - A **non-obvious decision** was made (trade-off, constraint, convention) that future work could accidentally undo.
+- Solutions to **tricky problems**
+- **Architectural decisions** and their rationale
 - A **pattern** emerged that should be repeated.
 - An **anti-pattern** caused avoidable pain and should be prevented.
 - A **lesson** was learned after implementing, reviewing, or debugging a change.
@@ -36,11 +38,10 @@ All memories live in a single file: `.claptrap/memories.md`
 
 ## Memory format
 
+A memory entry must include frontmatter with a summary field.  The summary should be concise enough to determine whether to read the full content.
+
+### Required:
 ```markdown
-# Memories
-
-Project memories captured during development. Agents should read this file for context and add new memories when significant decisions, patterns, or lessons emerge.
-
 ---
 
 ## Use batch inserts for large datasets
@@ -67,6 +68,8 @@ Bulk operations are 10x faster than individual inserts. Always batch when insert
 | pattern | Approaches that worked well |
 | anti-pattern | Approaches to avoid |
 | lesson | Post-change learnings |
+| solution | Solutions to tricky problems |
+| architectural decision | Architectural decisions and their rationale |
 
 ## How to edit
 
