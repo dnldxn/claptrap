@@ -1,5 +1,5 @@
 ---
-name: "claptrap:refactor"
+name: "claptrap-refactor"
 description: Refactor code for simplicity and readability while preserving behavior. Use when asked to simplify, clean up, refactor, or apply clean code principles. Also use when writing new code that should follow clean code standards.
 ---
 

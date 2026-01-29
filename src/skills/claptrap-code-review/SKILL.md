@@ -1,5 +1,5 @@
 ---
-name: "claptrap:code-review"
+name: "claptrap-code-review"
 description: Generic methodology for reviewing code changes against requirements, specs, or proposals. Produces structured, actionable feedback.
 ---
 

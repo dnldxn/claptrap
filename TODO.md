@@ -1,5 +1,6 @@
 # TODO
 
+- Brainstorm and implement an implement + review + fix looping process
 - Add best practices and rules for querying tables in the Snowflake Skill
 - Delete `design-to-proposal` skill
     - Reuse `design-to-proposal/review-alignment.md` and `design-to-proposal/review-feasibility.md`?

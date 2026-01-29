@@ -29,7 +29,7 @@
 
 This proposal refactors the Claptrap workflow to create a unified, modular development pipeline where:
 
-- **`/claptrap:brainstorm`** is the front-door entry point for all feature work
+- **`/claptrap-brainstorm`** is the front-door entry point for all feature work
 - **Brainstorm output** (`design.md`) is the comprehensive source of truth
 - **OpenSpec artifacts** are generated views extracted from the design, optimized for tracking and validation
 - **Skills are modular** and can be composed, added, or removed independently
@@ -46,7 +46,7 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 
 | ID | Requirement | Source |
 |----|-------------|--------|
-| FR-1 | `/claptrap:brainstorm` must be the primary entry point for all feature development workflows | User input |
+| FR-1 | `/claptrap-brainstorm` must be the primary entry point for all feature development workflows | User input |
 | FR-2 | Brainstorm must produce a comprehensive technical design document with architecture, code snippets, key decisions, and acceptance criteria | Example: `design.md` |
 | FR-3 | Brainstorm output must be compatible with and feed into the OpenSpec workflow | User input |
 | FR-4 | The workflow must generate OpenSpec-compatible artifacts: proposal.md, specs/*.md, tasks.md | User input |
@@ -93,8 +93,8 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 - **Verification**: Three dimensions - completeness, correctness, coherence
 
 #### Current Claptrap Architecture
-- **Commands**: `claptrap:brainstorm`, `propose`, `implement-change`, `archive-change`, `claptrap:refactor`
-- **Skills**: `claptrap:memory`, `claptrap:brainstorming`, `design-to-proposal`, `claptrap:spawn-subagent`
+- **Commands**: `claptrap-brainstorm`, `propose`, `implement-change`, `archive-change`, `claptrap-refactor`
+- **Skills**: `claptrap-memory`, `claptrap-brainstorming`, `design-to-proposal`, `claptrap-spawn-subagent`
 - **Agents**: alignment-reviewer, feasibility-reviewer, code-reviewer, plan-reviewer, research, ui-designer
 - **Flow**: brainstorm → design.md → propose (with reviews) → implement → archive
 
@@ -122,8 +122,8 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 
 | Component | Location | Status |
 |-----------|----------|--------|
-| Memory skill | `src/skills/claptrap:memory/` | Keep unchanged |
-| Spawn-subagent skill | `src/skills/claptrap:spawn-subagent/` | Keep unchanged |
+| Memory skill | `src/skills/claptrap-memory/` | Keep unchanged |
+| Spawn-subagent skill | `src/skills/claptrap-spawn-subagent/` | Keep unchanged |
 | Alignment reviewer | `src/agents/alignment-reviewer.md` | Keep, minor updates |
 | Feasibility reviewer | `src/agents/feasibility-reviewer.md` | Keep, minor updates |
 | Plan reviewer | `src/agents/plan-reviewer.md` | Keep, refocus for new flow |
@@ -135,11 +135,11 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 
 | Component | Current | Proposed Change |
 |-----------|---------|-----------------|
-| `claptrap:brainstorm` command | Produces design.md | Refactor to use updated template |
-| `claptrap:brainstorming` skill | Dialogue + design output | Update template, add memory integration |
-| `propose` command | Calls design-to-proposal skill | Replace with `claptrap:propose` |
-| `design-to-proposal` skill | Complex multi-artifact generation | Replace with `claptrap:propose` skill |
-| `claptrap:openspec-proposal` skill | Standalone proposal creation | Merge into `claptrap:propose` |
+| `claptrap-brainstorm` command | Produces design.md | Refactor to use updated template |
+| `claptrap-brainstorming` skill | Dialogue + design output | Update template, add memory integration |
+| `propose` command | Calls design-to-proposal skill | Replace with `claptrap-propose` |
+| `design-to-proposal` skill | Complex multi-artifact generation | Replace with `claptrap-propose` skill |
+| `claptrap-openspec-proposal` skill | Standalone proposal creation | Merge into `claptrap-propose` |
 
 ### Components to Remove
 
@@ -159,7 +159,7 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  PHASE 1: BRAINSTORM (Discovery & Design)                                   │
 │                                                                             │
-│  /claptrap:brainstorm "Add user authentication"                             │
+│  /claptrap-brainstorm "Add user authentication"                             │
 │  ├── Read memory context                                                    │
 │  ├── Dialogue: Ask clarifying questions                                     │
 │  ├── Spawn research subagent (if needed)                                    │
@@ -175,7 +175,7 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  PHASE 2: PROPOSE (Artifact Generation & Review)                            │
 │                                                                             │
-│  /claptrap:propose [design-path]                                            │
+│  /claptrap-propose [design-path]                                            │
 │  ├── Read memory context                                                    │
 │  ├── Read design.md                                                         │
 │  ├── Initialize OpenSpec change (openspec new <name>)                       │
@@ -195,7 +195,7 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  PHASE 3: REVIEW (Optional Explicit Validation)                             │
 │                                                                             │
-│  /claptrap:review [change-id]                                               │
+│  /claptrap-review [change-id]                                               │
 │  ├── Read all artifacts                                                     │
 │  ├── Read source design.md                                                  │
 │  ├── Spawn plan-reviewer                                                    │
@@ -223,15 +223,15 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  COMMANDS (User-facing entry points)                                        │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  /claptrap:brainstorm    /claptrap:propose    /claptrap:review              │
+│  /claptrap-brainstorm    /claptrap-propose    /claptrap-review              │
 │         │                       │                    │                      │
 │         │ invokes               │ invokes            │ invokes              │
 │         ▼                       ▼                    ▼                      │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │  SKILLS (Reusable playbooks)                                                │
 ├─────────────────────────────────────────────────────────────────────────────┤
-│  claptrap:brainstorm-skill     claptrap:propose-skill                       │
-│  claptrap:memory               claptrap:spawn-subagent                      │
+│  claptrap-brainstorm-skill     claptrap-propose-skill                       │
+│  claptrap-memory               claptrap-spawn-subagent                      │
 │         │                             │                                     │
 │         │ spawns                      │ spawns                              │
 │         ▼                             ▼                                     │
@@ -253,11 +253,11 @@ The core insight is that the brainstorm `design.md` contains more detail than Op
 
 ## Detailed Flow Specification
 
-### Phase 1: `/claptrap:brainstorm`
+### Phase 1: `/claptrap-brainstorm`
 
 #### Trigger
 ```
-/claptrap:brainstorm "Add user authentication with OAuth support"
+/claptrap-brainstorm "Add user authentication with OAuth support"
 ```
 
 #### Inputs
@@ -317,7 +317,7 @@ Step 5: Finalize
 
 **Structure** (updated template):
 ```markdown
-<!-- Source: /claptrap:brainstorm -->
+<!-- Source: /claptrap-brainstorm -->
 <!-- Naming: .claptrap/designs/<feature-slug>/design.md -->
 
 # Design: <Feature Name>
@@ -377,13 +377,13 @@ interface Example {
 ## Next Steps
 
 1. Review this design document
-2. Run `/claptrap:propose` to generate OpenSpec artifacts
+2. Run `/claptrap-propose` to generate OpenSpec artifacts
 3. Review and approve proposal
 4. Implement via `/opsx:apply`
 
 ## OpenSpec Proposals
 
-<!-- Auto-populated by /claptrap:propose -->
+<!-- Auto-populated by /claptrap-propose -->
 - (none yet)
 ```
 
@@ -400,16 +400,16 @@ Type: decision | Date: YYYY-MM-DD | Tags: <feature-slug>, architecture
 
 ---
 
-### Phase 2: `/claptrap:propose`
+### Phase 2: `/claptrap-propose`
 
 #### Trigger
 ```
-/claptrap:propose .claptrap/designs/user-auth/design.md
+/claptrap-propose .claptrap/designs/user-auth/design.md
 ```
 
 Or with default (most recent design):
 ```
-/claptrap:propose
+/claptrap-propose
 ```
 
 #### Inputs
@@ -532,16 +532,16 @@ openspec/changes/<change-name>/
 
 ---
 
-### Phase 3: `/claptrap:review`
+### Phase 3: `/claptrap-review`
 
 #### Trigger
 ```
-/claptrap:review user-auth
+/claptrap-review user-auth
 ```
 
 Or auto-detect most recent change:
 ```
-/claptrap:review
+/claptrap-review
 ```
 
 #### Inputs
@@ -580,7 +580,7 @@ Step 2: Plan Review
 Step 3: Resolution (if REVISE)
 ├── Present issues by priority (Critical → Important → Minor)
 ├── User decides: fix now, defer, or accept risk
-├── If fix: return to /claptrap:propose for regeneration
+├── If fix: return to /claptrap-propose for regeneration
 └── If accept: document accepted risks in memory
 ```
 
@@ -618,7 +618,7 @@ Or:
 3. **Acceptance criteria coverage**: "Session timeout" criterion has no corresponding scenario
 
 ### Recommended Actions
-1. Run `/claptrap:propose` with `--regenerate specs` to add missing capability
+1. Run `/claptrap-propose` with `--regenerate specs` to add missing capability
 2. Manually reorder tasks in tasks.md
 ```
 
@@ -653,8 +653,8 @@ Or:
 | Package Structure | Directory layout |
 
 **Lifecycle**:
-1. Created by `/claptrap:brainstorm`
-2. Updated with proposal link by `/claptrap:propose`
+1. Created by `/claptrap-brainstorm`
+2. Updated with proposal link by `/claptrap-propose`
 3. Referenced during `/opsx:apply` for implementation detail
 4. Archived with change by `/opsx:archive`
 
@@ -894,11 +894,11 @@ packages/quota-monitor/
 
 ### Commands
 
-#### `/claptrap:brainstorm`
+#### `/claptrap-brainstorm`
 
-**File**: `src/commands/claptrap:brainstorm.md`
+**File**: `src/commands/claptrap-brainstorm.md`
 
-**Invocation**: `/claptrap:brainstorm "<idea or feature description>"`
+**Invocation**: `/claptrap-brainstorm "<idea or feature description>"`
 
 **Behavior**:
 1. Read memory context
@@ -915,13 +915,13 @@ packages/quota-monitor/
 
 ---
 
-#### `/claptrap:propose`
+#### `/claptrap-propose`
 
-**File**: `src/commands/claptrap:propose.md`
+**File**: `src/commands/claptrap-propose.md`
 
 **Invocation**:
-- `/claptrap:propose .claptrap/designs/<slug>/design.md`
-- `/claptrap:propose` (auto-detect most recent)
+- `/claptrap-propose .claptrap/designs/<slug>/design.md`
+- `/claptrap-propose` (auto-detect most recent)
 
 **Behavior**:
 1. Read memory context and design.md
@@ -941,13 +941,13 @@ packages/quota-monitor/
 
 ---
 
-#### `/claptrap:review`
+#### `/claptrap-review`
 
-**File**: `src/commands/claptrap:review.md`
+**File**: `src/commands/claptrap-review.md`
 
 **Invocation**:
-- `/claptrap:review <change-id>`
-- `/claptrap:review` (auto-detect most recent)
+- `/claptrap-review <change-id>`
+- `/claptrap-review` (auto-detect most recent)
 
 **Behavior**:
 1. Read all artifacts from change directory
@@ -964,13 +964,13 @@ packages/quota-monitor/
 
 ### Skills
 
-#### `claptrap:brainstorm-skill`
+#### `claptrap-brainstorm-skill`
 
-**File**: `src/skills/claptrap:brainstorm/SKILL.md`
+**File**: `src/skills/claptrap-brainstorm/SKILL.md`
 
 **Purpose**: Dialogue-driven design discovery
 
-**Invoked by**: `/claptrap:brainstorm` command
+**Invoked by**: `/claptrap-brainstorm` command
 
 **Capabilities**:
 - Clarifying question generation
@@ -978,17 +978,17 @@ packages/quota-monitor/
 - Subagent spawning for research/exploration
 - Memory read/write integration
 
-**Template**: `src/skills/claptrap:brainstorm/templates/design.md`
+**Template**: `src/skills/claptrap-brainstorm/templates/design.md`
 
 ---
 
-#### `claptrap:propose-skill`
+#### `claptrap-propose-skill`
 
-**File**: `src/skills/claptrap:propose/SKILL.md`
+**File**: `src/skills/claptrap-propose/SKILL.md`
 
 **Purpose**: Design → OpenSpec artifact extraction
 
-**Invoked by**: `/claptrap:propose` command
+**Invoked by**: `/claptrap-propose` command
 
 **Capabilities**:
 - Design document parsing
@@ -998,15 +998,15 @@ packages/quota-monitor/
 - Artifact linking
 
 **Templates**:
-- `src/skills/claptrap:propose/templates/proposal-hints.md`
-- `src/skills/claptrap:propose/templates/spec-hints.md`
-- `src/skills/claptrap:propose/templates/tasks-hints.md`
+- `src/skills/claptrap-propose/templates/proposal-hints.md`
+- `src/skills/claptrap-propose/templates/spec-hints.md`
+- `src/skills/claptrap-propose/templates/tasks-hints.md`
 
 ---
 
-#### `claptrap:memory` (Unchanged)
+#### `claptrap-memory` (Unchanged)
 
-**File**: `src/skills/claptrap:memory/SKILL.md`
+**File**: `src/skills/claptrap-memory/SKILL.md`
 
 **Purpose**: Read/write project decisions, patterns, lessons
 
@@ -1014,9 +1014,9 @@ packages/quota-monitor/
 
 ---
 
-#### `claptrap:spawn-subagent` (Unchanged)
+#### `claptrap-spawn-subagent` (Unchanged)
 
-**File**: `src/skills/claptrap:spawn-subagent/SKILL.md`
+**File**: `src/skills/claptrap-spawn-subagent/SKILL.md`
 
 **Purpose**: Spawn subagents with fresh context and bounded scope
 
@@ -1094,7 +1094,7 @@ packages/quota-monitor/
 
 | Command | When Used | Purpose |
 |---------|-----------|---------|
-| `openspec new <name>` | Start of `/claptrap:propose` | Create change directory |
+| `openspec new <name>` | Start of `/claptrap-propose` | Create change directory |
 | `openspec instructions proposal --json` | Generating proposal.md | Get schema-aware template and rules |
 | `openspec instructions specs --json` | Generating specs/*.md | Get spec template and rules |
 | `openspec instructions tasks --json` | Generating tasks.md | Get tasks template and rules |
@@ -1134,28 +1134,28 @@ src/
 │
 ├── commands/
 │   ├── AGENTS.md                       # Command registry
-│   ├── claptrap:brainstorm.md          # REFACTORED
-│   ├── claptrap:propose.md             # NEW
-│   ├── claptrap:review.md              # NEW
-│   └── claptrap:refactor.md            # UNCHANGED
+│   ├── claptrap-brainstorm.md          # REFACTORED
+│   ├── claptrap-propose.md             # NEW
+│   ├── claptrap-review.md              # NEW
+│   └── claptrap-refactor.md            # UNCHANGED
 │
 ├── skills/
 │   ├── AGENTS.md                       # Skill registry
-│   ├── claptrap:brainstorm/            # REFACTORED
+│   ├── claptrap-brainstorm/            # REFACTORED
 │   │   ├── SKILL.md
 │   │   └── templates/
 │   │       └── design.md               # Updated template
-│   ├── claptrap:propose/               # NEW
+│   ├── claptrap-propose/               # NEW
 │   │   ├── SKILL.md
 │   │   └── templates/
 │   │       ├── proposal-hints.md
 │   │       ├── spec-hints.md
 │   │       └── tasks-hints.md
-│   ├── claptrap:memory/                # UNCHANGED
+│   ├── claptrap-memory/                # UNCHANGED
 │   │   └── SKILL.md
-│   ├── claptrap:spawn-subagent/        # UNCHANGED
+│   ├── claptrap-spawn-subagent/        # UNCHANGED
 │   │   └── SKILL.md
-│   └── claptrap:refactor/              # UNCHANGED
+│   └── claptrap-refactor/              # UNCHANGED
 │       └── SKILL.md
 │
 ├── agents/
@@ -1209,28 +1209,28 @@ openspec/
 
 ### Phase 1: Create New Components
 
-1. Create `src/commands/claptrap:propose.md`
-2. Create `src/commands/claptrap:review.md`
-3. Create `src/skills/claptrap:propose/SKILL.md`
-4. Create `src/skills/claptrap:propose/templates/`
+1. Create `src/commands/claptrap-propose.md`
+2. Create `src/commands/claptrap-review.md`
+3. Create `src/skills/claptrap-propose/SKILL.md`
+4. Create `src/skills/claptrap-propose/templates/`
 5. Update `src/templates/design.md`
 
 ### Phase 2: Update Existing Components
 
-1. Update `src/commands/claptrap:brainstorm.md` to use new template
-2. Update `src/skills/claptrap:brainstorm/SKILL.md` for memory integration
+1. Update `src/commands/claptrap-brainstorm.md` to use new template
+2. Update `src/skills/claptrap-brainstorm/SKILL.md` for memory integration
 3. Update `src/agents/alignment-reviewer.md` to accept design.md
 4. Update `src/agents/feasibility-reviewer.md` to accept design.md, specs
 5. Update `src/agents/plan-reviewer.md` for new validation flow
 
 ### Phase 3: Remove Deprecated Components
 
-1. Remove `src/commands/propose.md` (replaced by claptrap:propose)
+1. Remove `src/commands/propose.md` (replaced by claptrap-propose)
 2. Remove `src/commands/implement-change.md` (use /opsx:apply)
 3. Remove `src/commands/archive-change.md` (use /opsx:archive)
 4. Remove `src/commands/finish-openspec-change.md` (use /opsx:archive)
-5. Remove `src/skills/design-to-proposal/` (merged into claptrap:propose)
-6. Remove `src/skills/claptrap:openspec-proposal/` (merged into claptrap:propose)
+5. Remove `src/skills/design-to-proposal/` (merged into claptrap-propose)
+6. Remove `src/skills/claptrap-openspec-proposal/` (merged into claptrap-propose)
 
 ### Phase 4: Update Documentation
 
@@ -1259,7 +1259,7 @@ The proposal adds:
 
 However, it removes:
 - 4 commands (`propose`, `implement-change`, `archive-change`, `finish-openspec-change`)
-- 2 skills (`design-to-proposal`, `claptrap:openspec-proposal`)
+- 2 skills (`design-to-proposal`, `claptrap-openspec-proposal`)
 - Duplicated artifact generation logic (now delegated to OpenSpec)
 - Ambiguous handoff between brainstorm and OpenSpec
 
@@ -1318,7 +1318,7 @@ AI-driven extraction is inherently non-deterministic. The same design.md could p
 2. **Review cycles**: Alignment and feasibility reviewers catch extraction errors
 3. **Source links**: Every artifact links back to design.md, allowing human verification
 4. **Template hints**: `proposal-hints.md`, `spec-hints.md`, `tasks-hints.md` provide structured guidance
-5. **Regeneration option**: If extraction is wrong, user can run `/claptrap:propose --regenerate <artifact>`
+5. **Regeneration option**: If extraction is wrong, user can run `/claptrap-propose --regenerate <artifact>`
 
 **Open question**: Should we add a "diff review" step that shows the user what was extracted before writing artifacts?
 
@@ -1362,10 +1362,10 @@ Single source of truth creates single point of failure.
 **Verdict**: Accept with mitigations. The alternative (multiple sources of truth) is worse.
 
 **Mitigations**:
-1. **Validation on propose**: `/claptrap:propose` validates design.md has required sections before proceeding
+1. **Validation on propose**: `/claptrap-propose` validates design.md has required sections before proceeding
 2. **Git tracking**: Design.md is version-controlled, allowing recovery
 3. **Bidirectional links**: Artifacts link to design.md, design.md links to artifacts, making drift visible
-4. **Drift detection**: `/claptrap:review` compares design.md against artifacts to detect inconsistencies
+4. **Drift detection**: `/claptrap-review` compares design.md against artifacts to detect inconsistencies
 5. **Template enforcement**: Brainstorm skill uses template that ensures required sections exist
 
 **Potential enhancement**: Add checksum or hash to `.source` file to detect design.md modifications after artifact generation.
@@ -1432,7 +1432,7 @@ The proposal has not been tested across all target environments.
 ### Concern 8: User Friction and Learning Curve
 
 **The Concern**: Users must learn:
-- When to use `/claptrap:brainstorm` vs. `/opsx:new`
+- When to use `/claptrap-brainstorm` vs. `/opsx:new`
 - The artifact structure and linking
 - Review verdicts and how to respond
 - When the workflow is overkill
@@ -1444,7 +1444,7 @@ Any workflow imposes cognitive overhead. The question is whether the overhead is
 **Verdict**: Accept with good documentation and escape hatches.
 
 **Mitigations**:
-1. **Clear entry point**: `/claptrap:brainstorm` is always the starting point for new features
+1. **Clear entry point**: `/claptrap-brainstorm` is always the starting point for new features
 2. **Guided flow**: Each command outputs explicit next steps
 3. **Help text**: Commands include usage examples and common scenarios
 4. **Escape hatches**: Users can always drop to native OpenSpec commands if preferred
@@ -1506,7 +1506,7 @@ Not every change needs a design document and formal artifact generation.
 
 **Mitigations**:
 1. **Direct OpenSpec**: For changes where requirements are already clear, use `/opsx:new` directly
-2. **Skip brainstorm**: If you already have a design, jump to `/claptrap:propose`
+2. **Skip brainstorm**: If you already have a design, jump to `/claptrap-propose`
 3. **Skip propose**: For small changes, use `/opsx:new` + `/opsx:continue` natively
 4. **No workflow needed**: Typo fixes and trivial changes don't need formal workflow at all
 
@@ -1518,8 +1518,8 @@ Not every change needs a design document and formal artifact generation.
 > |-------------|----------|
 > | Trivial (typos, formatting) | Direct commit, no workflow |
 > | Small (single-file fixes) | `/opsx:new` → `/opsx:continue` → `/opsx:apply` |
-> | Medium (clear requirements) | `/claptrap:propose` with inline design |
-> | Large (needs discovery) | `/claptrap:brainstorm` → full workflow |
+> | Medium (clear requirements) | `/claptrap-propose` with inline design |
+> | Large (needs discovery) | `/claptrap-brainstorm` → full workflow |
 > | Complex (architecture changes) | Full workflow with extended brainstorm |
 
 ---
@@ -1538,8 +1538,8 @@ Editing is normal and expected. Drift is a natural consequence.
 **Verdict**: Accept with detection and guidance.
 
 **Mitigations**:
-1. **Prefer regeneration**: If design changes, re-run `/claptrap:propose` rather than manual edits
-2. **Drift detection**: `/claptrap:review` can detect inconsistencies between artifacts
+1. **Prefer regeneration**: If design changes, re-run `/claptrap-propose` rather than manual edits
+2. **Drift detection**: `/claptrap-review` can detect inconsistencies between artifacts
 3. **Source links preserved**: Links help identify which artifact is authoritative
 4. **Edit guidance**: Document that edits should flow design.md → proposal → specs → tasks
 
@@ -1692,7 +1692,7 @@ None of these risks are blocking. All can be addressed through careful implement
 
 ### What This Proposal Achieves
 
-1. **Unified Entry Point**: `/claptrap:brainstorm` is the front-door for all feature work
+1. **Unified Entry Point**: `/claptrap-brainstorm` is the front-door for all feature work
 2. **Preserved Detail**: Brainstorm's comprehensive design.md is the source of truth, never lost
 3. **OpenSpec Compatibility**: Generated artifacts are fully OpenSpec-compatible
 4. **Modular Architecture**: Skills are focused and composable
@@ -1721,8 +1721,8 @@ None of these risks are blocking. All can be addressed through careful implement
 
 ### Success Criteria
 
-- [ ] `/claptrap:brainstorm` produces complete design.md through dialogue
-- [ ] `/claptrap:propose` generates valid OpenSpec artifacts from design
+- [ ] `/claptrap-brainstorm` produces complete design.md through dialogue
+- [ ] `/claptrap-propose` generates valid OpenSpec artifacts from design
 - [ ] All artifacts link back to source design.md
 - [ ] Review agents validate artifact consistency
 - [ ] Memory captures decisions at each phase
@@ -1733,7 +1733,7 @@ None of these risks are blocking. All can be addressed through careful implement
 ### Next Steps
 
 1. Review this proposal document
-2. Create OpenSpec change for implementation: `/claptrap:propose claptrap-workflow-proposal.md`
+2. Create OpenSpec change for implementation: `/claptrap-propose claptrap-workflow-proposal.md`
 3. Implement in phases per Migration Plan
 4. Test with real feature development workflow
 5. Document and release

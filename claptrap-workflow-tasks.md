@@ -3,9 +3,9 @@
 **Source of truth**: `claptrap-workflow-proposal.md` (dated 2026-01-28)  
 **Goal**: Implement the new workflow entry points:
 
-- `/claptrap:brainstorm` → produces `.claptrap/designs/<feature-slug>/design.md`
-- `/claptrap:propose` → generates `openspec/changes/<change-id>/{proposal.md, specs/**, tasks.md}` and links back to the design
-- `/claptrap:review` → validates design ↔ proposal ↔ specs ↔ tasks before implementation
+- `/claptrap-brainstorm` → produces `.claptrap/designs/<feature-slug>/design.md`
+- `/claptrap-propose` → generates `openspec/changes/<change-id>/{proposal.md, specs/**, tasks.md}` and links back to the design
+- `/claptrap-review` → validates design ↔ proposal ↔ specs ↔ tasks before implementation
 - Implementation remains native OpenSpec: `/opsx:apply`, `/opsx:verify`, `/opsx:archive`
 
 ---
@@ -13,28 +13,28 @@
 ## Definition of Done (do not claim done until ALL are true)
 
 - [ ] New command files exist:
-  - `src/commands/claptrap:propose.md`
-  - `src/commands/claptrap:review.md`
+  - `src/commands/claptrap-propose.md`
+  - `src/commands/claptrap-review.md`
 - [ ] New propose skill exists and is complete:
-  - `src/skills/claptrap:propose/SKILL.md`
-  - `src/skills/claptrap:propose/templates/proposal-hints.md`
-  - `src/skills/claptrap:propose/templates/spec-hints.md`
-  - `src/skills/claptrap:propose/templates/tasks-hints.md`
+  - `src/skills/claptrap-propose/SKILL.md`
+  - `src/skills/claptrap-propose/templates/proposal-hints.md`
+  - `src/skills/claptrap-propose/templates/spec-hints.md`
+  - `src/skills/claptrap-propose/templates/tasks-hints.md`
 - [ ] Brainstorm design template is updated and consistent in BOTH locations:
   - `src/designs/TEMPLATE.md`
-  - `src/skills/claptrap:brainstorming/templates/design.md`
+  - `src/skills/claptrap-brainstorming/templates/design.md`
 - [ ] Review agents match the new artifact flow:
   - `src/agents/alignment-reviewer.md` checks `design.md` ↔ `proposal.md`
   - `src/agents/feasibility-reviewer.md` checks `proposal.md` + `specs/*.md` + `tasks.md` + `design.md`
-  - `src/agents/plan-reviewer.md` checks full artifact set for `/claptrap:review`
+  - `src/agents/plan-reviewer.md` checks full artifact set for `/claptrap-review`
 - [ ] Deprecated components are removed:
   - `src/commands/propose.md`
   - `src/commands/implement-change.md`
   - `src/commands/archive-change.md`
   - `src/commands/finish-openspec-change.md`
   - `src/skills/design-to-proposal/`
-  - `src/skills/claptrap:openspec-proposal/`
-  - `src/skills/claptrap:opecspec-design/` (typo + unused stub)
+  - `src/skills/claptrap-openspec-proposal/`
+  - `src/skills/claptrap-opecspec-design/` (typo + unused stub)
 - [ ] Registries are updated and contain **no** references to removed components:
   - `src/commands/AGENTS.md`
   - `src/skills/AGENTS.md`
@@ -47,7 +47,7 @@
   - `bootstrap/install.py` has a minimum OpenSpec version constant and warns when too old
 - [ ] Repo-wide search finds **zero** stale references:
   - No `/propose`, `/implement-change`, `/archive-change`, `/finish-openspec-change`
-  - No `design-to-proposal`, `claptrap:openspec-proposal`, `claptrap:opecspec-design`
+  - No `design-to-proposal`, `claptrap-openspec-proposal`, `claptrap-opecspec-design`
 
 ---
 
@@ -88,45 +88,45 @@
 
 # Phase 1 — Add new workflow entry points (new command + new skill)
 
-## 1.1 Create `/claptrap:propose` command (NEW FILE)
+## 1.1 Create `/claptrap-propose` command (NEW FILE)
 
-- [ ] 1.1.1 Create `src/commands/claptrap:propose.md`.
-- [ ] 1.1.2 Paste **Appendix B** into `src/commands/claptrap:propose.md` (entire file).
-- [ ] 1.1.3 Verify the YAML frontmatter `name:` is exactly `claptrap:propose`.
+- [ ] 1.1.1 Create `src/commands/claptrap-propose.md`.
+- [ ] 1.1.2 Paste **Appendix B** into `src/commands/claptrap-propose.md` (entire file).
+- [ ] 1.1.3 Verify the YAML frontmatter `name:` is exactly `claptrap-propose`.
 - [ ] 1.1.4 Verify the command references these skills by exact name:
-  - `claptrap:memory`
-  - `claptrap:spawn-subagent`
-  - `claptrap:propose`
+  - `claptrap-memory`
+  - `claptrap-spawn-subagent`
+  - `claptrap-propose`
 
-## 1.2 Create `/claptrap:review` command (NEW FILE)
+## 1.2 Create `/claptrap-review` command (NEW FILE)
 
-- [ ] 1.2.1 Create `src/commands/claptrap:review.md`.
-- [ ] 1.2.2 Paste **Appendix C** into `src/commands/claptrap:review.md` (entire file).
-- [ ] 1.2.3 Verify the YAML frontmatter `name:` is exactly `claptrap:review`.
+- [ ] 1.2.1 Create `src/commands/claptrap-review.md`.
+- [ ] 1.2.2 Paste **Appendix C** into `src/commands/claptrap-review.md` (entire file).
+- [ ] 1.2.3 Verify the YAML frontmatter `name:` is exactly `claptrap-review`.
 - [ ] 1.2.4 Verify the command references these skills/agents by exact name:
-  - Skill: `claptrap:memory`
-  - Skill: `claptrap:spawn-subagent`
+  - Skill: `claptrap-memory`
+  - Skill: `claptrap-spawn-subagent`
   - Agent: `plan-reviewer`
 
-## 1.3 Create `claptrap:propose` skill (NEW FILE + NEW TEMPLATES)
+## 1.3 Create `claptrap-propose` skill (NEW FILE + NEW TEMPLATES)
 
-- [ ] 1.3.1 Create `src/skills/claptrap:propose/SKILL.md`.
-- [ ] 1.3.2 Paste **Appendix D** into `src/skills/claptrap:propose/SKILL.md` (entire file).
+- [ ] 1.3.1 Create `src/skills/claptrap-propose/SKILL.md`.
+- [ ] 1.3.2 Paste **Appendix D** into `src/skills/claptrap-propose/SKILL.md` (entire file).
 - [ ] 1.3.3 Create these files (create directories as needed):
-  - `src/skills/claptrap:propose/templates/proposal-hints.md`
-  - `src/skills/claptrap:propose/templates/spec-hints.md`
-  - `src/skills/claptrap:propose/templates/tasks-hints.md`
+  - `src/skills/claptrap-propose/templates/proposal-hints.md`
+  - `src/skills/claptrap-propose/templates/spec-hints.md`
+  - `src/skills/claptrap-propose/templates/tasks-hints.md`
 - [ ] 1.3.4 Paste the matching appendices into each file:
   - proposal-hints.md ← **Appendix E**
   - spec-hints.md ← **Appendix F**
   - tasks-hints.md ← **Appendix G**
-- [ ] 1.3.5 Confirm `src/skills/claptrap:propose/templates/` contains exactly these three `*-hints.md` files (and nothing empty/placeholder).
+- [ ] 1.3.5 Confirm `src/skills/claptrap-propose/templates/` contains exactly these three `*-hints.md` files (and nothing empty/placeholder).
 
 ## Phase 1 Review (mandatory)
 
-- [ ] 1.R.1 Run `rg -n \"name: \\\"claptrap:(propose|review)\\\"\" src/commands` and confirm it matches the two new files.
-- [ ] 1.R.2 Run `test -f src/skills/claptrap:propose/SKILL.md && echo OK` and confirm it prints `OK`.
-- [ ] 1.R.3 Run `ls src/skills/claptrap:propose/templates` and confirm the three hints files exist.
+- [ ] 1.R.1 Run `rg -n \"name: \\\"claptrap-(propose|review)\\\"\" src/commands` and confirm it matches the two new files.
+- [ ] 1.R.2 Run `test -f src/skills/claptrap-propose/SKILL.md && echo OK` and confirm it prints `OK`.
+- [ ] 1.R.3 Run `ls src/skills/claptrap-propose/templates` and confirm the three hints files exist.
 - [ ] 1.R.4 If any of 1.R.1–1.R.3 fail, fix the filesystem/paths until they pass, then re-run 1.R.1–1.R.3.
 
 ---
@@ -150,7 +150,7 @@
 
 ## 2.2 Update the brainstorm skill’s embedded template (must match canonical)
 
-- [ ] 2.2.1 Open `src/skills/claptrap:brainstorming/templates/design.md`.
+- [ ] 2.2.1 Open `src/skills/claptrap-brainstorming/templates/design.md`.
 - [ ] 2.2.2 Replace the entire file contents with **Appendix A** (YES: exactly the same as `src/designs/TEMPLATE.md`).
 - [ ] 2.2.3 Confirm the first character in the file is `<` (this fixes the current stray leading `e` bug).
 
@@ -161,18 +161,18 @@
 - [ ] 2.3.3 Confirm the example includes `### Package Structure` and `### Core Types`.
 - [ ] 2.3.4 Confirm the example includes an `## OpenSpec Proposals` section.
 
-## 2.4 Update the `/claptrap:brainstorm` command to match the new workflow
+## 2.4 Update the `/claptrap-brainstorm` command to match the new workflow
 
-- [ ] 2.4.1 Open `src/commands/claptrap:brainstorm.md`.
+- [ ] 2.4.1 Open `src/commands/claptrap-brainstorm.md`.
 - [ ] 2.4.2 Keep YAML frontmatter unchanged.
 - [ ] 2.4.3 Replace everything after the YAML frontmatter with **Appendix H**.
 - [ ] 2.4.4 Confirm the command no longer references `openspec-create-proposal` (it must NOT).
 - [ ] 2.4.5 Confirm the command’s output path is exactly `.claptrap/designs/<feature-slug>/design.md`.
-- [ ] 2.4.6 Confirm the command’s “next step” explicitly tells the user to run `/claptrap:propose`.
+- [ ] 2.4.6 Confirm the command’s “next step” explicitly tells the user to run `/claptrap-propose`.
 
-## 2.5 Update the `claptrap:brainstorming` skill to include memory + new dialogue bounds
+## 2.5 Update the `claptrap-brainstorming` skill to include memory + new dialogue bounds
 
-- [ ] 2.5.1 Open `src/skills/claptrap:brainstorming/SKILL.md`.
+- [ ] 2.5.1 Open `src/skills/claptrap-brainstorming/SKILL.md`.
 - [ ] 2.5.2 Keep YAML frontmatter unchanged.
 - [ ] 2.5.3 Replace everything after the YAML frontmatter with **Appendix I**.
 - [ ] 2.5.4 Confirm the skill says:
@@ -184,9 +184,9 @@
 
 ## Phase 2 Review (mandatory)
 
-- [ ] 2.R.1 Run `diff -u src/designs/TEMPLATE.md src/skills/claptrap:brainstorming/templates/design.md` and confirm there is **no diff output**.
-- [ ] 2.R.2 Run `rg -n \"openspec-create-proposal\" src/commands/claptrap:brainstorm.md src/skills/claptrap:brainstorming/SKILL.md` and confirm there are **zero matches**.
-- [ ] 2.R.3 Run `rg -n \"^## OpenSpec Proposals\" -n src/designs/TEMPLATE.md src/skills/claptrap:brainstorming/templates/design.md src/designs/example-feature/design.md` and confirm it matches all three files.
+- [ ] 2.R.1 Run `diff -u src/designs/TEMPLATE.md src/skills/claptrap-brainstorming/templates/design.md` and confirm there is **no diff output**.
+- [ ] 2.R.2 Run `rg -n \"openspec-create-proposal\" src/commands/claptrap-brainstorm.md src/skills/claptrap-brainstorming/SKILL.md` and confirm there are **zero matches**.
+- [ ] 2.R.3 Run `rg -n \"^## OpenSpec Proposals\" -n src/designs/TEMPLATE.md src/skills/claptrap-brainstorming/templates/design.md src/designs/example-feature/design.md` and confirm it matches all three files.
 - [ ] 2.R.4 If any of 2.R.1–2.R.3 fail, fix the incorrect file(s) and re-run 2.R.1–2.R.3 until they pass.
 
 ---
@@ -215,7 +215,7 @@
   - Input 4: `design.md`
 - [ ] 3.2.5 Confirm the output format is exactly `FEASIBLE` or `CONCERNS:` with numbered severity items.
 
-## 3.3 Refactor plan-reviewer (holistic validation for `/claptrap:review`)
+## 3.3 Refactor plan-reviewer (holistic validation for `/claptrap-review`)
 
 - [ ] 3.3.1 Open `src/agents/plan-reviewer.md`.
 - [ ] 3.3.2 Keep YAML frontmatter unchanged.
@@ -244,18 +244,18 @@
 ## 4.2 Delete deprecated skills
 
 - [ ] 4.2.1 Delete directory `src/skills/design-to-proposal/` (entire directory).
-- [ ] 4.2.2 Delete directory `src/skills/claptrap:openspec-proposal/` (entire directory).
-- [ ] 4.2.3 Delete directory `src/skills/claptrap:opecspec-design/` (entire directory).
+- [ ] 4.2.2 Delete directory `src/skills/claptrap-openspec-proposal/` (entire directory).
+- [ ] 4.2.3 Delete directory `src/skills/claptrap-opecspec-design/` (entire directory).
 - [ ] 4.2.4 Confirm `ls src/skills` no longer lists those three directories.
 
 ## 4.3 Update command registry (`src/commands/AGENTS.md`)
 
 - [ ] 4.3.1 Open `src/commands/AGENTS.md`.
 - [ ] 4.3.2 In the “Available Commands” table, replace the entire table body so it lists ONLY:
-  - `claptrap:brainstorm`
-  - `claptrap:propose`
-  - `claptrap:review`
-  - `claptrap:refactor`
+  - `claptrap-brainstorm`
+  - `claptrap-propose`
+  - `claptrap-review`
+  - `claptrap-refactor`
 - [ ] 4.3.3 Add an “Invocation” column and include the exact invocations from the proposal.
 - [ ] 4.3.4 Remove any mention of `propose`, `implement-change`, `archive-change`, `finish-openspec-change`.
 
@@ -265,28 +265,28 @@
 - [ ] 4.4.2 Remove registry entries for:
   - `design-to-proposal`
   - `openspec-create-proposal` (if it’s only present as a legacy entry)
-  - `claptrap:openspec-proposal`
-  - `claptrap:opecspec-design`
+  - `claptrap-openspec-proposal`
+  - `claptrap-opecspec-design`
 - [ ] 4.4.3 Add registry entries for (each must include: Path, Purpose, Use when, Templates (if any)):
-  - `claptrap:brainstorming` → `skills/claptrap:brainstorming/SKILL.md`
-  - `claptrap:propose` → `skills/claptrap:propose/SKILL.md`
-  - `claptrap:memory` → `skills/claptrap:memory/SKILL.md`
-  - `claptrap:spawn-subagent` → `skills/claptrap:spawn-subagent/SKILL.md`
-  - `claptrap:refactor` → `skills/claptrap:refactor/SKILL.md`
+  - `claptrap-brainstorming` → `skills/claptrap-brainstorming/SKILL.md`
+  - `claptrap-propose` → `skills/claptrap-propose/SKILL.md`
+  - `claptrap-memory` → `skills/claptrap-memory/SKILL.md`
+  - `claptrap-spawn-subagent` → `skills/claptrap-spawn-subagent/SKILL.md`
+  - `claptrap-refactor` → `skills/claptrap-refactor/SKILL.md`
 - [ ] 4.4.4 If you keep any non-workflow skills (example: `snowflake`), list them in a separate “Other Skills” subsection.
 
 ## 4.5 Update agent registry (`src/agents/AGENTS.md`)
 
 - [ ] 4.5.1 Replace the “Core Pipeline” section so it matches the new flow:
-  - Propose: `/claptrap:propose` (spawns alignment + feasibility)
-  - Review: `/claptrap:review` (spawns plan-reviewer)
+  - Propose: `/claptrap-propose` (spawns alignment + feasibility)
+  - Review: `/claptrap-review` (spawns plan-reviewer)
   - Implementation: `/opsx:apply` (native OpenSpec; may spawn code-reviewer)
 - [ ] 4.5.2 Update the “Agent Spawning Map” so it matches:
-  - alignment-reviewer spawned by `/claptrap:propose`
-  - feasibility-reviewer spawned by `/claptrap:propose`
-  - plan-reviewer spawned by `/claptrap:review`
+  - alignment-reviewer spawned by `/claptrap-propose`
+  - feasibility-reviewer spawned by `/claptrap-propose`
+  - plan-reviewer spawned by `/claptrap-review`
   - code-reviewer spawned by `/opsx:apply` (native step)
-  - research + ui-designer spawned by `/claptrap:brainstorm` and/or `/claptrap:propose` when needed
+  - research + ui-designer spawned by `/claptrap-brainstorm` and/or `/claptrap-propose` when needed
 - [ ] 4.5.3 Remove any mention of `/propose`, `/implement-change`, `/archive-change`.
 
 ## 4.6 Update `src/AGENTS.md` to document the new workflow
@@ -300,9 +300,9 @@
 ## 4.7 Update root `README.md` (user-facing docs)
 
 - [ ] 4.7.1 In `README.md`, update the “Usage” section so it lists ONLY:
-  - `/claptrap:brainstorm`
-  - `/claptrap:propose <design-path>`
-  - `/claptrap:review <change-id>`
+  - `/claptrap-brainstorm`
+  - `/claptrap-propose <design-path>`
+  - `/claptrap-review <change-id>`
   - `/opsx:apply`, `/opsx:verify`, `/opsx:archive`
 - [ ] 4.7.2 In `README.md`, update the “Designs” section:
   - Design docs live in `.claptrap/designs/<feature-slug>/design.md`
@@ -316,7 +316,7 @@
   - `.claptrap/` contains: `code-conventions/`, `designs/`, `memories.md`
   - Provider directory contains: `agents/`, `commands/`, and `skills/` as supported by the provider
 - [ ] 4.8.2 Remove any “Usage” examples that reference removed commands.
-- [ ] 4.8.3 Add a note that OpenSpec CLI is required for `/claptrap:propose` and `/opsx:*` commands.
+- [ ] 4.8.3 Add a note that OpenSpec CLI is required for `/claptrap-propose` and `/opsx:*` commands.
 
 ## 4.9 Update installer OpenSpec version guard (`bootstrap/install.py`)
 
@@ -324,16 +324,16 @@
 - [ ] 4.9.2 Add a constant near the top of the OpenSpec section:
   - `OPENSPEC_MIN_VERSION = \"1.0.0\"` (or the exact version from Phase 0 if you choose a higher minimum)
 - [ ] 4.9.3 Add a post-install check:
-  - If OpenSpec is installed and the version is **below** `OPENSPEC_MIN_VERSION`, print a warning explaining that `/claptrap:propose` may not work correctly.
+  - If OpenSpec is installed and the version is **below** `OPENSPEC_MIN_VERSION`, print a warning explaining that `/claptrap-propose` may not work correctly.
   - If version is **>=** minimum, print a success message.
 - [ ] 4.9.4 Do NOT change any installer behavior unrelated to OpenSpec version checking.
 
 ## Phase 4 Review (mandatory)
 
 - [ ] 4.R.1 Run `rg -n \"(/propose|/implement-change|/archive-change|/finish-openspec-change)\" src README.md bootstrap/README.md` and confirm **zero matches**.
-- [ ] 4.R.2 Run `rg -n \"(design-to-proposal|claptrap:openspec-proposal|claptrap:opecspec-design)\" src README.md bootstrap/README.md` and confirm **zero matches**.
+- [ ] 4.R.2 Run `rg -n \"(design-to-proposal|claptrap-openspec-proposal|claptrap-opecspec-design)\" src README.md bootstrap/README.md` and confirm **zero matches**.
 - [ ] 4.R.3 Run `ls src/commands` and confirm only intended command files remain.
-- [ ] 4.R.4 Run `ls src/skills` and confirm removed directories are gone and `claptrap:propose/` exists with its templates.
+- [ ] 4.R.4 Run `ls src/skills` and confirm removed directories are gone and `claptrap-propose/` exists with its templates.
 - [ ] 4.R.5 If any stale references exist, fix them immediately and re-run 4.R.1–4.R.4.
 
 ---
@@ -345,34 +345,34 @@
 - [ ] 5.1.1 Confirm every command file in `src/commands/` starts with YAML frontmatter (`---`).
 - [ ] 5.1.2 Confirm every skill directory in `src/skills/` contains `SKILL.md`.
 - [ ] 5.1.3 Confirm these specific paths exist:
-  - `src/commands/claptrap:brainstorm.md`
-  - `src/commands/claptrap:propose.md`
-  - `src/commands/claptrap:review.md`
-  - `src/skills/claptrap:brainstorming/SKILL.md`
-  - `src/skills/claptrap:propose/SKILL.md`
-  - `src/skills/claptrap:propose/templates/proposal-hints.md`
-  - `src/skills/claptrap:propose/templates/spec-hints.md`
-  - `src/skills/claptrap:propose/templates/tasks-hints.md`
+  - `src/commands/claptrap-brainstorm.md`
+  - `src/commands/claptrap-propose.md`
+  - `src/commands/claptrap-review.md`
+  - `src/skills/claptrap-brainstorming/SKILL.md`
+  - `src/skills/claptrap-propose/SKILL.md`
+  - `src/skills/claptrap-propose/templates/proposal-hints.md`
+  - `src/skills/claptrap-propose/templates/spec-hints.md`
+  - `src/skills/claptrap-propose/templates/tasks-hints.md`
 
 ## 5.2 Cross-reference validation
 
-- [ ] 5.2.1 Run `rg -n \"claptrap:propose\" src/commands src/skills src/agents` and confirm references make sense (no broken names).
-- [ ] 5.2.2 Run `rg -n \"claptrap:brainstorming\" src/commands src/skills` and confirm brainstorm command references the skill.
-- [ ] 5.2.3 Run `rg -n \"plan-reviewer\" src/commands src/agents` and confirm `/claptrap:review` spawns the plan-reviewer agent.
-- [ ] 5.2.4 Run `rg -n \"\\.source\" src/commands src/skills` and confirm `/claptrap:propose` writes it and `/claptrap:review` reads it.
+- [ ] 5.2.1 Run `rg -n \"claptrap-propose\" src/commands src/skills src/agents` and confirm references make sense (no broken names).
+- [ ] 5.2.2 Run `rg -n \"claptrap-brainstorming\" src/commands src/skills` and confirm brainstorm command references the skill.
+- [ ] 5.2.3 Run `rg -n \"plan-reviewer\" src/commands src/agents` and confirm `/claptrap-review` spawns the plan-reviewer agent.
+- [ ] 5.2.4 Run `rg -n \"\\.source\" src/commands src/skills` and confirm `/claptrap-propose` writes it and `/claptrap-review` reads it.
 
 ## 5.3 End-to-end smoke test (manual, do not commit generated artifacts)
 
 - [ ] 5.3.1 In a temporary sandbox project directory (NOT this repo), run the installer (`bootstrap/install.py`) and select a provider you can run locally.
 - [ ] 5.3.2 In that sandbox project, run:
-  - `/claptrap:brainstorm \"Test feature for workflow validation\"`
+  - `/claptrap-brainstorm \"Test feature for workflow validation\"`
   - Ensure it creates `.claptrap/designs/test-feature/design.md`
-- [ ] 5.3.3 Then run `/claptrap:propose` (no args) and confirm it:
+- [ ] 5.3.3 Then run `/claptrap-propose` (no args) and confirm it:
   - Creates an OpenSpec change directory
   - Generates proposal/specs/tasks
   - Writes `.source`
   - Updates the design with a link in `## OpenSpec Proposals`
-- [ ] 5.3.4 Then run `/claptrap:review` (no args) and confirm it:
+- [ ] 5.3.4 Then run `/claptrap-review` (no args) and confirm it:
   - Reads `.source`
   - Runs plan-reviewer
   - Outputs either `APPROVED:` or `REVISE:` with actionable issues
@@ -392,7 +392,7 @@
 ## Appendix A — Design Template (copy exactly)
 
 ````markdown
-<!-- Source: /claptrap:brainstorm -->
+<!-- Source: /claptrap-brainstorm -->
 <!-- Naming: .claptrap/designs/<feature-slug>/design.md -->
 
 # Design: <Feature Name>
@@ -452,21 +452,21 @@ interface Example {
 ## Next Steps
 
 1. Review this design document
-2. Run `/claptrap:propose` to generate OpenSpec artifacts
+2. Run `/claptrap-propose` to generate OpenSpec artifacts
 3. Review and approve proposal/specs/tasks
 4. Implement via `/opsx:apply`
 
 ## OpenSpec Proposals
 
-<!-- Auto-populated by /claptrap:propose -->
+<!-- Auto-populated by /claptrap-propose -->
 - (none yet)
 ````
 
-## Appendix B — `src/commands/claptrap:propose.md` (copy exactly)
+## Appendix B — `src/commands/claptrap-propose.md` (copy exactly)
 
 ```markdown
 ---
-name: "claptrap:propose"
+name: "claptrap-propose"
 description: "Generate OpenSpec artifacts (proposal, specs, tasks) from an approved design.md, with alignment + feasibility review."
 model: claude-sonnet-4.5
 models:
@@ -478,15 +478,15 @@ models:
   codex: gpt-5.2-codex
 ---
 
-# /claptrap:propose
+# /claptrap-propose
 
 Generate OpenSpec artifacts from a design document. This command does NOT implement code.
 
 ## Inputs
 
 Supported invocations:
-- `/claptrap:propose .claptrap/designs/<slug>/design.md`
-- `/claptrap:propose` (auto-detect most recent design)
+- `/claptrap-propose .claptrap/designs/<slug>/design.md`
+- `/claptrap-propose` (auto-detect most recent design)
 
 Optional flags (parse from `$ARGUMENTS`):
 - `--regenerate proposal|specs|tasks|all` (regenerate inside an existing change)
@@ -502,24 +502,24 @@ Optional flags (parse from `$ARGUMENTS`):
 ## Skills
 
 Load and use these skills:
-- `claptrap:memory` (read at start; write at end if useful)
-- `claptrap:spawn-subagent` (for reviewer agents)
-- `claptrap:propose` (the core step-by-step extraction workflow)
+- `claptrap-memory` (read at start; write at end if useful)
+- `claptrap-spawn-subagent` (for reviewer agents)
+- `claptrap-propose` (the core step-by-step extraction workflow)
 
 ## Workflow Steps
 
-1. Invoke `claptrap:memory` and read `.claptrap/memories.md` for context (decisions, patterns, constraints).
-2. Invoke the `claptrap:propose` skill and follow it EXACTLY.
+1. Invoke `claptrap-memory` and read `.claptrap/memories.md` for context (decisions, patterns, constraints).
+2. Invoke the `claptrap-propose` skill and follow it EXACTLY.
 3. STOP.
 
 **Design path / flags:** `$ARGUMENTS`
 ```
 
-## Appendix C — `src/commands/claptrap:review.md` (copy exactly)
+## Appendix C — `src/commands/claptrap-review.md` (copy exactly)
 
 ```markdown
 ---
-name: "claptrap:review"
+name: "claptrap-review"
 description: "Validate proposal/specs/tasks against the source design document before implementation."
 model: claude-sonnet-4.5
 models:
@@ -531,15 +531,15 @@ models:
   codex: gpt-5.2-codex
 ---
 
-# /claptrap:review
+# /claptrap-review
 
 Validate all OpenSpec artifacts against the source design document. This is the explicit quality gate before `/opsx:apply`.
 
 ## Inputs
 
 Supported invocations:
-- `/claptrap:review <change-id>`
-- `/claptrap:review` (auto-detect most recent change)
+- `/claptrap-review <change-id>`
+- `/claptrap-review` (auto-detect most recent change)
 
 Optional flags (parse from `$ARGUMENTS`):
 - `--force` (user chooses to proceed even if verdict is REVISE; MUST write an accepted-risk memory)
@@ -555,8 +555,8 @@ For change-id `<id>`, load:
 ## Skills
 
 Load and use these skills:
-- `claptrap:memory` (write only if user accepts risk or key decision emerges)
-- `claptrap:spawn-subagent` (to run `plan-reviewer`)
+- `claptrap-memory` (write only if user accepts risk or key decision emerges)
+- `claptrap-spawn-subagent` (to run `plan-reviewer`)
 
 ## Workflow Steps
 
@@ -569,22 +569,22 @@ Load and use these skills:
 4. Spawn the `plan-reviewer` subagent with those artifacts as input.
 5. Report the verdict exactly as `APPROVED:` or `REVISE:` (do not invent new verdict words).
 6. If verdict is `REVISE`:
-   - If user did NOT pass `--force`: tell them to return to `/claptrap:propose` to regenerate/fix artifacts.
+   - If user did NOT pass `--force`: tell them to return to `/claptrap-propose` to regenerate/fix artifacts.
    - If user DID pass `--force`: clearly list the issues and write a memory entry documenting the accepted risk.
 7. STOP.
 
 **Change id / flags:** `$ARGUMENTS`
 ```
 
-## Appendix D — `src/skills/claptrap:propose/SKILL.md` (copy exactly)
+## Appendix D — `src/skills/claptrap-propose/SKILL.md` (copy exactly)
 
 ```markdown
 ---
-name: "claptrap:propose"
+name: "claptrap-propose"
 description: "Design → OpenSpec artifact extraction with alignment + feasibility review cycles."
 ---
 
-# claptrap:propose
+# claptrap-propose
 
 ## Overview
 
@@ -624,8 +624,8 @@ If either requirement is missing:
 ## Skills
 
 Load the following skills:
-- `claptrap:memory`
-- `claptrap:spawn-subagent`
+- `claptrap-memory`
+- `claptrap-spawn-subagent`
 
 ## File paths (source linking rules)
 
@@ -648,7 +648,7 @@ Use these rules:
 
 ### Step 0: Read memory
 
-1. Invoke `claptrap:memory`.
+1. Invoke `claptrap-memory`.
 2. Read `.claptrap/memories.md`.
 3. Extract only relevant context (patterns/decisions that affect the design or artifacts).
 
@@ -658,7 +658,7 @@ Use these rules:
 2. Else, auto-detect the most recent design by modified time:
    - Search for `.claptrap/designs/**/design.md`
    - Pick the newest by mtime
-3. If no design is found, ask the user to run `/claptrap:brainstorm` first and STOP.
+3. If no design is found, ask the user to run `/claptrap-brainstorm` first and STOP.
 
 ### Step 2: Validate design document shape (hard stop on missing required sections)
 
@@ -671,7 +671,7 @@ Confirm the design contains ALL required headings:
 
 If any required heading is missing:
 1. List the missing heading(s).
-2. Tell the user to fix the design first (or rerun `/claptrap:brainstorm`).
+2. Tell the user to fix the design first (or rerun `/claptrap-brainstorm`).
 3. STOP.
 
 ### Step 3: Resolve change-id
@@ -689,7 +689,7 @@ Case A — normal run (no `--regenerate`):
 Case B — regeneration run (`--regenerate ...`):
 1. Require `--change <change-id>` to be present.
 2. Confirm `openspec/changes/<change-id>/` exists.
-3. If it does not exist, STOP and tell the user to run normal `/claptrap:propose` first.
+3. If it does not exist, STOP and tell the user to run normal `/claptrap-propose` first.
 
 ### Step 5: Generate proposal.md
 
@@ -703,7 +703,7 @@ Case B — regeneration run (`--regenerate ...`):
 
 ### Step 6: Alignment review (design ↔ proposal) — max 2 cycles
 
-1. Spawn the `alignment-reviewer` subagent (via `claptrap:spawn-subagent`) with:
+1. Spawn the `alignment-reviewer` subagent (via `claptrap-spawn-subagent`) with:
    - design.md (source)
    - proposal.md (generated)
 2. If output is `ALIGNED`, continue.
@@ -753,7 +753,7 @@ Case B — regeneration run (`--regenerate ...`):
 2. Update the design doc:
    - Ensure it has `## OpenSpec Proposals`
    - Add the proposal link entry for `<change-id>`
-3. Use `claptrap:memory` to propose 1–3 candidate memories; only write those that are genuinely reusable.
+3. Use `claptrap-memory` to propose 1–3 candidate memories; only write those that are genuinely reusable.
 4. Print a short summary with links to:
    - design.md
    - proposal.md
@@ -762,7 +762,7 @@ Case B — regeneration run (`--regenerate ...`):
 
 ## Regeneration behavior
 
-If user runs `/claptrap:propose --regenerate <artifact>`:
+If user runs `/claptrap-propose --regenerate <artifact>`:
 - Only overwrite the requested artifact(s).
 - Do NOT create a new change directory.
 - Preserve the source comment and `.source` file.
@@ -873,28 +873,28 @@ With tasks like:
 - Run `/opsx:verify` after implementation
 ```
 
-## Appendix H — Replacement body for `src/commands/claptrap:brainstorm.md` (paste after YAML frontmatter)
+## Appendix H — Replacement body for `src/commands/claptrap-brainstorm.md` (paste after YAML frontmatter)
 
 ```markdown
-Invoke the `claptrap:brainstorming` skill and follow it EXACTLY as presented to you.
+Invoke the `claptrap-brainstorming` skill and follow it EXACTLY as presented to you.
 
 Before brainstorming:
-- Invoke `claptrap:memory` and read `.claptrap/memories.md`.
+- Invoke `claptrap-memory` and read `.claptrap/memories.md`.
 
 After brainstorming:
 - Generate a `<feature-slug>` from the design title using kebab-case.
 - Create directory: `.claptrap/designs/<feature-slug>/`
 - Write the validated design to: `.claptrap/designs/<feature-slug>/design.md`
   - Use the design template at `templates/design.md` from the brainstorm skill.
-- If any significant decisions were made, invoke `claptrap:memory` and write selective memory entries.
+- If any significant decisions were made, invoke `claptrap-memory` and write selective memory entries.
 
 Next step:
-- Run `/claptrap:propose .claptrap/designs/<feature-slug>/design.md` to generate OpenSpec artifacts.
+- Run `/claptrap-propose .claptrap/designs/<feature-slug>/design.md` to generate OpenSpec artifacts.
 
 **User Brainstorm Idea/Prompt:** $ARGUMENTS
 ```
 
-## Appendix I — Replacement body for `src/skills/claptrap:brainstorming/SKILL.md` (paste after YAML frontmatter)
+## Appendix I — Replacement body for `src/skills/claptrap-brainstorming/SKILL.md` (paste after YAML frontmatter)
 
 ```markdown
 # Brainstorming Ideas Into Designs (Claptrap)
@@ -950,7 +950,7 @@ Generate the design in this exact section order, validating with the user after 
 4. Architecture Overview (components, package structure, core types, data flow)
 5. Key Decisions (Decision/Options/Choice/Rationale table)
 6. Open Questions (checkboxes)
-7. Next Steps (must include `/claptrap:propose`)
+7. Next Steps (must include `/claptrap-propose`)
 
 ### Step 4: Finalize
 
@@ -974,7 +974,7 @@ Author: Example Author
 
 ## Intent
 
-Demonstrate the complete `design.md` structure produced by `/claptrap:brainstorm`, including optional technical sections used to generate OpenSpec artifacts.
+Demonstrate the complete `design.md` structure produced by `/claptrap-brainstorm`, including optional technical sections used to generate OpenSpec artifacts.
 
 ## Scope
 
@@ -1042,13 +1042,13 @@ export interface ExampleRecord {
 ## Next Steps
 
 1. Review this design document
-2. Run `/claptrap:propose .claptrap/designs/example-feature/design.md` to generate OpenSpec artifacts
+2. Run `/claptrap-propose .claptrap/designs/example-feature/design.md` to generate OpenSpec artifacts
 3. Review and approve proposal/specs/tasks
 4. Implement via `/opsx:apply`
 
 ## OpenSpec Proposals
 
-<!-- Auto-populated by /claptrap:propose -->
+<!-- Auto-populated by /claptrap-propose -->
 - (none yet)
 ````
 

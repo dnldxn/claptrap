@@ -1,5 +1,5 @@
 ---
-name: "claptrap:spawn-subagent"
+name: "claptrap-spawn-subagent"
 description: Spawn subagents with fresh context and bounded scope.
 ---
 

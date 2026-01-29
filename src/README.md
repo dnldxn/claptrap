@@ -7,7 +7,7 @@ This directory contains **installable content** that gets symlinked or copied in
 | Directory | Purpose |
 |-----------|---------|
 | `agents/` | Provider-neutral agent definitions (proposer, developer, reviewer, etc.) |
-| `commands/` | Slash command workflows (`/brainstorm`, `/propose`, etc.) |
+| `commands/` | Slash command workflows (`/claptrap-brainstorm`, `/claptrap-propose`, etc.) |
 | `skills/` | Reusable playbooks for common operations (memory, spawning subagents) |
 | `code-conventions/` | Language-specific style guides |
 | `designs/` | Design document templates and examples |

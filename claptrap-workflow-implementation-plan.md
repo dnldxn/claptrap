@@ -8,33 +8,33 @@
 ## Executive Summary
 
 Refactor Claptrap to create a unified development pipeline with three commands:
-- `/claptrap:brainstorm` → Produces comprehensive `design.md`
-- `/claptrap:propose` → Extracts OpenSpec artifacts from design
-- `/claptrap:review` → Validates artifacts against source design
+- `/claptrap-brainstorm` → Produces comprehensive `design.md`
+- `/claptrap-propose` → Extracts OpenSpec artifacts from design
+- `/claptrap-review` → Validates artifacts against source design
 
 Implementation uses native OpenSpec commands (`/opsx:apply`, `/opsx:verify`, `/opsx:archive`).
 
 ## Implementation Instructions
 - "lines X-Y" refer to @claptrap-workflow-proposal.md .  Lookup the specific section for additional context.
-- Invoke the `claptrap:memory` skill to read/write memories as instructed.
+- Invoke the `claptrap-memory` skill to read/write memories as instructed.
 - When you are finished, commit your changes in git: `git commit -am "<MODEL> - <ITERATION NUMBER> -  <DESCRIPTIVE MESSAGE>"`
 
 ---
 
 ## Phase 1: Create New Components
 
-### 1.1 Create claptrap:propose Command
+### 1.1 Create claptrap-propose Command
 
 | Task ID | File | Proposal Reference |
 |---------|------|-------------------|
-| 1.1.1 | `src/commands/claptrap:propose.md` | §Component Specifications > Commands > /claptrap:propose (@claptrap-workflow-proposal.md: lines 918-940) |
+| 1.1.1 | `src/commands/claptrap-propose.md` | §Component Specifications > Commands > /claptrap-propose (@claptrap-workflow-proposal.md: lines 918-940) |
 
 **Technical Details:**
 
 Create command file with YAML frontmatter:
 ```yaml
 ---
-name: "claptrap:propose"
+name: "claptrap-propose"
 description: "Generate OpenSpec artifacts (proposal, specs, tasks) from a design document with alignment and feasibility review cycles."
 model: claude-sonnet-4
 models:
@@ -48,7 +48,7 @@ models:
 ```
 
 **Command workflow (from @claptrap-workflow-proposal.md: lines 926-936):**
-1. Read memory context via `claptrap:memory` skill
+1. Read memory context via `claptrap-memory` skill
 2. Read and parse design.md, validating required sections exist:
    - Intent (required)
    - Scope (required)
@@ -69,23 +69,23 @@ models:
 12. Present summary with links to all artifacts
 
 **Invocation patterns:**
-- `/claptrap:propose .claptrap/designs/<slug>/design.md` (explicit path)
-- `/claptrap:propose` (auto-detect most recent design by modified time)
+- `/claptrap-propose .claptrap/designs/<slug>/design.md` (explicit path)
+- `/claptrap-propose` (auto-detect most recent design by modified time)
 
 ---
 
-### 1.2 Create claptrap:review Command
+### 1.2 Create claptrap-review Command
 
 | Task ID | File | Proposal Reference |
 |---------|------|-------------------|
-| 1.2.1 | `src/commands/claptrap:review.md` | §Component Specifications > Commands > /claptrap:review (@claptrap-workflow-proposal.md: lines 944-961) |
+| 1.2.1 | `src/commands/claptrap-review.md` | §Component Specifications > Commands > /claptrap-review (@claptrap-workflow-proposal.md: lines 944-961) |
 
 **Technical Details:**
 
 Create command file with YAML frontmatter:
 ```yaml
 ---
-name: "claptrap:review"
+name: "claptrap-review"
 description: "Validate all OpenSpec artifacts against source design document using plan-reviewer agent."
 model: claude-sonnet-4
 models:
@@ -111,34 +111,34 @@ models:
    - `APPROVED` with validation summary
    - `REVISE` with prioritized issues (Critical → Important → Minor)
 6. If REVISE, guide user through resolution options:
-   - Fix now: return to `/claptrap:propose --regenerate`
+   - Fix now: return to `/claptrap-propose --regenerate`
    - Defer: document in tasks as future work
    - Accept risk: document in memory
 
 **Invocation patterns:**
-- `/claptrap:review <change-id>` (explicit change)
-- `/claptrap:review` (auto-detect most recent change)
+- `/claptrap-review <change-id>` (explicit change)
+- `/claptrap-review` (auto-detect most recent change)
 
 ---
 
-### 1.3 Create claptrap:propose Skill
+### 1.3 Create claptrap-propose Skill
 
 | Task ID | File | Proposal Reference |
 |---------|------|-------------------|
-| 1.3.1 | `src/skills/claptrap:propose/` | §File Structure > Source Structure (lines 1148-1153) |
-| 1.3.2 | `src/skills/claptrap:propose/SKILL.md` | §Component Specifications > Skills > claptrap:propose-skill (@claptrap-workflow-proposal.md: lines 985-1003) |
-| 1.3.3 | `src/skills/claptrap:propose/templates/` | §File Structure (@claptrap-workflow-proposal.md: lines 1150-1153) |
-| 1.3.4 | `src/skills/claptrap:propose/templates/proposal-hints.md` | §Artifact Specifications > Proposal (@claptrap-workflow-proposal.md: lines 663-721) |
-| 1.3.5 | `src/skills/claptrap:propose/templates/spec-hints.md` | §Artifact Specifications > Spec (@claptrap-workflow-proposal.md: lines 724-816) |
-| 1.3.6 | `src/skills/claptrap:propose/templates/tasks-hints.md` | §Artifact Specifications > Tasks (@claptrap-workflow-proposal.md: lines 820-889) |
+| 1.3.1 | `src/skills/claptrap-propose/` | §File Structure > Source Structure (lines 1148-1153) |
+| 1.3.2 | `src/skills/claptrap-propose/SKILL.md` | §Component Specifications > Skills > claptrap-propose-skill (@claptrap-workflow-proposal.md: lines 985-1003) |
+| 1.3.3 | `src/skills/claptrap-propose/templates/` | §File Structure (@claptrap-workflow-proposal.md: lines 1150-1153) |
+| 1.3.4 | `src/skills/claptrap-propose/templates/proposal-hints.md` | §Artifact Specifications > Proposal (@claptrap-workflow-proposal.md: lines 663-721) |
+| 1.3.5 | `src/skills/claptrap-propose/templates/spec-hints.md` | §Artifact Specifications > Spec (@claptrap-workflow-proposal.md: lines 724-816) |
+| 1.3.6 | `src/skills/claptrap-propose/templates/tasks-hints.md` | §Artifact Specifications > Tasks (@claptrap-workflow-proposal.md: lines 820-889) |
 
 **Technical Details for SKILL.md:**
 
 ```yaml
 ---
-name: "claptrap:propose"
+name: "claptrap-propose"
 description: "Design → OpenSpec artifact extraction with review cycles"
-invoked_by: "/claptrap:propose command"
+invoked_by: "/claptrap-propose command"
 ---
 ```
 
@@ -203,7 +203,7 @@ Include example transformation from @claptrap-workflow-proposal.md: lines 858-88
 
 Update template to include all sections from @claptrap-workflow-proposal.md: lines 319-388:
 ```markdown
-<!-- Source: /claptrap:brainstorm -->
+<!-- Source: /claptrap-brainstorm -->
 <!-- Naming: .claptrap/designs/<feature-slug>/design.md -->
 
 # Design: <Feature Name>
@@ -259,12 +259,12 @@ interface Example {
 
 ## Next Steps
 1. Review this design document
-2. Run `/claptrap:propose` to generate OpenSpec artifacts
+2. Run `/claptrap-propose` to generate OpenSpec artifacts
 3. Review and approve proposal
 4. Implement via `/opsx:apply`
 
 ## OpenSpec Proposals
-<!-- Auto-populated by /claptrap:propose -->
+<!-- Auto-populated by /claptrap-propose -->
 - (none yet)
 ```
 
@@ -278,11 +278,11 @@ interface Example {
 
 ## Phase 2: Update Existing Components
 
-### 2.1 Update claptrap:brainstorm Command
+### 2.1 Update claptrap-brainstorm Command
 
 | Task ID | File | Proposal Reference |
 |---------|------|-------------------|
-| 2.1.1 | `src/commands/claptrap:brainstorm.md` | §Component Specifications > Commands > /claptrap:brainstorm (@claptrap-workflow-proposal.md: lines 897-914) |
+| 2.1.1 | `src/commands/claptrap-brainstorm.md` | §Component Specifications > Commands > /claptrap-brainstorm (@claptrap-workflow-proposal.md: lines 897-914) |
 
 **Technical Details:**
 
@@ -291,7 +291,7 @@ Modify existing command to:
 2. Clarify output path: `.claptrap/designs/<feature-slug>/design.md`
 3. Add explicit memory read step at start (from @claptrap-workflow-proposal.md: line 163)
 4. Add memory write step at end for significant decisions (from @claptrap-workflow-proposal.md: line 167)
-5. Update "Next Steps" output to reference `/claptrap:propose`
+5. Update "Next Steps" output to reference `/claptrap-propose`
 
 **Process steps from @claptrap-workflow-proposal.md: lines 274-312:**
 - Step 1: Initialize (read memory, parse idea, determine if research needed)
@@ -302,12 +302,12 @@ Modify existing command to:
 
 ---
 
-### 2.2 Update claptrap:brainstorming Skill
+### 2.2 Update claptrap-brainstorming Skill
 
 | Task ID | File | Proposal Reference |
 |---------|------|-------------------|
-| 2.2.1 | `src/skills/claptrap:brainstorming/SKILL.md` | §Component Specifications > Skills > claptrap:brainstorm-skill (@claptrap-workflow-proposal.md: lines 967-982) |
-| 2.2.2 | `src/skills/claptrap:brainstorming/templates/design.md` | §Detailed Flow Specification > Phase 1 > Output (@claptrap-workflow-proposal.md: lines 316-388) |
+| 2.2.1 | `src/skills/claptrap-brainstorming/SKILL.md` | §Component Specifications > Skills > claptrap-brainstorm-skill (@claptrap-workflow-proposal.md: lines 967-982) |
+| 2.2.2 | `src/skills/claptrap-brainstorming/templates/design.md` | §Detailed Flow Specification > Phase 1 > Output (@claptrap-workflow-proposal.md: lines 316-388) |
 
 **Technical Details for SKILL.md:**
 
@@ -438,7 +438,7 @@ Update example to demonstrate all sections:
 - Add `Core Types` section with example TypeScript interface
 - Add `Package Structure` section with directory tree
 - Update `Key Decisions` to use full table format (Decision | Options | Choice | Rationale)
-- Update `Next Steps` to reference `/claptrap:propose`
+- Update `Next Steps` to reference `/claptrap-propose`
 - Add `OpenSpec Proposals` section with placeholder
 
 ---
@@ -449,7 +449,7 @@ Update example to demonstrate all sections:
 
 | Task ID | File to Delete | Reason | Proposal Reference |
 |---------|----------------|--------|-------------------|
-| 3.1.1 | `src/commands/propose.md` | Replaced by `claptrap:propose` | §Current State Analysis > Components to Refactor (@claptrap-workflow-proposal.md: line 140) |
+| 3.1.1 | `src/commands/propose.md` | Replaced by `claptrap-propose` | §Current State Analysis > Components to Refactor (@claptrap-workflow-proposal.md: line 140) |
 | 3.1.2 | `src/commands/implement-change.md` | Use native `/opsx:apply` | §Current State Analysis > Components to Remove (@claptrap-workflow-proposal.md: line 148) |
 | 3.1.3 | `src/commands/archive-change.md` | Use native `/opsx:archive` | §Current State Analysis > Components to Remove (@claptrap-workflow-proposal.md: line 149) |
 | 3.1.4 | `src/commands/finish-openspec-change.md` | Use native `/opsx:archive` | §Current State Analysis > Components to Remove (@claptrap-workflow-proposal.md: line 150) |
@@ -467,9 +467,9 @@ For each file:
 
 | Task ID | Directory to Delete | Reason | Proposal Reference |
 |---------|---------------------|--------|-------------------|
-| 3.2.1 | `src/skills/design-to-proposal/` | Merged into `claptrap:propose` | §Migration Plan > Phase 3 (@claptrap-workflow-proposal.md: line 1232) |
-| 3.2.2 | `src/skills/claptrap:openspec-proposal/` | Merged into `claptrap:propose` | §Migration Plan > Phase 3 (@claptrap-workflow-proposal.md: line 1233) |
-| 3.2.3 | `src/skills/claptrap:opecspec-design/` | Empty stub (typo in name, no implementation) | Codebase exploration finding |
+| 3.2.1 | `src/skills/design-to-proposal/` | Merged into `claptrap-propose` | §Migration Plan > Phase 3 (@claptrap-workflow-proposal.md: line 1232) |
+| 3.2.2 | `src/skills/claptrap-openspec-proposal/` | Merged into `claptrap-propose` | §Migration Plan > Phase 3 (@claptrap-workflow-proposal.md: line 1233) |
+| 3.2.3 | `src/skills/claptrap-opecspec-design/` | Empty stub (typo in name, no implementation) | Codebase exploration finding |
 
 **Technical Details:**
 
@@ -484,12 +484,12 @@ For each directory:
 - `src/skills/design-to-proposal/review-feasibility.md`
 
 **Files to delete in 3.2.2:**
-- `src/skills/claptrap:openspec-proposal/SKILL.md`
-- `src/skills/claptrap:openspec-proposal/templates/proposal.md`
+- `src/skills/claptrap-openspec-proposal/SKILL.md`
+- `src/skills/claptrap-openspec-proposal/templates/proposal.md`
 
 **Files to delete in 3.2.3:**
-- `src/skills/claptrap:opecspec-design/SKILL.md` (empty)
-- `src/skills/claptrap:opecspec-design/templates/design.md`
+- `src/skills/claptrap-opecspec-design/SKILL.md` (empty)
+- `src/skills/claptrap-opecspec-design/templates/design.md`
 
 ---
 
@@ -510,10 +510,10 @@ Update command registry table to list only 4 commands:
 
 | Command | Purpose | Invocation |
 |---------|---------|------------|
-| `claptrap:brainstorm` | Turn ideas into comprehensive designs through collaborative dialogue | `/claptrap:brainstorm "<idea>"` |
-| `claptrap:propose` | Generate OpenSpec artifacts from design with review cycles | `/claptrap:propose [design-path]` |
-| `claptrap:review` | Validate artifacts against source design | `/claptrap:review [change-id]` |
-| `claptrap:refactor` | Refactor code while preserving behavior | `/claptrap:refactor` |
+| `claptrap-brainstorm` | Turn ideas into comprehensive designs through collaborative dialogue | `/claptrap-brainstorm "<idea>"` |
+| `claptrap-propose` | Generate OpenSpec artifacts from design with review cycles | `/claptrap-propose [design-path]` |
+| `claptrap-review` | Validate artifacts against source design | `/claptrap-review [change-id]` |
+| `claptrap-refactor` | Refactor code while preserving behavior | `/claptrap-refactor` |
 ```
 
 Remove entries for: `propose`, `implement-change`, `archive-change`, `finish-openspec-change`
@@ -528,18 +528,18 @@ Remove entries for: `propose`, `implement-change`, `archive-change`, `finish-ope
 
 **Technical Details:**
 
-Add new entry for `claptrap:propose`:
+Add new entry for `claptrap-propose`:
 ```markdown
-### `claptrap:propose`
-- **Path**: `skills/claptrap:propose/SKILL.md`
+### `claptrap-propose`
+- **Path**: `skills/claptrap-propose/SKILL.md`
 - **Purpose**: Extract OpenSpec artifacts from design documents with alignment and feasibility review.
 - **Use when**: You have an approved design.md and want to generate proposal, specs, and tasks.
 - **Templates**: `proposal-hints.md`, `spec-hints.md`, `tasks-hints.md`
 ```
 
-Update `claptrap:brainstorming` description to mention memory integration.
+Update `claptrap-brainstorming` description to mention memory integration.
 
-Remove entries for: `design-to-proposal`, `claptrap:openspec-proposal`, `claptrap:opecspec-design`
+Remove entries for: `design-to-proposal`, `claptrap-openspec-proposal`, `claptrap-opecspec-design`
 
 ---
 
@@ -558,12 +558,12 @@ Update Agent Spawning Map:
 
 | Agent | Spawned By | Purpose |
 |-------|------------|---------|
-| `alignment-reviewer.md` | `/claptrap:propose` | Validate proposal against design |
-| `feasibility-reviewer.md` | `/claptrap:propose` | Validate specs/tasks for realism |
-| `plan-reviewer.md` | `/claptrap:review` | Comprehensive artifact validation |
+| `alignment-reviewer.md` | `/claptrap-propose` | Validate proposal against design |
+| `feasibility-reviewer.md` | `/claptrap-propose` | Validate specs/tasks for realism |
+| `plan-reviewer.md` | `/claptrap-review` | Comprehensive artifact validation |
 | `code-reviewer.md` | `/opsx:apply` (native) | Review code changes |
-| `research.md` | `/claptrap:brainstorm`, `/claptrap:propose` | External research |
-| `ui-designer.md` | `/claptrap:brainstorm` | UI design assistance |
+| `research.md` | `/claptrap-brainstorm`, `/claptrap-propose` | External research |
+| `ui-designer.md` | `/claptrap-brainstorm` | UI design assistance |
 ```
 
 Update agent descriptions to reflect new inputs and outputs per Phase 2 changes.
@@ -581,9 +581,9 @@ Remove references to `/propose`, `/implement-change`, `/archive-change`.
 **Technical Details:**
 
 Update workflow overview to reflect new three-phase flow:
-1. `/claptrap:brainstorm` → `design.md`
-2. `/claptrap:propose` → OpenSpec artifacts
-3. `/claptrap:review` → Validation
+1. `/claptrap-brainstorm` → `design.md`
+2. `/claptrap-propose` → OpenSpec artifacts
+3. `/claptrap-review` → Validation
 4. `/opsx:apply` → Implementation (native OpenSpec)
 
 Include high-level flow diagram from @claptrap-workflow-proposal.md lines 158-218.
@@ -636,12 +636,12 @@ done
 
 | Task ID | Action | Expected Result | Proposal Reference |
 |---------|--------|-----------------|-------------------|
-| 5.3.1 | Run `/claptrap:brainstorm "Test feature for workflow validation"` | Dialogue starts, questions asked | §Detailed Flow Specification > Phase 1 (@claptrap-workflow-proposal.md: lines 256-312) |
+| 5.3.1 | Run `/claptrap-brainstorm "Test feature for workflow validation"` | Dialogue starts, questions asked | §Detailed Flow Specification > Phase 1 (@claptrap-workflow-proposal.md: lines 256-312) |
 | 5.3.2 | Complete brainstorm dialogue | `design.md` created at `.claptrap/designs/test-feature/design.md` | §Detailed Flow Specification > Phase 1 > Output (@claptrap-workflow-proposal.md: lines 314-388) |
-| 5.3.3 | Run `/claptrap:propose` | OpenSpec artifacts generated | §Detailed Flow Specification > Phase 2 (@claptrap-workflow-proposal.md: lines 403-508) |
+| 5.3.3 | Run `/claptrap-propose` | OpenSpec artifacts generated | §Detailed Flow Specification > Phase 2 (@claptrap-workflow-proposal.md: lines 403-508) |
 | 5.3.4 | Verify artifact structure | `openspec/changes/<name>/` contains proposal.md, specs/, tasks.md | §Detailed Flow Specification > Phase 2 > Outputs (@claptrap-workflow-proposal.md: lines 510-531) |
 | 5.3.5 | Verify source links | All artifacts have `<!-- Source: ... -->` comment | §Artifact Specifications (@claptrap-workflow-proposal.md: lines 627-889) |
-| 5.3.6 | Run `/claptrap:review` | Review completes with verdict | §Detailed Flow Specification > Phase 3 (@claptrap-workflow-proposal.md: lines 535-623) |
+| 5.3.6 | Run `/claptrap-review` | Review completes with verdict | §Detailed Flow Specification > Phase 3 (@claptrap-workflow-proposal.md: lines 535-623) |
 | 5.3.7 | Verify review output | APPROVED or REVISE with actionable issues | §Detailed Flow Specification > Phase 3 > Output (lines 587-623) |
 
 ---
@@ -650,8 +650,8 @@ done
 
 | Task ID | Action | Expected Behavior | Proposal Reference |
 |---------|--------|-------------------|-------------------|
-| 5.4.1 | `/claptrap:propose` with no argument | Auto-detect most recent design by modified time | §Component Specifications (@claptrap-workflow-proposal.md: line 924) |
-| 5.4.2 | `/claptrap:review` with no argument | Auto-detect most recent change | §Component Specifications (@claptrap-workflow-proposal.md: line 950) |
+| 5.4.1 | `/claptrap-propose` with no argument | Auto-detect most recent design by modified time | §Component Specifications (@claptrap-workflow-proposal.md: line 924) |
+| 5.4.2 | `/claptrap-review` with no argument | Auto-detect most recent change | §Component Specifications (@claptrap-workflow-proposal.md: line 950) |
 | 5.4.3 | Design with missing optional sections | Proceed with warning, use available sections | §Artifact Specifications (@claptrap-workflow-proposal.md: lines 646-653) |
 | 5.4.4 | Alignment review returns GAPS | Fix cycle runs, max 2 iterations | §Detailed Flow Specification (@claptrap-workflow-proposal.md: lines 453-462) |
 | 5.4.5 | Feasibility review returns CONCERNS | Fix cycle runs, max 2 iterations | §Detailed Flow Specification (@claptrap-workflow-proposal.md: lines 476-486) |
@@ -662,19 +662,19 @@ done
 
 Priority order for implementation (highest impact first):
 
-1. **`src/skills/claptrap:propose/SKILL.md`** - Core extraction logic, most complex new component
-   - Proposal ref: §Component Specifications > Skills > claptrap:propose-skill (@claptrap-workflow-proposal.md: lines 985-1003)
+1. **`src/skills/claptrap-propose/SKILL.md`** - Core extraction logic, most complex new component
+   - Proposal ref: §Component Specifications > Skills > claptrap-propose-skill (@claptrap-workflow-proposal.md: lines 985-1003)
 
-2. **`src/commands/claptrap:propose.md`** - Primary workflow entry, orchestrates the skill
-   - Proposal ref: §Component Specifications > Commands > /claptrap:propose (@claptrap-workflow-proposal.md: lines 918-940)
+2. **`src/commands/claptrap-propose.md`** - Primary workflow entry, orchestrates the skill
+   - Proposal ref: §Component Specifications > Commands > /claptrap-propose (@claptrap-workflow-proposal.md: lines 918-940)
 
 3. **`src/designs/TEMPLATE.md`** - Foundation template, all designs must follow this structure
    - Proposal ref: §Artifact Specifications > Design Document (@claptrap-workflow-proposal.md: lines 627-660)
 
-4. **`src/agents/plan-reviewer.md`** - Critical for /claptrap:review, comprehensive validation logic
+4. **`src/agents/plan-reviewer.md`** - Critical for /claptrap-review, comprehensive validation logic
    - Proposal ref: §Component Specifications > Agents > plan-reviewer (@claptrap-workflow-proposal.md: lines 1063-1087)
 
-5. **`src/skills/claptrap:brainstorming/templates/design.md`** - Must match TEMPLATE.md structure
+5. **`src/skills/claptrap-brainstorming/templates/design.md`** - Must match TEMPLATE.md structure
    - Proposal ref: §Detailed Flow Specification > Phase 1 > Output (@claptrap-workflow-proposal.md: lines 316-388)
 
 ---

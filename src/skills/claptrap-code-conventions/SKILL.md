@@ -1,5 +1,5 @@
 ---
-name: "claptrap:code-conventions"
+name: "claptrap-code-conventions"
 description: Load project-specific code style guidelines for a given language. Use before writing or reviewing code to ensure adherence to project standards.
 ---
 

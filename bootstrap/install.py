@@ -51,14 +51,14 @@ def step(num, msg):
 GLOBAL_SKILLS = [
     {"repo": "https://github.com/anthropics/skills", "skill": "skill-creator"},
     {"repo": "https://github.com/anthropics/skills", "skill": "frontend-design"},
-    {"repo": "https://github.com/forrestchang/andrej-karpathy-skills", "skill": "karpathy-guidelines"},
-
+    {
+        "repo": "https://github.com/forrestchang/andrej-karpathy-skills",
+        "skill": "karpathy-guidelines",
+    },
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "codex"},
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "gemini"},
-
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "mermaid-diagrams"},
     # {"repo": "https://github.com/obra/superpowers", "skill": "subagent-driven-development"},
-
     # {"repo": "https://github.com/jezweb/claude-skills", "skill": "streamlit-snowflake"},
 ]
 
@@ -152,9 +152,24 @@ def get_provider_display_dir(cfg):
 # Helper Functions
 ########################################################################################################################
 
+# Minimum OpenSpec version required for /claptrap-propose and /opsx:* commands
+OPENSPEC_MIN_VERSION = "1.0.2"
+
 
 def run_cmd(cmd, capture=True):
     return subprocess.run(cmd, capture_output=capture, text=True, check=False)
+
+
+def version_compare(v1, v2):
+    """Compare two version strings. Returns -1 if v1 < v2, 0 if equal, 1 if v1 > v2."""
+    parts1 = [int(x) for x in v1.split(".")]
+    parts2 = [int(x) for x in v2.split(".")]
+    for p1, p2 in zip(parts1, parts2):
+        if p1 < p2:
+            return -1
+        if p1 > p2:
+            return 1
+    return len(parts1) - len(parts2)
 
 
 def get_openspec_version():
@@ -188,9 +203,27 @@ def setup_openspec(project_dir, provider_key):
         if result.returncode == 0:
             success(f"{'Installed' if is_new else 'Upgraded to'} {version}")
             was_upgraded = True
+            current = get_openspec_version()  # Refresh current version after install
         else:
-            msg = "Installation failed - install manually: npm install -g @fission-ai/openspec@latest" if is_new else "Upgrade failed, continuing with current version"
+            msg = (
+                "Installation failed - install manually: npm install -g @fission-ai/openspec@latest"
+                if is_new
+                else "Upgrade failed, continuing with current version"
+            )
             warning(msg)
+
+    # Check minimum version requirement
+    final_version = current or get_openspec_version()
+    if final_version:
+        if version_compare(final_version, OPENSPEC_MIN_VERSION) < 0:
+            warning(
+                f"OpenSpec v{final_version} is below minimum required v{OPENSPEC_MIN_VERSION}"
+            )
+            warning("/claptrap-propose and /opsx:* commands may not work correctly")
+        else:
+            success(
+                f"OpenSpec v{final_version} meets minimum requirement (>= v{OPENSPEC_MIN_VERSION})"
+            )
 
     # Setup project's openspec directory
     openspec_dir = project_dir / "openspec"
@@ -218,7 +251,9 @@ def select_provider():
     print("\n🎯 Select your AI provider:\n")
     for i, key in enumerate(PROVIDER_ORDER, 1):
         cfg = get_provider(key)
-        print(f"  {Colors.BOLD}{i}{Colors.RESET}) {cfg['name']} ({get_provider_display_dir(cfg)})")
+        print(
+            f"  {Colors.BOLD}{i}{Colors.RESET}) {cfg['name']} ({get_provider_display_dir(cfg)})"
+        )
 
     print()
     while True:
@@ -227,7 +262,8 @@ def select_provider():
             idx = int(choice) - 1
             if 0 <= idx < len(PROVIDER_ORDER):
                 return PROVIDER_ORDER[idx]
-        except ValueError: pass
+        except ValueError:
+            pass
         except KeyboardInterrupt:
             print("\nAborted.")
             raise SystemExit(1)
@@ -245,7 +281,8 @@ def get_install_dir(provider_key, feature):
 
 
 def can_install_feature(cfg, feature):
-    if not cfg.get(f"has_{feature}"): return False, "not supported"
+    if not cfg.get(f"has_{feature}"):
+        return False, "not supported"
     if feature == "commands" and cfg.get("commands_format") == "toml":
         return False, "requires TOML format (manual setup)"
     return True, None
@@ -253,7 +290,8 @@ def can_install_feature(cfg, feature):
 
 def transform_frontmatter(content, provider_key):
     fm_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
-    if not fm_match: return content
+    if not fm_match:
+        return content
 
     frontmatter = fm_match.group(1)
     rest = content[fm_match.end() :]
@@ -279,7 +317,8 @@ def transform_frontmatter(content, provider_key):
         kept_lines.append(line)
         i += 1
 
-    if not models: return content
+    if not models:
+        return content
 
     frontmatter = "\n".join(kept_lines)
 
@@ -307,7 +346,8 @@ def copy_and_transform(src_dir, dest_dir, provider_key, new_suffix):
     count = 0
 
     for src_file in src_dir.rglob("*.md"):
-        if src_file.name in ("AGENTS.md", "README.md"): continue
+        if src_file.name in ("AGENTS.md", "README.md"):
+            continue
 
         rel_path = src_file.relative_to(src_dir)
 
@@ -323,7 +363,8 @@ def copy_and_transform(src_dir, dest_dir, provider_key, new_suffix):
             dest_file = dest_dir / (src_file.stem + new_suffix)
 
         dest_file.parent.mkdir(parents=True, exist_ok=True)
-        if dest_file.is_symlink(): dest_file.unlink()
+        if dest_file.is_symlink():
+            dest_file.unlink()
 
         content = transform_frontmatter(src_file.read_text(), provider_key)
         dest_file.write_text(content)
@@ -351,7 +392,8 @@ def copy_skills(src_dir, dest_dir):
 
 def cleanup_feature_dirs(feature_dirs):
     for feature_dir in feature_dirs:
-        if not feature_dir.exists(): continue
+        if not feature_dir.exists():
+            continue
         for pattern in ("AGENTS.md", "README.md"):
             for f in feature_dir.rglob(pattern):
                 f.unlink()
@@ -380,7 +422,9 @@ def update_gitignore(target_dir):
                 f.write(f"{entry}\n")
                 added.append(entry)
 
-    success(f"Added to .gitignore: {', '.join(added)}") if added else info(".gitignore already configured")
+    success(f"Added to .gitignore: {', '.join(added)}") if added else info(
+        ".gitignore already configured"
+    )
 
 
 def find_legacy_provider_dirs(target_dir):
@@ -396,7 +440,8 @@ def find_legacy_provider_dirs(target_dir):
             for feature in ("agents", "commands", "skills")
             if (feature_dir := provider_dir / cfg[f"{feature}_dir"]).exists()
         ]
-        if feature_dirs: legacy_dirs[provider_key] = feature_dirs
+        if feature_dirs:
+            legacy_dirs[provider_key] = feature_dirs
 
     return legacy_dirs
 
@@ -437,7 +482,8 @@ def update_agents_md(agents_md_path, claptrap_path):
         success(f"Created {agents_md_path} with CLAPTRAP section")
 
     # CLAUDE.md just points to AGENTS.md
-    if provider_key == "claude": setup_claude_md()
+    if provider_key == "claude":
+        setup_claude_md()
 
 
 def setup_claude_md():
@@ -456,7 +502,8 @@ def check_ripgrep():
 def check_mcp_server(provider_key, server_name):
     cfg = get_provider(provider_key)
     mcp_cmd = cfg.get("mcp_cmd")
-    if not mcp_cmd: return None
+    if not mcp_cmd:
+        return None
 
     try:
         result = run_cmd(mcp_cmd)
@@ -467,7 +514,8 @@ def check_mcp_server(provider_key, server_name):
                         return False
                     return True
             return False
-    except FileNotFoundError: pass
+    except FileNotFoundError:
+        pass
 
     return None
 
@@ -476,9 +524,23 @@ def install_global_skills():
     success_count = 0
     for skill in GLOBAL_SKILLS:
         info(f"Installing {skill['skill']} from {skill['repo']}...")
-        result = run_cmd(["npx", "-y", "skills", "add", "--yes", "--global", skill["repo"], "--skill", skill["skill"]])
-        if result.returncode == 0: success_count += 1
-        else: warning(f"Failed to install {skill['skill']}")
+        result = run_cmd(
+            [
+                "npx",
+                "-y",
+                "skills",
+                "add",
+                "--yes",
+                "--global",
+                skill["repo"],
+                "--skill",
+                skill["skill"],
+            ]
+        )
+        if result.returncode == 0:
+            success_count += 1
+        else:
+            warning(f"Failed to install {skill['skill']}")
     return success_count, len(GLOBAL_SKILLS)
 
 
@@ -558,7 +620,9 @@ success(f"Copied design templates to {designs_dest.relative_to(target_dir)}")
 # Memories
 memories_file = workflow_dir / "memories.md"
 if not memories_file.exists():
-    shutil.copy2(claptrap_path / "bootstrap" / "templates" / "memories_md.txt", memories_file)
+    shutil.copy2(
+        claptrap_path / "bootstrap" / "templates" / "memories_md.txt", memories_file
+    )
     success("Created memories.md")
 else:
     info("memories.md already exists, skipping")
@@ -574,7 +638,8 @@ for feature, copy_func in [
     ("skills", copy_skills),
 ]:
     dest_dir, _ = install_feature(feature, cfg, provider_key, claptrap_path, copy_func)
-    if dest_dir: installed_dirs.append(dest_dir)
+    if dest_dir:
+        installed_dirs.append(dest_dir)
 
 cleanup_feature_dirs(installed_dirs)
 
@@ -584,11 +649,14 @@ update_gitignore(target_dir)
 
 # Step 7: Update AGENTS.md
 step(7, "Updating AGENTS.md")
-if cfg.get("global_dir"): update_agents_md(cfg["global_dir"] / "AGENTS.md", claptrap_path)
+if cfg.get("global_dir"):
+    update_agents_md(cfg["global_dir"] / "AGENTS.md", claptrap_path)
 
 # Step 8: Check tools
 step(8, "Checking Tools")
-success("ripgrep (rg) is installed") if check_ripgrep() else warning("ripgrep not found - install from https://github.com/BurntSushi/ripgrep")
+success("ripgrep (rg) is installed") if check_ripgrep() else warning(
+    "ripgrep not found - install from https://github.com/BurntSushi/ripgrep"
+)
 
 # Step 9: Check MCP servers
 # opencode run --model google/gemini-3-flash-preview "Install and configure the serena and context7 MCP servers in the Codex environment according to the instructions in @bootstrap/mcp_setup.py"
