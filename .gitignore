@@ -5,6 +5,7 @@ node_modules/
 package.json
 package-lock.json
 .env
+bun.lock
 
 .cursor/
 .github/

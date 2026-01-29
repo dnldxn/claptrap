@@ -482,8 +482,7 @@ def update_agents_md(agents_md_path, claptrap_path):
         success(f"Created {agents_md_path} with CLAPTRAP section")
 
     # CLAUDE.md just points to AGENTS.md
-    if provider_key == "claude":
-        setup_claude_md()
+    if "claude" in provider_key.lower(): setup_claude_md()
 
 
 def setup_claude_md():
@@ -491,7 +490,7 @@ def setup_claude_md():
     claude_md.parent.mkdir(parents=True, exist_ok=True)
     content = claude_md.read_text() if claude_md.exists() else ""
     if "@~/.claude/AGENTS.md" not in content:
-        claude_md.write_text("@~/.claude/AGENTS.md\n" + content)
+        claude_md.write_text("@~/.claude/AGENTS.md\n\n---\n\n" + content)
         success(f"Added @~/.claude/AGENTS.md to {claude_md}")
 
 

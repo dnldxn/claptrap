@@ -29,7 +29,7 @@ The installer sets up your project with:
 | Codex | `.codex/` |
 | Gemini | `.gemini/` |
 
-## Usage
+## Installation
 
 Run from your target project directory:
 

@@ -101,7 +101,7 @@ To check if a MCP Server is already installed, use the `claude mcp list` command
 
 To add a MCP Server, use the following command:
 ```bash
-claude mcp add --scope user --env VAR1=VALUE1 --env VAR2=VALUE2 -- <mcp-server-name> -- <command> <args>
+claude mcp add --scope user --env VAR1=VALUE1 --env VAR2=VALUE2 <mcp-server-name> -- <command> <args>
 ```
 
 ### Codex

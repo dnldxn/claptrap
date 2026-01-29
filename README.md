@@ -44,52 +44,53 @@ Run the bootstrap installer from your target project directory:
 python3 /path/to/claptrap/bootstrap/install.py
 ```
 
-Or create a shell alias for convenience:
-
-```bash
-alias claptrap-install='python3 "$HOME/projects/claptrap/bootstrap/install.py"'
-```
-
 See [bootstrap/README.md](bootstrap/README.md) for detailed installation options.
 
 ## MCP Servers
 
-See [bootstrap/mcp_setup.md](bootstrap/mcp_setup.md) for instructions on how to install and configure various MCP Servers in each environment.
+```bash
+claude --model sonnet --allow-dangerously-skip-permissions -p "Install Serena and context7 MCP servers for Claude using the instructions here: @~/projects/claptrap/bootstrap/mcp_setup.md"
+
+codex --model gpt-5.1-codex-mini --dangerously-bypass-approvals-and-sandbox exec "Install Serena and context7 MCP servers for Claude using the instructions here: @~/projects/claptrap/bootstrap/mcp_setup.md"
+```
+
+See [bootstrap/mcp_setup.md](bootstrap/mcp_setup.md) for for more information.
 
 ## OpenCode Setup
 
-### Claude Code Plugin for OpenCode
+To test which provider is successfully running in OpenCode:
 ```bash
-opencode auth login
-
-# Test
-opencode run --model anthropic/claude-haiku-4-5 "hello"
+opencode run --model auto "hello"
+opencode run --model anthropic/claude-haiku-4-5 "hello"  # Claude
+opencode run --model cursor/opus-4.5-thinking "hello"  # Cursor
+opencode run --model github-copilot/claude-haiku-4.5 "hello"  # GitHub Copilot
+opencode run --model openai/gpt-5.1-codex-mini "hello"  # Codex
+opencode run --model google/gemini-3-flash-preview "hello"  # Gemini
 ```
 
-### Github Copilot
+Opencode does not automatically update plugins. To update to the latest version, you must clear the cached plugin:
+
 ```bash
-opencode run --model github-copilot/claude-haiku-4.5 "hello"
+# Clear the specific plugin cache
+rm -rf ~/.cache/opencode/node_modules/opencode-gemini-auth
+rm -rf ~/.cache/opencode/node_modules/opencode-cursor-auth
+
+# Run Opencode to trigger a fresh install
+opencode
 ```
 
-```bash
+**Codex Plugin**
+https://github.com/numman-ali/opencode-openai-codex-auth
 
-### Codex Plugin for OpenCode
 ```bash
-# OpenAI Codex adapter for OpenCode
-# https://github.com/numman-ali/opencode-openai-codex-auth
 npx -y opencode-openai-codex-auth@latest
-
-# Test
-opencode run --model openai/gpt-5.1-codex-mini "hello"
 ```
 
-### Cursor Plugin for OpenCode
-
+**Cursor Plugin**
 https://github.com/POSO-PocketSolutions/opencode-cursor-auth
 
 ```bash
-curl -fsS https://cursor.com/install | bash  # Install Cursor CLI
-npm install opencode-cursor-auth  # Install Cursor plugin for OpenCode
+npm install opencode-cursor-auth@latest
 ```
 
 Add to ~/.config/opencode/opencode.jsonc:
@@ -127,20 +128,11 @@ opencode auth login
 # - Select provider: Other
 # - Provider id: cursor
 # - Method: Login via cursor-agent (opens browser)
-
-# Test
-opencode run --model cursor/opus-4.5-thinking "hello"
 ```
 
-### Gemini Plugin for OpenCode
-
+**Gemini Plugin**
 Add `opencode-gemini-auth@latest` to the plugins array in `~/.config/opencode/opencode.jsonc`.
-```bash
-opencode auth login
 
-# Test
-opencode run --model google/gemini-3-flash-preview "hello"
-```
 
 ## Zed IDE
 
