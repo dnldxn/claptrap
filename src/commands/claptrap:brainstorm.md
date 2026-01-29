@@ -1,6 +1,6 @@
 ---
 name: "claptrap:brainstorm"
-description: "Turn ideas into fully formed OpenSpec proposals through collaborative dialogue, memory context, and targeted research."
+description: "Turn ideas into fully formed designs through collaborative dialogue, memory context, and targeted research."
 model: claude-opus-4.5
 models:
   cursor: anthropic/claude-opus-4.5
@@ -11,11 +11,24 @@ models:
   codex: gpt-5.2-codex
 ---
 
-Invoke the `claptrap:brainstorming` skill and follow it EXACTLY as presented to you.  Before and after brainstorming, read and/or write memories as instructed by the `claptrap:memory` skill.
+# /claptrap:brainstorm
 
-<!-- After brainstorming, invoke the `openspec-create-proposal` skill and follow it EXACTLY as presented to you. -->
-After brainstorming: 
-- Generate a `<feature-slug>` from the design title using kebab-case.
-- Write the validated design to `.claptrap/designs/<feature-slug>/design.md`.
+Turn raw ideas into a validated design document through structured dialogue.
+
+## Invocation
+
+```
+/claptrap:brainstorm "Add user authentication with OAuth support"
+```
+
+## Output
+
+`.claptrap/designs/<feature-slug>/design.md`
+
+## Rules
+
+- Invoke the `claptrap:memory` skill to read and write memories as instructed.
+- Invoke the `claptrap:brainstorming` skill and follow it exactly.
+- After finalizing, tell the user to run `/claptrap:propose` to generate OpenSpec artifacts.
 
 **User Brainstorm Idea/Prompt:** $ARGUMENTS

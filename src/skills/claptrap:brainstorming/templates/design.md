@@ -1,41 +1,68 @@
-e<!-- Naming: .claptrap/designs/<feature-slug>/design.md (feature-slug in kebab-case) -->
-<!-- Optional supporting files: .claptrap/designs/<feature-slug>/diagrams/, research.md, notes.md -->
+<!-- Source: /claptrap:brainstorm -->
+<!-- Naming: .claptrap/designs/<feature-slug>/design.md -->
 
 # Design: <Feature Name>
+
 Date: YYYY-MM-DD
 Status: Draft | Review | Approved
 Author: <Name>
 
 ## Intent
-Describe what we are building and why it matters.
+
+<What we are building and why it matters. 2-3 sentences.>
 
 ## Scope
+
 ### In Scope
-- <In-scope item>
+- <Specific deliverable or capability>
 
 ### Out of Scope
-- <Out-of-scope item>
+- <Explicitly excluded item>
 
 ## Acceptance Criteria
-- [ ] <Testable condition>
+
+- [ ] <Testable condition that maps to a spec scenario>
+- [ ] <Another testable condition>
 
 ## Architecture Overview
+
 ### Components
 - <Component>: <Responsibility>
 
-### Data Flow Diagram
-- Placeholder: add a diagram in `diagrams/` or link to one.
+### Package Structure
+```
+<directory tree if applicable>
+```
+
+### Core Types
+```typescript
+// Key interfaces and types
+interface Example {
+  field: string
+}
+```
+
+### Data Flow
+<Description or diagram reference>
 
 ## Key Decisions
-| Choice | Rationale |
-| --- | --- |
-| <Decision> | <Why this option> |
+
+| Decision | Options Considered | Choice | Rationale |
+|----------|-------------------|--------|-----------|
+| <What> | <A, B, C> | <B> | <Why B was chosen> |
 
 ## Open Questions
-- <Question to resolve before implementation>
+
+- [ ] <Question to resolve before or during implementation>
 
 ## Next Steps
-- If approved, create an OpenSpec proposal in `openspec/changes/<change-id>/`.
+
+1. Review this design document
+2. Run `/claptrap:propose` to generate OpenSpec artifacts
+3. Review and approve proposal/specs/tasks
+4. Implement via `/opsx:apply`
 
 ## OpenSpec Proposals
-- Placeholder: proposals created from this design will be listed here.
+
+<!-- Auto-populated by /claptrap:propose -->
+- (none yet)
