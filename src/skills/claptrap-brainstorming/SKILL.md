@@ -51,7 +51,7 @@ Requirements:
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
-- If codebase context is needed, spawn the `claptrap-explore-project` subagent to gather it
+- If codebase context is needed, spawn the `claptrap-explore` subagent to gather it
 
 ### Step 3: Draft the design in validated sections
 

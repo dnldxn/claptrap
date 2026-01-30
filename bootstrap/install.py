@@ -51,10 +51,7 @@ def step(num, msg):
 GLOBAL_SKILLS = [
     {"repo": "https://github.com/anthropics/skills", "skill": "skill-creator"},
     {"repo": "https://github.com/anthropics/skills", "skill": "frontend-design"},
-    {
-        "repo": "https://github.com/forrestchang/andrej-karpathy-skills",
-        "skill": "karpathy-guidelines",
-    },
+    {"repo": "https://github.com/forrestchang/andrej-karpathy-skills", "skill": "karpathy-guidelines"},
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "codex"},
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "gemini"},
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "mermaid-diagrams"},

@@ -131,8 +131,37 @@ opencode auth login
 ```
 
 **Gemini Plugin**
-Add `opencode-gemini-auth@latest` to the plugins array in `~/.config/opencode/opencode.jsonc`.
+https://github.com/jenslys/opencode-gemini-auth
 
+Add `opencode-gemini-auth@latest` to the plugins array in `~/.config/opencode/opencode.jsonc`.
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["opencode-gemini-auth@latest"],
+  "provider": {
+    "google": {
+      "models": {
+        "gemini-3-flash-preview": {
+          "options": {
+            "thinkingConfig": {
+              "thinkingLevel": "high",
+              "includeThoughts": true
+            }
+          }
+        },
+        "gemini-3-pro-preview": {
+          "options": {
+            "thinkingConfig": {
+              "thinkingLevel": "high",
+              "includeThoughts": true
+            }
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 ## Zed IDE
 
