@@ -4,7 +4,7 @@ description: General-purpose debate agent for exploring multiple perspectives on
 mode: subagent
 hidden: true
 model: {MODEL}
-models:
+debate-models:
    - github-copilot/claude-sonnet-4.5
    - opencode/kimi-k2.5-free
    - openai/gpt-5.2
