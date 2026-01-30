@@ -2,8 +2,8 @@
 
 Instructions on how to install and configure various MCP Servers in various environments.  The current list of MCP Servers is:
 - Serena
+- Context7
 - Snowflake
-- (Coming Soon) Context7
 
 ## MCP Server Types
 

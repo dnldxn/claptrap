@@ -49,7 +49,7 @@ See [bootstrap/README.md](bootstrap/README.md) for detailed installation options
 ## MCP Servers
 
 ```bash
-claude --model sonnet --allow-dangerously-skip-permissions -p "Install Serena and context7 MCP servers for Claude using the instructions here: @~/projects/claptrap/bootstrap/mcp_setup.md"
+claude --model sonnet --allow-dangerously-skip-permissions -p "Install Serena and context7 MCP servers for Github CoPilot using the instructions here: @~/projects/claptrap/bootstrap/mcp_setup.md"
 
 codex --model gpt-5.1-codex-mini --dangerously-bypass-approvals-and-sandbox exec "Install Serena and context7 MCP servers for Claude using the instructions here: @~/projects/claptrap/bootstrap/mcp_setup.md"
 ```

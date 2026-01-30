@@ -28,7 +28,6 @@ Generate OpenSpec artifacts from a design document. This command does NOT implem
 - `openspec/changes/<change-id>/proposal.md`
 - `openspec/changes/<change-id>/specs/**/spec.md`
 - `openspec/changes/<change-id>/tasks.md`
-- `openspec/changes/<change-id>/.source` (link to source design.md)
 
 ## Rules
 

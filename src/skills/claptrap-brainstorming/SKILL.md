@@ -36,7 +36,7 @@ Rules:
 
 #### Clarity Score
 
-After each question-answer exchange, estimate a **Clarity Score (0-100%)** indicating how clear, unambiguous, and complete the requirements are.
+After each question-answer exchange, estimate a **Clarity Score (0-100%)** indicating how clear, unambiguous, and complete the requirements are.  Show this score before asking the next question.
 
 Format: `**Clarity: X%** - [brief reason for score]`
 
