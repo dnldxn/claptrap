@@ -11,14 +11,14 @@ models:
   codex: gpt-5.2-codex
 ---
 
-# /claptrap-propose
+# Claptrap Propose
 
 Generate OpenSpec artifacts from a design document. This command does NOT implement code.
 
 ## Invocation
 
-```
-/claptrap-propose .claptrap/designs/<slug>/design.md
+```bash
+/claptrap-propose .claptrap/designs/<YYYY-MM-DD><feature-slug>/design.md # e.g. /claptrap-propose .claptrap/designs/2024-01-15-new-auth-system/design.md
 /claptrap-propose                                      # auto-detect most recent design
 /claptrap-propose --regenerate proposal|specs|tasks|all --change <change-id>
 ```
@@ -32,7 +32,6 @@ Generate OpenSpec artifacts from a design document. This command does NOT implem
 
 ## Rules
 
-- Invoke the `claptrap-memory` skill to read and write memories as instructed.
 - Invoke the `claptrap-propose` skill and follow it exactly.
 
 **Arguments:** `$ARGUMENTS`

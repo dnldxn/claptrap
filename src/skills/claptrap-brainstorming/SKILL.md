@@ -2,7 +2,7 @@
 name: "claptrap-brainstorming"
 description: You MUST use this before any creative work - creating features, building components, adding functionality, or modifying behavior. Explores user intent, requirements and design before implementation.
 metadata:
-   source: https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md
+   inspiration: https://github.com/obra/superpowers/blob/main/skills/brainstorming/SKILL.md
 ---
 
 # Brainstorming Ideas Into Designs
@@ -11,18 +11,13 @@ metadata:
 
 Turn raw ideas into a **clear, validated design document** through structured dialogue **before any implementation begins**.
 
-Start by reading project memory for context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design in small sections (200-300 words), checking after each section whether it looks right so far.
+Start by asking questions one at a time to refine the idea. Once you understand what you're building, present the design in small sections (200-300 words), checking after each section whether it looks right so far.
 
 ## Workflow Steps
 
 ### Step 0: Load context
 
-1. Invoke `claptrap-memory` and read `.claptrap/memories.md`.
-2. Extract relevant context:
-   - Prior decisions that constrain the design
-   - Patterns to reuse
-   - Anti-patterns to avoid
-3. Check the current project state if needed (files, docs, recent commits).
+- Invoke the `claptrap-memory` skill to read and write memories as instructed.
 
 ### Step 1: Clarifying questions (one at a time)
 
@@ -39,12 +34,24 @@ Rules:
 - If a topic needs more exploration, break it into multiple questions
 - If external docs could help, spawn the `research` subagent (do not research yourself)
 
+#### Clarity Score
+
+After each question-answer exchange, estimate a **Clarity Score (0-100%)** indicating how clear, unambiguous, and complete the requirements are.
+
+Format: `**Clarity: X%** - [brief reason for score]`
+
+Requirements:
+- **Minimum 3 questions** - Ask at least 3 questions regardless of initial clarity
+- **100% required** - Continue asking questions until clarity reaches 100%
+- Score should increase as ambiguity resolves and requirements solidify
+- Be honest—don't inflate scores to end early
+
 ### Step 2: Explore approaches
 
 - Propose 2-3 different approaches with trade-offs
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
-- If codebase context is needed, spawn the `explore` subagent to gather it
+- If codebase context is needed, spawn the `claptrap-explore-project` subagent to gather it
 
 ### Step 3: Draft the design in validated sections
 
@@ -81,6 +88,7 @@ If any significant decisions were made:
 
 - **One question at a time** - Don't overwhelm with multiple questions
 - **Multiple choice preferred** - Easier to answer than open-ended when possible
+- **Clarity before design** - Reach 100% clarity (minimum 3 questions) before proposing approaches
 - **YAGNI ruthlessly** - Remove unnecessary features from all designs
 - **Explore alternatives** - Always propose 2-3 approaches before settling
 - **Incremental validation** - Present design in sections, validate each

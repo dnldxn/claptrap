@@ -11,23 +11,22 @@ models:
   codex: gpt-5.2-codex
 ---
 
-# /claptrap-brainstorm
+# Brainstorming Ideas Into Designs
 
 Turn raw ideas into a validated design document through structured dialogue.
 
 ## Invocation
 
 ```
-/claptrap-brainstorm "Add user authentication with OAuth support"
+/claptrap-brainstorm "<User Idea/Prompt>"
 ```
 
 ## Output
 
-`.claptrap/designs/<feature-slug>/design.md`
+`.claptrap/designs/<YYYY-MM-DD><feature-slug>/design.md` (e.g. `.claptrap/designs/2024-01-15-new-auth-system/design.md`)
 
 ## Rules
 
-- Invoke the `claptrap-memory` skill to read and write memories as instructed.
 - Invoke the `claptrap-brainstorming` skill and follow it exactly.
 - After finalizing, tell the user to run `/claptrap-propose` to generate OpenSpec artifacts.
 

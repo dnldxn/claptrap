@@ -4,7 +4,9 @@ This directory is for researching and documenting the capabilities of popular AI
 
 ## To Research
 
+- https://github.com/mixedbread-ai/mgrep (semantic code search)
 - https://chippery.ai/
+- https://grebmcp.com/get-started/introduction
 - https://github.com/dadbodgeoff/drift
 
 

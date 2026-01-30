@@ -29,7 +29,7 @@ This document explains how the Claptrap AI development workflow operates, from i
 
 | Artifact | Location |
 |----------|----------|
-| Designs | `.claptrap/designs/<feature-slug>/design.md` |
+| Designs | `.claptrap/designs/<YYYY-MM-DD><feature-slug>/design.md` |
 | Proposals | `openspec/changes/<change-id>/proposal.md` |
 | Specs | `openspec/changes/<change-id>/specs/<capability>/spec.md` |
 | Tasks | `openspec/changes/<change-id>/tasks.md` |
@@ -57,7 +57,7 @@ The core insight is that a brainstorm `design.md` contains more detail than Open
 |                                                                           |
 |  /claptrap-brainstorm "Add user authentication"                           |
 |  +-- Read memory context                                                  |
-|  +-- Dialogue: 3-5 clarifying questions (max 2 rounds)                    |
+|  +-- Dialogue: clarifying questions until 100% clarity (min 3 questions)  |
 |  +-- Spawn research/explore subagents if needed                           |
 |  +-- Generate design section by section                                   |
 |  +-- Write memory entries for decisions                                   |
@@ -208,7 +208,6 @@ openspec/changes/<change-id>/
 +-- tasks.md             # Checkbox implementation steps
 ```
 
-**Hint files**: [src/skills/claptrap-propose/templates/](../src/skills/claptrap-propose/templates/)
 
 ---
 
@@ -291,6 +290,7 @@ Agents are specialized subagents spawned by commands and skills. Each agent has 
 | `plan-reviewer` | Comprehensive artifact validation | `/claptrap-review` | `APPROVED` or `REVISE` |
 | `code-reviewer` | Review code for correctness | `/opsx:apply` | Structured feedback |
 | `research` | Research external docs/APIs | Brainstorm, propose | Developer reference |
+| `claptrap-explore-project` | Explore codebase patterns/structure | Brainstorm, propose | Context summary |
 | `ui-designer` | Design UI specifications | Brainstorm (if needed) | UI spec |
 
 Full registry: [src/agents/AGENTS.md](../src/agents/AGENTS.md)
