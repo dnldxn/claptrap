@@ -36,10 +36,6 @@ Validate all OpenSpec artifacts against the source design document. This is the 
 
 4. **Report verdict**: Output exactly `APPROVED:` or `REVISE:` (no other verdict words).
 
-5. **Handle REVISE**:
-   - Without `--force`: Tell user to return to `/claptrap-propose` to fix artifacts.
-   - With `--force`: List issues and invoke `claptrap-memory` to document the accepted risk.
-
-6. **STOP.**
+5. **STOP.**
 
 **Arguments:** `$ARGUMENTS`

@@ -58,68 +58,59 @@ See [bootstrap/mcp_setup.md](bootstrap/mcp_setup.md) for for more information.
 
 ## OpenCode Setup
 
+### Test
 To test which provider is successfully running in OpenCode:
 ```bash
-opencode run --model auto "hello"
-opencode run --model anthropic/claude-haiku-4-5 "hello"  # Claude
-opencode run --model cursor/opus-4.5-thinking "hello"  # Cursor
-opencode run --model github-copilot/claude-haiku-4.5 "hello"  # GitHub Copilot
-opencode run --model openai/gpt-5.1-codex-mini "hello"  # Codex
-opencode run --model google/gemini-3-flash-preview "hello"  # Gemini
+opencode run "hello" --model anthropic/claude-haiku-4-5  # Claude
+opencode run "hello" --model cursor/auto  # Cursor
+opencode run "hello" --model github-copilot/claude-haiku-4.5  # GitHub Copilot
+opencode run "hello" --model openai/gpt-5.2 --variant=medium  # OpenAI Codex
+opencode run "hello" --model google/gemini-3-flash-preview  # Gemini
+opencode run "Hello" --model=google/antigravity-claude-sonnet-4-5-thinking --variant=max  # AntiGravity
 ```
 
-Opencode does not automatically update plugins. To update to the latest version, you must clear the cached plugin:
+### Plugins
 
-```bash
-# Clear the specific plugin cache
-rm -rf ~/.cache/opencode/node_modules/opencode-gemini-auth
-rm -rf ~/.cache/opencode/node_modules/opencode-cursor-auth
-
-# Run Opencode to trigger a fresh install
-opencode
-```
-
-**Codex Plugin**
+**OpenAI Codex Plugin**
 https://github.com/numman-ali/opencode-openai-codex-auth
 
-```bash
-npx -y opencode-openai-codex-auth@latest
-```
+Paste the following into any LLM agent:
+"""
+Install the OpenAI Codex authentication plugin for OpenCode following the steps below.  If you run into issues, stop and ask for help.
+
+1. Remove any existing installation: `npx -y opencode-openai-codex-auth@latest --uninstall --all`
+2. Install the plugin: `npx -y opencode-openai-codex-auth@latest`
+3. Read the Configuration page here for the steps below: `https://raw.githubusercontent.com/numman-ali/opencode-openai-codex-auth/main/docs/configuration.md`
+4. Edit the OpenCode configuration file at `~/.config/opencode/opencode.jsonc`:
+  - Update the `plugin` and `provider` sections as shown in the Configuration page.
+  - Add the following model definitions under the `models:` section. Only install these models. For all use: `reasoningSummary: auto` and  `store: false`.
+    - `GPT-5.2` (ReasoningEffort: `medium` and `xhigh` )
+    - `GPT-5.2-Codex` (ReasoningEffort: `medium` and `xhigh`)
+"""
 
 **Cursor Plugin**
 https://github.com/POSO-PocketSolutions/opencode-cursor-auth
 
-```bash
-npm install opencode-cursor-auth@latest
+Paste the following into any LLM agent:
 ```
+Install the Cursor authentication plugin for OpenCode following the steps below.  If you run into issues, stop and ask for help.
 
-Add to ~/.config/opencode/opencode.jsonc:
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["opencode-cursor-auth@1.0.16"],
-  "provider": {
-    "cursor": {
-      "npm": "@ai-sdk/openai-compatible",
-      "name": "Cursor Agent (local)",
-      "options": {
-        "baseURL": "http://127.0.0.1:32123/v1"
-      },
-      "models": {
-        "auto": { "name": "Cursor Auto" },
-        "gpt-5.2-high": { "name": "Cursor GPT-5.2 High" },
-        "gpt-5.2-codex-high": { "name": "Cursor GPT-5.2 Codex High" },
-        "sonnet-4.5": { "name": "Cursor Sonnet 4.5" },
-        "sonnet-4.5-thinking": { "name": "Cursor Sonnet 4.5 Thinking" },
-        "opus-4.5": { "name": "Cursor Opus 4.5" },
-        "opus-4.5-thinking": { "name": "Cursor Opus 4.5 Thinking" },
-        "gemini-3-pro": { "name": "Cursor Gemini 3 Pro" },
-        "gemini-3-flash": { "name": "Cursor Gemini 3 Flash" },
-        "grok": { "name": "Cursor Grok" }
-      }
-    }
-  }
-}
+1. Remove any existing installation: `npm uninstall opencode-cursor-auth` and `rm -rf ~/.cache/opencode/node_modules/opencode-cursor-auth`
+2. Read the Installation page here for the steps below: `https://raw.githubusercontent.com/POSO-PocketSolutions/opencode-cursor-auth/main/README.md`
+3. Follow the instructions to install and configure the Cursor plugin by editing `~/.config/opencode/opencode.jsonc`.
+  - Use `@latest` for the plugin instead of the specified version in the instructions.
+  - Assume the cursor-agent and bun are already installed.
+4. Only install the Cursor models listed below.  Do not configure other models.
+- "auto": { "name": "Cursor Auto" },
+- "gpt-5.2-high": { "name": "Cursor GPT-5.2 High" },
+- "gpt-5.2-codex-high": { "name": "Cursor GPT-5.2 Codex High" },
+- "sonnet-4.5": { "name": "Cursor Sonnet 4.5" },
+- "sonnet-4.5-thinking": { "name": "Cursor Sonnet 4.5 Thinking" },
+- "opus-4.5": { "name": "Cursor Opus 4.5" },
+- "opus-4.5-thinking": { "name": "Cursor Opus 4.5 Thinking" },
+- "gemini-3-pro": { "name": "Cursor Gemini 3 Pro" },
+- "gemini-3-flash": { "name": "Cursor Gemini 3 Flash" },
+- "grok": { "name": "Cursor Grok" }
 ```
 
 ```bash
@@ -132,6 +123,20 @@ opencode auth login
 
 **Gemini Plugin**
 https://github.com/jenslys/opencode-gemini-auth
+
+Paste the following into any LLM agent:
+```markdown
+Install the Gemini authentication plugin for OpenCode following the steps below.  If you run into issues, stop and ask for help.
+
+1. Remove any existing installation: `rm -rf ~/.cache/opencode/node_modules/opencode-gemini-auth`
+2. Read the Installation page here for the steps below: `https://raw.githubusercontent.com/jenslys/opencode-gemini-auth/main/README.md`
+3. Follow the instructions to install and configure the Gemini plugin by editing `~/.config/opencode/opencode.jsonc`.
+  - Use the environment variable $GOOGLE_CLOUD_PROJECT_ID as the Google Cloud Project ID.
+  - Use `high` for the `thinkingLevel` and enable `includeThoughts`.
+  - Only configure the Gemini models listed below.  Do not configure other models.
+    - `gemini-3-flash-preview`
+    - `gemini-3-pro-preview`
+```
 
 Add `opencode-gemini-auth@latest` to the plugins array in `~/.config/opencode/opencode.jsonc`.
 ```json
@@ -161,6 +166,14 @@ Add `opencode-gemini-auth@latest` to the plugins array in `~/.config/opencode/op
     }
   }
 }
+```
+
+***AntiGravity Plugin**
+https://github.com/NoeFabris/opencode-antigravity-auth
+
+Pasthe the following into any LLM agent:
+```
+Install the opencode-antigravity-auth plugin and add the Antigravity model definitions to ~/.config/opencode/opencode.json by following: https://raw.githubusercontent.com/NoeFabris/opencode-antigravity-auth/dev/README.md
 ```
 
 ## Zed IDE
