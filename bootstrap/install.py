@@ -57,7 +57,7 @@ PROVIDERS = {
         "global_dir": Path.home() / ".cursor",
         "has_agents": True,
         "has_commands": True,
-        "has_skills": False,
+        "has_skills": True,
         "mcp_cmd": ["agent", "mcp", "list"],
     },
     "github-copilot": {
@@ -334,8 +334,9 @@ def copy_and_transform(src_dir, dest_dir, provider_key, new_suffix):
 
         rel_path = src_file.relative_to(src_dir)
         
-        # Skip templates directory
+        # Skip templates and _archive directories
         if rel_path.parts[0] == "templates": continue
+        if "_archive" in rel_path.parts: continue
 
         # Preserve subdirectory structure
         if len(rel_path.parts) > 1:
@@ -367,6 +368,10 @@ def copy_skills(src_dir, dest_dir):
         if not src_file.is_file() or src_file.name in ("AGENTS.md", "README.md"): continue
 
         rel_path = src_file.relative_to(src_dir)
+        
+        # Skip _archive directories
+        if "_archive" in rel_path.parts: continue
+        
         dest_file = dest_dir / rel_path
         dest_file.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src_file, dest_file)
