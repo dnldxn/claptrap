@@ -7,6 +7,7 @@
 3) Before writing or modifying code in the following languages, you must read and follow the corresponding style guide in `<PROJECTROOT>/.claptrap/code-conventions/` and confirm you've loaded it. If you can't find it, STOP and ask (don't guess).
    - Python: `python.md`
    - Snowflake SQL (including SQL embedded in other languages): `snowflake.md`
+4) Before you do anything, load the `claptrap-memory` skill and follow its instructions. This will enable you to read and write persistent memories.
 
 # Core Coding Principles
 - **Simple over Clever**: Always favor the simplest solution that meets requirements. Avoid over-engineering.

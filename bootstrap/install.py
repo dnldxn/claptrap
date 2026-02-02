@@ -512,13 +512,12 @@ def generate_debate_agents(claptrap_path, agents_dir):
     content = template_path.read_text()
     models = get_frontmatter_key(content, "debate-models")
     content = set_frontmatter_key(content, "debate-models", None)
-    
+
     agents_dir.mkdir(parents=True, exist_ok=True)
-    for model in models:
-        name = re.sub(r"[^a-zA-Z0-9]+", "-", model).strip("-")
-        agent_content = content.replace("{NAME}", name).replace("{MODEL}", model)
-        (agents_dir / f"debate-agent-{name}.md").write_text(agent_content)
-    
+    for i, model in enumerate(models, 1):
+        agent_content = content.replace("{NAME}", str(i)).replace("{MODEL}", model)
+        (agents_dir / f"debate-agent-{i}.md").write_text(agent_content)
+
     success(f"Generated {len(models)} debate agents → {agents_dir}")
 
 
