@@ -181,6 +181,46 @@ startup_timeout_sec = 10
 tool_timeout_sec = 60
 ```
 
+## Hooks
+
+**Status**: Not currently supported
+
+Codex does not currently provide a hooks system for running custom scripts at lifecycle points. Unlike other AI coding environments (Claude Code, Cursor, GitHub Copilot, Gemini CLI), Codex does not offer:
+
+- Session start/end hooks
+- Pre/post tool execution hooks
+- Blocking/validation hooks
+
+### Workarounds
+
+For workflows that require hook-like behavior:
+
+1. **Custom Prompts**: Use custom prompts in `~/.codex/prompts/` to inject behavior at specific points
+2. **Skills with Scripts**: Create skills that include shell scripts for validation or post-processing
+3. **MCP Servers**: Use MCP tools to add custom capabilities that can be triggered by the agent
+4. **Wrapper Scripts**: Wrap the `codex` CLI in a shell script that runs pre/post commands
+
+### Example Workaround with Skills
+
+```markdown
+---
+name: memory-capture
+description: Capture learnings at the end of a task. Use when completing significant work.
+---
+
+Before finishing, run the memory capture script:
+
+1. Execute `./scripts/capture-learnings.sh`
+2. Review the captured information
+3. Confirm completion
+```
+
+### Feature Request
+
+Hook support is a commonly requested feature. Monitor the [OpenAI Codex repository](https://github.com/openai/codex) for updates.
+
+---
+
 ## CLI Syntax
 
 **Interactive Mode**:

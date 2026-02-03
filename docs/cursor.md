@@ -359,7 +359,99 @@ For automated/non-interactive workflows, use **Background Agents**:
 
 ---
 
-## 8. Additional Features
+## 8. Hooks
+
+Cursor provides a comprehensive hooks system for running custom scripts at various lifecycle points.
+
+### Hook Events
+
+| Event | Timing | Use Cases |
+|-------|--------|-----------|
+| `sessionStart` | When a session begins | Initialize environment, load context |
+| `sessionEnd` | When a session ends | Cleanup, save state, capture learnings |
+| `preToolUse` | Before any tool executes | Validate inputs, block operations |
+| `postToolUse` | After a tool completes | Post-processing, lint fixes |
+| `postToolUseFailure` | After a tool fails | Error handling, recovery |
+| `subagentStart` | When a subagent starts | Track subagent activity |
+| `subagentStop` | When a subagent completes | Aggregate results |
+| `beforeShellExecution` | Before shell command runs | Validate commands |
+| `afterShellExecution` | After shell command completes | Process output |
+| `beforeMCPExecution` | Before MCP tool runs | Validate MCP calls |
+| `afterMCPExecution` | After MCP tool completes | Process MCP results |
+| `beforeReadFile` | Before reading a file | Access control |
+| `afterFileEdit` | After file is modified | Trigger builds, lint |
+| `beforeSubmitPrompt` | Before prompt is submitted | Preprocess input |
+| `preCompact` | Before context compaction | Preserve important context |
+| `stop` | When agent stops | Capture final state |
+| `afterAgentResponse` | After agent responds | Post-process response |
+| `afterAgentThought` | After agent thinking | Log reasoning |
+
+#### Tab-Specific Hooks
+
+| Event | Timing | Use Cases |
+|-------|--------|-----------|
+| `beforeTabFileRead` | Before Tab reads a file | Tab-specific access control |
+| `afterTabFileEdit` | After Tab edits a file | Tab-specific post-processing |
+
+### Hook Configuration
+
+Hooks are configured in `.cursor/hooks.json` or Cursor settings:
+
+```json
+{
+  "hooks": {
+    "postToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "npm run lint:fix ${FILE}"
+      }
+    ],
+    "sessionEnd": [
+      {
+        "matcher": "*",
+        "command": "./scripts/capture-session.sh"
+      }
+    ],
+    "beforeShellExecution": [
+      {
+        "matcher": "*",
+        "command": "./scripts/validate-command.sh"
+      }
+    ]
+  }
+}
+```
+
+### Blocking Actions
+
+Hooks can block operations via exit code 2 or permission denial:
+
+```bash
+#!/bin/bash
+# Example: Block writes to production config
+if [[ "$FILE" == *"production"* ]]; then
+  echo '{"permission": "deny", "reason": "Cannot modify production files"}'
+  exit 2
+fi
+```
+
+**Exit codes:**
+- `0`: Allow (continue execution)
+- `2`: Deny (block the action)
+- Other: Allow but log warning
+
+### Environment Variables in Hooks
+
+| Variable | Description |
+|----------|-------------|
+| `${FILE}` | File path being operated on |
+| `${TOOL_NAME}` | Name of the tool being used |
+| `${TOOL_INPUT}` | Tool input as JSON |
+| `${SESSION_ID}` | Current session identifier |
+
+---
+
+## 9. Additional Features
 
 ### Agent Modes
 

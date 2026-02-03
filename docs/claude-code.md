@@ -416,9 +416,27 @@ claude mcp remove github
 ```
 
 ### Hooks
-Events: `PreToolUse`, `PostToolUse`, `PermissionRequest`, `UserPromptSubmit`, `Notification`, `Stop`, `SubagentStop`, `PreCompact`, `SessionStart`, `SessionEnd`
 
-**Configuration (`~/.claude/settings.json`):**
+Hooks allow custom scripts to run at lifecycle points. They can observe, modify, or block agent actions.
+
+#### Hook Events
+
+| Event | Timing | Use Cases |
+|-------|--------|-----------|
+| `SessionStart` | When a session begins | Initialize environment, load context |
+| `SessionEnd` | When a session ends | Cleanup, save state, capture learnings |
+| `PreToolUse` | Before a tool executes | Validate inputs, block dangerous operations |
+| `PostToolUse` | After a tool completes | Lint fixes, log changes, trigger side effects |
+| `PermissionRequest` | When permission is requested | Custom approval logic |
+| `UserPromptSubmit` | When user submits a prompt | Preprocess input, inject context |
+| `Notification` | On agent notifications | Custom alerting |
+| `Stop` | When agent stops | Capture session state |
+| `SubagentStop` | When a subagent stops | Aggregate subagent results |
+| `PreCompact` | Before context compaction | Preserve important context |
+
+#### Hook Configuration
+
+**In `~/.claude/settings.json` or `.claude/settings.json`:**
 ```json
 {
   "hooks": {
@@ -429,10 +447,63 @@ Events: `PreToolUse`, `PostToolUse`, `PermissionRequest`, `UserPromptSubmit`, `N
           { "type": "command", "command": "npm run lint:fix $FILE" }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "./scripts/capture-learnings.sh" }
+        ]
+      }
     ]
   }
 }
 ```
+
+**In agent/skill frontmatter:**
+```yaml
+---
+name: my-agent
+hooks:
+  PreToolUse:
+    - matcher: "Bash"
+      hooks:
+        - type: command
+          command: "./scripts/validate.sh"
+  PostToolUse:
+    - matcher: "Write|Edit"
+      hooks:
+        - type: command
+          command: "./scripts/post-edit.sh $FILE"
+---
+```
+
+#### Blocking Actions
+
+Hooks can block operations by returning a non-zero exit code or outputting specific JSON:
+
+```bash
+#!/bin/bash
+# Example: Block writes to sensitive files
+if [[ "$FILE" == *".env"* ]]; then
+  echo '{"permissionDecision": "deny", "reason": "Cannot modify .env files"}'
+  exit 2
+fi
+```
+
+**Exit codes:**
+- `0`: Allow (continue execution)
+- `2`: Deny (block the action)
+- Other: Allow but log warning
+
+#### Environment Variables in Hooks
+
+| Variable | Description |
+|----------|-------------|
+| `$FILE` | File path (for file operations) |
+| `$TOOL_INPUT` | Tool input as JSON |
+| `$CLAUDE_SESSION_ID` | Current session ID |
+| `$TOOL_NAME` | Name of the tool being used |
 
 ### Output Styles
 - **Built-in**: `Default`, `Explanatory`, `Learning`

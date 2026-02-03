@@ -357,6 +357,84 @@ Integration with Model Context Protocol servers for extended capabilities.
 
 ---
 
+## Hooks
+
+Gemini CLI provides a comprehensive hooks system for running custom scripts at various lifecycle points.
+
+### Hook Events
+
+| Event | Timing | Use Cases |
+|-------|--------|-----------|
+| `SessionStart` | When a session begins | Initialize environment, load context |
+| `SessionEnd` | When a session ends | Cleanup, save state, capture learnings |
+| `BeforeAgent` | Before agent processes | Preprocess context |
+| `AfterAgent` | After agent completes | Post-process results |
+| `BeforeModel` | Before model inference | Modify input |
+| `AfterModel` | After model responds | Process response |
+| `BeforeToolSelection` | Before tool selection | Guide tool choices |
+| `BeforeTool` | Before a tool executes | Validate inputs, block operations |
+| `AfterTool` | After a tool completes | Post-processing, lint fixes |
+| `PreCompress` | Before context compression | Preserve important context |
+| `Notification` | On notifications | Custom alerting |
+
+### Hook Configuration
+
+Hooks are configured in `~/.gemini/settings.json` or `.gemini/settings.json`:
+
+```json
+{
+  "hooks": {
+    "AfterTool": [
+      {
+        "matcher": "write_file|replace",
+        "command": "npm run lint:fix ${FILE}"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "*",
+        "command": "./scripts/capture-learnings.sh"
+      }
+    ],
+    "BeforeTool": [
+      {
+        "matcher": "run_shell_command",
+        "command": "./scripts/validate-command.sh"
+      }
+    ]
+  }
+}
+```
+
+### Blocking Actions
+
+Hooks can block operations by returning a denial decision or exit code 2:
+
+```bash
+#!/bin/bash
+# Example: Block writes to production files
+if [[ "$FILE" == *"production"* ]]; then
+  echo '{"decision": "deny", "reason": "Cannot modify production files"}'
+  exit 2
+fi
+```
+
+**Exit codes:**
+- `0`: Allow (continue execution)
+- `2`: Deny (block the action)
+- Other: Allow but log warning
+
+### Environment Variables in Hooks
+
+| Variable | Description |
+|----------|-------------|
+| `${FILE}` | File path being operated on |
+| `${TOOL_NAME}` | Name of the tool being used |
+| `${TOOL_INPUT}` | Tool input as JSON |
+| `${SESSION_ID}` | Current session identifier |
+
+---
+
 ## Quick Reference
 
 ### Command Cheatsheet

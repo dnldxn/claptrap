@@ -387,7 +387,84 @@ opencode mcp debug <name> # Debug an OAuth connection
 
 ---
 
-## 8. CLI Reference
+## 8. Hooks / Plugin Events
+
+OpenCode uses a **plugin-based event system** rather than traditional hooks. Plugins can subscribe to lifecycle events and intercept or modify agent behavior.
+
+### Available Events
+
+| Event | Timing | Use Cases |
+|-------|--------|-----------|
+| `session.created` | When a session starts | Initialize state, load context |
+| `session.compacted` | After context compaction | Preserve memories, log summary |
+| `session.idle` | When agent is idle/done | Trigger post-processing, capture learnings |
+| `session.error` | When an error occurs | Error handling, recovery logic |
+| `tool.execute.before` | Before a tool runs | Validate inputs, block operations |
+| `tool.execute.after` | After a tool completes | Post-processing, lint fixes |
+| `file.edited` | When a file is modified | Trigger builds, run tests |
+| `message.user` | When user sends message | Preprocess input |
+| `message.assistant` | When assistant responds | Post-process output |
+
+### Plugin Configuration
+
+Plugins are configured in `opencode.jsonc`:
+
+```json
+{
+  "plugin": [
+    "opencode-memory-plugin@1.0.0",
+    "opencode-lint-hook@0.5.0"
+  ]
+}
+```
+
+### Creating a Plugin Hook
+
+Plugins can intercept events and block operations:
+
+```typescript
+// Example plugin structure
+export default {
+  name: "my-hook-plugin",
+  events: {
+    "tool.execute.before": async (context) => {
+      // Validate or block tool execution
+      if (context.toolName === "bash" && context.input.includes("rm -rf")) {
+        throw new Error("Blocked dangerous command");
+      }
+    },
+    "session.idle": async (context) => {
+      // Capture session learnings
+      await captureMemories(context.sessionId);
+    }
+  }
+};
+```
+
+### Blocking Actions
+
+Plugins can block operations by throwing errors in `tool.execute.before`:
+
+```typescript
+"tool.execute.before": async (context) => {
+  if (shouldBlock(context)) {
+    throw new Error("Operation blocked by policy");
+  }
+  // Return nothing to allow
+}
+```
+
+### Environment Variables
+
+| Variable | Description |
+|----------|-------------|
+| `OPENCODE_SESSION_ID` | Current session identifier |
+| `OPENCODE_PROJECT` | Project directory path |
+| `OPENCODE_MODEL` | Active model name |
+
+---
+
+## 9. CLI Reference
 
 ### Main Commands
 
@@ -512,7 +589,7 @@ opencode mcp debug <name> # Debug an OAuth connection
 
 ---
 
-## 9. Configuration Reference
+## 10. Configuration Reference
 
 ### Full opencode.jsonc Example
 
@@ -614,7 +691,7 @@ opencode mcp debug <name> # Debug an OAuth connection
 
 ---
 
-## 10. Keyboard Shortcuts (TUI)
+## 11. Keyboard Shortcuts (TUI)
 
 Default keybinds (customizable via `keybinds` config):
 
@@ -637,7 +714,7 @@ Default keybinds (customizable via `keybinds` config):
 
 ---
 
-## 11. Environment Variables
+## 12. Environment Variables
 
 | Variable | Description |
 |----------|-------------|
@@ -649,7 +726,7 @@ Default keybinds (customizable via `keybinds` config):
 
 ---
 
-## 12. Comparison with Other Tools
+## 13. Comparison with Other Tools
 
 ### vs. Claude Code
 - OpenCode is multi-provider; Claude Code is Anthropic-only

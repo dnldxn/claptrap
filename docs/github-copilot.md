@@ -477,6 +477,71 @@ Run custom scripts at lifecycle points:
 - Validation and scanning
 - Custom preprocessing
 
+#### Hook Events
+
+| Event | Timing | Use Cases |
+|-------|--------|-----------|
+| `sessionStart` | When a session begins | Initialize environment, load context |
+| `sessionEnd` | When a session ends | Cleanup, save state, capture learnings |
+| `userPromptSubmitted` | When user submits a prompt | Preprocess input, inject context |
+| `preToolUse` | Before a tool executes | Validate inputs, block dangerous operations |
+| `postToolUse` | After a tool completes | Post-processing, lint fixes |
+| `errorOccurred` | When an error happens | Error handling, recovery logic |
+
+#### Hook Configuration
+
+Hooks are configured in `.github/copilot-hooks.json` or `.copilot/hooks.json`:
+
+```json
+{
+  "hooks": {
+    "postToolUse": [
+      {
+        "matcher": "edit|write",
+        "command": "npm run lint:fix ${FILE}"
+      }
+    ],
+    "sessionEnd": [
+      {
+        "matcher": "*",
+        "command": "./scripts/capture-learnings.sh"
+      }
+    ],
+    "preToolUse": [
+      {
+        "matcher": "execute",
+        "command": "./scripts/validate-shell.sh"
+      }
+    ]
+  }
+}
+```
+
+#### Blocking Actions
+
+Hooks can block operations by returning a permission denial:
+
+```bash
+#!/bin/bash
+# Example: Block writes to sensitive files
+if [[ "$FILE" == *".env"* ]]; then
+  echo '{"permissionDecision": "deny", "reason": "Cannot modify .env files"}'
+  exit 2
+fi
+```
+
+**Exit codes / Response:**
+- Return `{"permissionDecision": "allow"}` or exit 0 to allow
+- Return `{"permissionDecision": "deny"}` or exit 2 to block
+
+#### Environment Variables in Hooks
+
+| Variable | Description |
+|----------|-------------|
+| `${FILE}` | File path being operated on |
+| `${TOOL_NAME}` | Name of the tool being used |
+| `${TOOL_INPUT}` | Tool input as JSON |
+
 ### Permissions System
 
 - Path permissions for file access
