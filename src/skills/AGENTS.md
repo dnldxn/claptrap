@@ -9,35 +9,44 @@ This folder contains **portable "Skills"**: small, reusable playbooks agents can
 
 ## Skill Registry
 
-### `memory`
-- **Path**: `skills/memory/SKILL.md`
+### `claptrap-brainstorming`
+- **Path**: `skills/claptrap-brainstorming/SKILL.md`
+- **Purpose**: Turn raw ideas into clear, validated design documents through bounded dialogue.
+- **Use when**: Starting a new feature, exploring requirements, or when `/claptrap-brainstorm` is invoked.
+- **Templates**: `templates/design.md`
+
+### `claptrap-propose`
+- **Path**: `skills/claptrap-propose/SKILL.md`
+- **Purpose**: Convert an approved design into OpenSpec artifacts (proposal, specs, tasks) with alignment + feasibility review.
+- **Use when**: A design is ready to be formalized, or when `/claptrap-propose` is invoked.
+- **Templates**: `templates/proposal-hints.md`, `templates/spec-hints.md`, `templates/tasks-hints.md`
+
+### `claptrap-memory`
+- **Path**: `skills/claptrap-memory/SKILL.md`
 - **Purpose**: Read/write/update/delete project memory entries (decisions, patterns, anti-patterns, lessons).
 - **Use when**: You observe a reusable decision/lesson/pattern worth capturing, or need to recall prior choices.
 
-### `openspec`
-- **Path**: `skills/openspec/SKILL.md`
-- **Purpose**: Draft/apply/archive OpenSpec change proposals and enforce following `openspec/AGENTS.md`.
-- **Use when**: Work involves proposals/specs/plans, implementing an OpenSpec change, or archiving a change.
-
-### `design-to-proposal`
-- **Path**: `skills/design-to-proposal/SKILL.md`
-- **Purpose**: Create OpenSpec proposals from an existing design, then run alignment + feasibility review.
-- **Use when**: You have a design and want to produce one or more reviewed OpenSpec proposals.
-
-### `spawn-subagent`
-- **Path**: `skills/spawn-subagent/SKILL.md`
+### `claptrap-spawn-subagent`
+- **Path**: `skills/claptrap-spawn-subagent/SKILL.md`
 - **Purpose**: Spawn a subagent with fresh context and bounded scope, then integrate results back.
 - **Use when**: You need parallel research/exploration/specialized review without polluting the main thread.
 
-### `gemini`
-- **Path**: `skills/gemini/SKILL.md`
-- **Purpose**: Use the Google Gemini CLI to analyze code, review plans, and process large contexts (>200k tokens).
-- **Use when**: Comprehensive code reviews across multiple files, plan reviews, big context analysis, or multi-file pattern analysis.
+### `claptrap-refactor`
+- **Path**: `skills/claptrap-refactor/SKILL.md`
+- **Purpose**: Refactor code for simplicity and readability while preserving behavior.
+- **Use when**: Asked to simplify, clean up, or refactor code without changing its functionality.
 
-### `frontend-design`
-- **Path**: `skills/frontend-design/SKILL.md`
-- **Purpose**: Create distinctive, production-grade frontend interfaces with bold aesthetics.
-- **Use when**: Building components, pages, or applications that require visually striking, memorable design with intentional aesthetic direction.
+## Other Skills
+
+### `claptrap-code-conventions`
+- **Path**: `skills/claptrap-code-conventions/SKILL.md`
+- **Purpose**: Load project-specific code style guidelines for a given language.
+- **Use when**: Writing or reviewing code to ensure adherence to project standards.
+
+### `claptrap-code-review`
+- **Path**: `skills/claptrap-code-review/SKILL.md`
+- **Purpose**: Generic methodology for reviewing code changes against requirements, specs, or proposals.
+- **Use when**: You need to review code changes and produce structured, actionable feedback.
 
 ### `snowflake`
 - **Path**: `skills/snowflake/SKILL.md`

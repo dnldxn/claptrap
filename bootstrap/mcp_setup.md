@@ -2,8 +2,8 @@
 
 Instructions on how to install and configure various MCP Servers in various environments.  The current list of MCP Servers is:
 - Serena
+- Context7
 - Snowflake
-- (Coming Soon) Context7
 
 ## MCP Server Types
 
@@ -88,6 +88,11 @@ To add a MCP Server, add the following to your `~/.config/opencode/opencode.json
 }
 ```
 
+<!-- opencode mcp add <mcp-server-name> --env VAR1=VALUE1 --env VAR2=VALUE2 -- <command> <args>
+opencode mcp add --log-level DEBUG serena -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context codex --project-from-cwd --open-web-dashboard false -->
+
+
+
 ### Claude Code
 
 https://code.claude.com/docs/en/mcp#option-3%3A-add-a-local-stdio-server
@@ -96,7 +101,7 @@ To check if a MCP Server is already installed, use the `claude mcp list` command
 
 To add a MCP Server, use the following command:
 ```bash
-claude mcp add --scope user --env VAR1=VALUE1 --env VAR2=VALUE2 -- <mcp-server-name> -- <command> <args>
+claude mcp add --scope user --env VAR1=VALUE1 --env VAR2=VALUE2 <mcp-server-name> -- <command> <args>
 ```
 
 ### Codex
@@ -124,7 +129,7 @@ The `context` arg can be one of the following:
 - `claude-code` - Use this if your environment is Claude Code
 
 Command: `uvx`
-Args: `--from git+https://github.com/oraios/serena serena start-mcp-server --context <context> --project-from-cwd --open-web-dashboard false`
+Args: `--from git+https://github.com/oraios/serena serena start-mcp-server --context <context> --open-web-dashboard false`
 
 ### context7 MCP
 

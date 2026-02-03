@@ -29,7 +29,7 @@ The installer sets up your project with:
 | Codex | `.codex/` |
 | Gemini | `.gemini/` |
 
-## Usage
+## Installation
 
 Run from your target project directory:
 
@@ -65,6 +65,8 @@ your-project/
 ├── .claptrap/
 │   ├── code-conventions/
 │   ├── designs/
+│   │   ├── TEMPLATE.md
+│   │   └── example-feature/
 │   └── memories.md
 ├── openspec/             # Created by openspec init
 ├── AGENTS.md             # Updated with claptrap instructions
@@ -75,6 +77,7 @@ your-project/
 
 - Python 3.10+
 - Node.js and npm (for OpenSpec)
+- OpenSpec CLI v1.0.2+ (required for `/claptrap-propose` and `/opsx:*` commands)
 - Your chosen AI provider's CLI (optional, for MCP checks)
 
 ## Re-running the Installer

@@ -4,8 +4,6 @@
 # Design: <Feature Name>
 
 Date: YYYY-MM-DD
-Status: Draft | Review | Approved
-Author: <Name>
 
 ## Intent
 
@@ -15,9 +13,11 @@ Author: <Name>
 
 ### In Scope
 - <Specific deliverable or capability>
+- ...
 
 ### Out of Scope
 - <Explicitly excluded item>
+- ...
 
 ## Acceptance Criteria
 
@@ -51,16 +51,13 @@ interface Example {
 |----------|-------------------|--------|-----------|
 | <What> | <A, B, C> | <B> | <Why B was chosen> |
 
+## Constraints / Concerns
+
+- <Potential risk or limitation>
+
 ## Open Questions
 
 - [ ] <Question to resolve before or during implementation>
-
-## Next Steps
-
-1. Review this design document
-2. Run `/claptrap-propose` to generate OpenSpec artifacts
-3. Review and approve proposal/specs/tasks
-4. Implement via `/opsx:apply`
 
 ## OpenSpec Proposals
 

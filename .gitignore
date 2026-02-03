@@ -5,6 +5,9 @@ node_modules/
 package.json
 package-lock.json
 .env
+bun.lock
+
+secrets.toml
 
 .cursor/
 .github/
@@ -14,4 +17,5 @@ package-lock.json
 .gemini/
 .claptrap/
 .serena/
+.ralph/
 /openspec/

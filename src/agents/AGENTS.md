@@ -4,24 +4,25 @@ This folder contains provider-neutral agent definitions used by command-driven w
 
 ## Core Pipeline (Command-Driven)
 
-1. **Propose** (`/propose`)
+1. **Propose** (`/claptrap-propose`)
    - Spawns: `alignment-reviewer.md`, `feasibility-reviewer.md`
-   - Output: change proposal(s), task checklist(s), spec deltas, alignment + feasibility status
-2. **Apply + Review** (`/implement-change`)
-   - Spawns: `code-reviewer.md`, `refactor.md` (for refactor-only changes)
-   - Output: code changes, updated tasks, review findings, and fixes
-3. **Archive** (`/archive-change`)
-   - No agent; completes the OpenSpec archive step
+   - Output: proposal.md, specs/**/spec.md, tasks.md, alignment + feasibility status
+2. **Review** (`/claptrap-review`)
+   - Spawns: `plan-reviewer.md`
+   - Output: APPROVED or REVISE verdict with prioritized issues
+3. **Implementation** (`/opsx:apply`)
+   - Native OpenSpec command
+   - May spawn: `code-reviewer.md`
+   - Output: code changes, updated tasks, review findings
 
 ## Agent Spawning Map
 
-- **`alignment-reviewer.md`** — Spawned by: `/propose`, `/brainstorm` (via `design-to-proposal`)
-- **`feasibility-reviewer.md`** — Spawned by: `/propose`, `/brainstorm` (via `design-to-proposal`)
-- **`plan-reviewer.md`** — Spawned by: `/propose` for plan validation
-- **`code-reviewer.md`** — Spawned by: `/implement-change`
-- **`research.md`** — Spawned by: `/brainstorm`, `/propose`, `/implement-change`
-- **`ui-designer.md`** — Spawned by: `/brainstorm` when UI/UX artifacts are required
-- **`refactor.md`** — Spawned by: `/implement-change` for refactor-only changes
+- **`alignment-reviewer.md`** — Spawned by: `/claptrap-propose`
+- **`feasibility-reviewer.md`** — Spawned by: `/claptrap-propose`
+- **`plan-reviewer.md`** — Spawned by: `/claptrap-review`
+- **`code-reviewer.md`** — Spawned by: `/opsx:apply` (native OpenSpec step)
+- **`research.md`** — Spawned by: `/claptrap-brainstorm`, `/claptrap-propose` when external docs needed
+- **`ui-designer.md`** — Spawned by: `/claptrap-brainstorm` when UI/UX artifacts are required
 
 ## Subagent Characteristics
 

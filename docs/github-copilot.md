@@ -17,6 +17,8 @@
 | **Slash Commands** | ✅ Built-in | `/agent`, `/model`, `/mcp`, etc. (not user-definable yet) |
 | **Subagents** | ⚠️ Limited | Via `handoffs` property in agent profiles |
 
+**Note:** User-level prompts and instructions are managed via VS Code profiles/settings sync and are not stored in local prompt files. Claptrap installs Copilot files at the repo level only (under `.github/`).
+
 ### Directory Structure
 
 ```

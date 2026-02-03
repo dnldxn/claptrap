@@ -1,25 +1,24 @@
 <!-- CLAPTRAP:START -->
 
-# Global AI Rules (Canonical)
-
-## Non-negotiables (Stop-gates).  These are **NOT** optional.
+# Non-negotiables (Stop-gates).  These are **NOT** optional.
 
 1) If any requirement is unclear or conflicting, STOP and ask questions before acting.
 2) Before making edits, identify the available agent tools/features for this environment (tools/skills/rules/agents/commands) and use the relevant ones.
-3) When writing code in a language listed below, you are **strictly required** to read and adhere to the corresponding file in `.claptrap/code-conventions/`. If the file doesn't exist, ask where to find it (don't guess).
+3) Before writing or modifying code in the following languages, you must read and follow the corresponding style guide in `<PROJECTROOT>/.claptrap/code-conventions/` and confirm you've loaded it. If you can't find it, STOP and ask (don't guess).
    - Python: `python.md`
    - Snowflake SQL (including SQL embedded in other languages): `snowflake.md`
+4) Before you do anything, load the `claptrap-memory` skill and follow its instructions. This will enable you to read and write persistent memories.
 
-## Core Coding Principles
+# Core Coding Principles
 - **Simple over Clever**: Always favor the simplest solution that meets requirements. Avoid over-engineering.
 - **Minimal Complexity**: Reduce moving parts, dependencies, and abstractions to the essential minimum.
 - **Code Quality**: Write maintainable, self-documenting code; follow DRY principles for significant duplications (don't obsess over minor repetition)
-- **Minimal Error Handling**: Handle only external failures; trust internal code
+- **Minimal Error Handling**: Only handle failures at the external boundaries; trust internal code
 - **Conciseness**: Make the minimum necessary changes to achieve the goal.
 - **Confident**: Make clear recommendations rather than presenting multiple options
-- **Trust your own code**: Save error handling for external boundaries
 
-## Misc
+# Tool Usage
 - If available, ask context7 MCP for updated technical documentation when using a new library, framework, or tool
+- If available, use the `AskUserTool`, `AskUserQuestion`, `question`, or similar to ask user questions
 
 <!-- CLAPTRAP:END -->

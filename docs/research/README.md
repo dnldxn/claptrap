@@ -2,6 +2,14 @@
 
 This directory is for researching and documenting the capabilities of popular AI-based development tools/platforms (e.g. OpenSpec, claude-flow, etc.).  It is used to inform the design of the personal development workflow.
 
+## To Research
+
+- https://github.com/mixedbread-ai/mgrep (semantic code search)
+- https://chippery.ai/
+- https://grebmcp.com/get-started/introduction
+- https://github.com/dadbodgeoff/drift
+
+
 ## Example Prompt
 
 ```

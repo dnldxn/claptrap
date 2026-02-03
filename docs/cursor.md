@@ -16,13 +16,15 @@
 | **Agent Modes** | ✅ Yes | Built-in modes (Agent, Ask, Custom) |
 | **Skills** | ⚠️ Beta | Experimental; workaround via rules with `alwaysApply: false` |
 | **Background Agents** | ✅ Yes | Asynchronous agents that run in remote environments |
-| **Subagents** | ❌ No | Not supported natively |
+| **Subagents** | ✅ Yes | Custom agents in `.cursor/agents/` and `~/.cursor/agents/` |
 
 ### Directory Structure
 
 ```
 <project-root>/
 ├── .cursor/
+│   ├── agents/                  # Custom agents (subagents)
+│   │   └── *.md
 │   ├── commands/                # Custom slash commands
 │   │   └── *.md
 │   └── rules/                   # Project rules
@@ -32,6 +34,8 @@
 
 # User-level (varies by OS)
 ~/.cursor/
+├── agents/                      # Global custom agents
+│   └── *.md
 ├── commands/                    # Global custom commands
 │   └── *.md
 └── rules/                       # Global user rules
@@ -43,6 +47,13 @@
 |-------|----------|
 | Project | `.cursor/commands/` |
 | User/Global | `~/.cursor/commands/` (or via settings) |
+
+### Agents Location
+
+| Scope | Location |
+|-------|----------|
+| Project | `.cursor/agents/` |
+| User/Global | `~/.cursor/agents/` |
 
 ### Rules Location
 
@@ -238,12 +249,13 @@ Custom model providers can be added in Settings → Models → API Keys.
 
 ## 5. Triggering Subagents from Commands
 
-**Not Supported** — Cursor does not have a documented mechanism for:
-- Spawning subagents from commands
-- Agent-to-agent delegation
-- Nested agent invocation
+Cursor supports custom agents (subagents) defined in `.cursor/agents/` or `~/.cursor/agents/`.
 
-Commands are standalone prompts that execute in the current agent context.
+Commands execute in the **current agent context**. To use a subagent:
+1. Select the desired agent in the agent picker
+2. Run the command as usual
+
+If a command needs a specific agent, mention it explicitly in the command text and switch to that agent before running.
 
 ---
 
@@ -437,6 +449,8 @@ Full Language Server Protocol support:
 
 | Purpose | Location |
 |---------|----------|
+| Project agents | `.cursor/agents/` |
+| User agents | `~/.cursor/agents/` |
 | Project commands | `.cursor/commands/` |
 | User commands | `~/.cursor/commands/` |
 | Project rules | `.cursor/rules/` |

@@ -6,14 +6,14 @@ This folder contains **command definitions**: structured workflows that agents e
 
 ## Available Commands
 
-| Command | Purpose |
-|---------|---------|
-| `brainstorm` | Turn ideas into designs through collaborative dialogue |
-| `propose` | Create OpenSpec change proposals from designs |
-| `implement-change` | Implement an approved OpenSpec change |
-| `code-review` | Review changes for correctness, safety, and spec alignment |
-| `archive-change` | Archive a completed change and capture lessons learned |
-| `finish-openspec-change` | Mark tasks complete and archive (shortcut) |
+| Command | Invocation | Purpose |
+|---------|------------|---------|
+| `claptrap-brainstorm` | `/claptrap-brainstorm <idea>` | Turn ideas into designs through collaborative dialogue |
+| `claptrap-propose` | `/claptrap-propose [design-path]` | Generate OpenSpec artifacts (proposal, specs, tasks) from a design |
+| `claptrap-review` | `/claptrap-review [change-id]` | Validate artifacts against the source design before implementation |
+| `claptrap-refactor` | `/claptrap-refactor <target>` | Refactor code for simplicity and readability |
+
+**Note:** Implementation uses native OpenSpec commands: `/opsx:apply`, `/opsx:verify`, `/opsx:archive`.
 
 ## Command Structure
 
