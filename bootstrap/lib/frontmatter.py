@@ -4,10 +4,9 @@ import re
 
 def parse(content):
     """Extract frontmatter and rest of content; returns (frontmatter, rest) or (None, content)."""
-    fm_match = re.match(r"^---\n(.*?)\n---", content, re.DOTALL)
-    if not fm_match:
-        return None, content
-    return fm_match.group(1), content[fm_match.end() :]
+    if match := re.match(r"^---\n(.*?)\n---", content, re.DOTALL):
+        return match.group(1), content[match.end() :]
+    return None, content
 
 
 def get_key(content, key):
@@ -17,8 +16,8 @@ def get_key(content, key):
         return None
 
     lines = frontmatter.splitlines()
-    i = 0
     key_pattern = rf"^{re.escape(key)}:"
+    i = 0
 
     while i < len(lines):
         # Scalar value: key: value
@@ -51,7 +50,6 @@ def get_key(content, key):
                 return values or None
 
             return None
-
         i += 1
 
     return None
@@ -63,10 +61,11 @@ def set_key(content, key, value):
     if frontmatter is None:
         return content
 
+    # Remove existing key and its indented continuation lines
     lines = frontmatter.splitlines()
     kept_lines = []
-    i = 0
     key_pattern = rf"^{re.escape(key)}:\s*"
+    i = 0
 
     while i < len(lines):
         if re.match(key_pattern, lines[i]):
@@ -79,9 +78,9 @@ def set_key(content, key, value):
 
     frontmatter = "\n".join(kept_lines)
     if value is not None:
-        if frontmatter:
-            frontmatter += "\n"
-        frontmatter += f"{key}: {value}"
+        frontmatter = (
+            f"{frontmatter}\n{key}: {value}" if frontmatter else f"{key}: {value}"
+        )
 
     return f"---\n{frontmatter.strip()}\n---{rest}"
 

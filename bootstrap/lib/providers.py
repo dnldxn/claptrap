@@ -18,12 +18,8 @@ PROVIDERS = {
         "has_commands": True,
         "has_skills": True,
         "mcp_cmd": ["agent", "mcp", "list"],
-        # Hooks configuration
         "hooks_config_path": "hooks.json",
-        "hooks_events": {
-            "session_end": "stop",
-            "post_tool": "postToolUse",
-        },
+        "hooks_events": {"session_end": "stop", "post_tool": "postToolUse"},
     },
     "github-copilot": {
         "name": "GitHub Copilot",
@@ -34,12 +30,8 @@ PROVIDERS = {
         "has_agents": True,
         "has_commands": True,
         "has_skills": True,
-        # Hooks configuration
         "hooks_config_path": "copilot-hooks.json",
-        "hooks_events": {
-            "session_end": "sessionEnd",
-            "post_tool": "postToolUse",
-        },
+        "hooks_events": {"session_end": "sessionEnd", "post_tool": "postToolUse"},
     },
     "opencode": {
         "name": "OpenCode",
@@ -49,7 +41,6 @@ PROVIDERS = {
         "has_commands": True,
         "has_skills": True,
         "mcp_cmd": ["opencode", "mcp", "list"],
-        # Hooks - plugin-based, different approach
         "hooks_config_path": "opencode.jsonc",
         "hooks_events": {
             "session_end": "session.idle",
@@ -64,12 +55,8 @@ PROVIDERS = {
         "has_commands": True,
         "has_skills": True,
         "mcp_cmd": ["claude", "mcp", "list"],
-        # Hooks configuration
         "hooks_config_path": "settings.json",
-        "hooks_events": {
-            "session_end": "Stop",
-            "post_tool": "PostToolUse",
-        },
+        "hooks_events": {"session_end": "Stop", "post_tool": "PostToolUse"},
     },
     "codex": {
         "name": "Codex",
@@ -80,7 +67,6 @@ PROVIDERS = {
         "commands_dir": "prompts",
         "has_skills": True,
         "mcp_cmd": ["codex", "mcp", "list"],
-        # No hooks support
         "hooks_config_path": None,
         "hooks_events": None,
     },
@@ -93,12 +79,8 @@ PROVIDERS = {
         "has_skills": False,
         "commands_format": "toml",
         "mcp_cmd": ["gemini", "mcp", "list"],
-        # Hooks configuration
         "hooks_config_path": "settings.json",
-        "hooks_events": {
-            "session_end": "SessionEnd",
-            "post_tool": "AfterTool",
-        },
+        "hooks_events": {"session_end": "SessionEnd", "post_tool": "AfterTool"},
     },
 }
 
@@ -106,29 +88,23 @@ PROVIDER_ORDER = ["opencode", "cursor", "github-copilot", "claude", "codex", "ge
 
 
 def get(key):
-    """Get provider config with defaults merged."""
     return {**DEFAULT_PROVIDER, **PROVIDERS[key]}
 
 
 def get_display_dir(cfg):
-    """Get display path for provider directory."""
     return str(cfg["global_dir"]) if cfg.get("global_dir") else cfg["dir"]
 
 
 def get_root_dir(provider_key, target_dir):
-    """Get root directory for provider installation."""
     cfg = get(provider_key)
     return cfg["global_dir"] if cfg.get("global_dir") else target_dir / cfg["dir"]
 
 
 def get_install_dir(provider_key, feature, target_dir):
-    """Get installation directory for a feature."""
-    cfg = get(provider_key)
-    return get_root_dir(provider_key, target_dir) / cfg[f"{feature}_dir"]
+    return get_root_dir(provider_key, target_dir) / get(provider_key)[f"{feature}_dir"]
 
 
 def can_install_feature(cfg, feature):
-    """Check if feature can be installed for provider."""
     if not cfg.get(f"has_{feature}"):
         return False, "not supported"
     if feature == "commands" and cfg.get("commands_format") == "toml":

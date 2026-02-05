@@ -1,8 +1,5 @@
 #!/usr/bin/env python3
-"""
-Memory enforcement script - runs at session end and post-tool events.
-Copied to .claptrap/enforcement.py on install.
-"""
+"""Memory enforcement script - runs at session end and post-tool events."""
 
 import argparse
 import json
@@ -34,31 +31,20 @@ def get_inbox_entry_count():
     """Count entries in memory inbox (## headers)."""
     if not INBOX_FILE.exists():
         return 0
-    content = INBOX_FILE.read_text()
-    return content.count("\n## ")
+    return INBOX_FILE.read_text().count("\n## ")
 
 
 def session_end_gate():
-    """
-    Hard enforcement: Block session end if work was done but no memories captured.
-    Returns: 0 = allow, 2 = block
-    """
+    """Hard enforcement: Block session end if work was done but no memories captured. Returns 0=allow, 2=block."""
     activity = get_session_activity()
 
-    # If no work done, allow
-    if not activity["has_changes"]:
+    if not activity["has_changes"] or get_inbox_entry_count() > 0:
         return 0
 
-    # If inbox has entries, allow
-    if get_inbox_entry_count() > 0:
-        return 0
-
-    # Work was done but inbox empty - prompt
     output = {
         "action": "prompt",
         "message": (
-            f"Session had activity ({activity['files']} files changed) "
-            "but no memories captured.\n\n"
+            f"Session had activity ({activity['files']} files changed) but no memories captured.\n\n"
             "Before ending, please review:\n"
             "- Any non-obvious decisions made?\n"
             "- Patterns worth repeating or avoiding?\n"
@@ -71,10 +57,7 @@ def session_end_gate():
 
 
 def post_tool_nudge():
-    """
-    Soft enforcement: Occasional reminder after file edits.
-    Always returns 0 (never blocks).
-    """
+    """Soft enforcement: Occasional reminder after file edits. Always returns 0 (never blocks)."""
     counter_file = CLAPTRAP_DIR / ".edit_counter"
 
     count = int(counter_file.read_text().strip()) if counter_file.exists() else 0
@@ -82,11 +65,14 @@ def post_tool_nudge():
     counter_file.write_text(str(count))
 
     if count % 10 == 0:
-        output = {
-            "action": "notify",
-            "message": f"You've made {count} edits. Any learnings worth capturing?",
-        }
-        print(json.dumps(output))
+        print(
+            json.dumps(
+                {
+                    "action": "notify",
+                    "message": f"You've made {count} edits. Any learnings worth capturing?",
+                }
+            )
+        )
 
     return 0
 
@@ -96,10 +82,7 @@ def main():
     parser.add_argument("--event", choices=["session-end", "post-tool"], required=True)
     args = parser.parse_args()
 
-    if args.event == "session-end":
-        sys.exit(session_end_gate())
-    else:
-        sys.exit(post_tool_nudge())
+    sys.exit(session_end_gate() if args.event == "session-end" else post_tool_nudge())
 
 
 if __name__ == "__main__":

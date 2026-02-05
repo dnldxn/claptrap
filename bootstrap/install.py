@@ -5,35 +5,22 @@
 import re
 import shutil
 import subprocess
-from pathlib import Path
-
-# Add bootstrap dir to path for lib imports
 import sys
+from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from lib import frontmatter
-from lib import memory
-from lib import providers
+from lib import frontmatter, memory, providers
 from lib.output import BOLD, CYAN, DIM, RESET, header, info, step, success, warning
 
-
 ########################################################################################################################
-# Installation Configuration
+# Configuration
 ########################################################################################################################
 
 GLOBAL_SKILLS = [
-    {"repo": "https://github.com/anthropics/skills", "skill": "skill-creator"},
-    {"repo": "https://github.com/anthropics/skills", "skill": "frontend-design"},
-    {
-        "repo": "https://github.com/forrestchang/andrej-karpathy-skills",
-        "skill": "karpathy-guidelines",
-    },
-    # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "codex"},
-    # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "gemini"},
-    # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "mermaid-diagrams"},
-    # {"repo": "https://github.com/obra/superpowers", "skill": "subagent-driven-development"},
-    # {"repo": "https://github.com/jezweb/claude-skills", "skill": "streamlit-snowflake"},
+    ("https://github.com/anthropics/skills", "skill-creator"),
+    ("https://github.com/anthropics/skills", "frontend-design"),
+    ("https://github.com/forrestchang/andrej-karpathy-skills", "karpathy-guidelines"),
 ]
 
 MCP_SERVERS = ["serena", "context7", "snowflake"]
@@ -43,8 +30,8 @@ MCP_SERVERS = ["serena", "context7", "snowflake"]
 ########################################################################################################################
 
 
-def run_cmd(cmd, capture=True):
-    return subprocess.run(cmd, capture_output=capture, text=True, check=False)
+def run_cmd(cmd):
+    return subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
 def select_provider():
@@ -52,8 +39,8 @@ def select_provider():
     for i, key in enumerate(providers.PROVIDER_ORDER, 1):
         cfg = providers.get(key)
         print(f"  {BOLD}{i}{RESET}) {cfg['name']} ({providers.get_display_dir(cfg)})")
-
     print()
+
     while True:
         try:
             choice = (
@@ -70,18 +57,23 @@ def select_provider():
         print(f"Please enter a number between 1 and {len(providers.PROVIDER_ORDER)}.")
 
 
+def should_skip_file(src_file, src_dir):
+    """Check if file should be skipped during copy."""
+    if src_file.name in ("AGENTS.md", "README.md"):
+        return True
+    rel_path = src_file.relative_to(src_dir)
+    return rel_path.parts[0] == "templates" or "_archive" in rel_path.parts
+
+
 def copy_and_transform(src_dir, dest_dir, provider_key, new_suffix):
     dest_dir.mkdir(parents=True, exist_ok=True)
     count = 0
 
     for src_file in src_dir.rglob("*.md"):
-        if src_file.name in ("AGENTS.md", "README.md"):
+        if should_skip_file(src_file, src_dir):
             continue
 
         rel_path = src_file.relative_to(src_dir)
-        if rel_path.parts[0] == "templates" or "_archive" in rel_path.parts:
-            continue
-
         if len(rel_path.parts) > 1:
             new_name = (
                 rel_path.parts[-1].replace(".md", new_suffix)
@@ -108,9 +100,10 @@ def copy_skills(src_dir, dest_dir):
     count = 0
 
     for src_file in src_dir.rglob("*"):
-        if not src_file.is_file() or src_file.name in ("AGENTS.md", "README.md"):
+        if not src_file.is_file():
             continue
-
+        if src_file.name in ("AGENTS.md", "README.md"):
+            continue
         rel_path = src_file.relative_to(src_dir)
         if "_archive" in rel_path.parts:
             continue
@@ -147,14 +140,10 @@ def update_gitignore(target_dir):
     ]
     existing = set(gitignore.read_text().splitlines()) if gitignore.exists() else set()
 
-    added = []
-    with open(gitignore, "a") as f:
-        for entry in entries:
-            if entry not in existing:
-                f.write(f"{entry}\n")
-                added.append(entry)
-
+    added = [e for e in entries if e not in existing]
     if added:
+        with open(gitignore, "a") as f:
+            f.write("\n".join(added) + "\n")
         success(f"Added to .gitignore: {', '.join(added)}")
     else:
         info(".gitignore already configured")
@@ -162,8 +151,9 @@ def update_gitignore(target_dir):
 
 def update_agents_md(agents_md_path, claptrap_path, provider_key):
     agents_md_path.parent.mkdir(parents=True, exist_ok=True)
-    template = claptrap_path / "bootstrap" / "templates" / "agents_md.txt"
-    claptrap_content = template.read_text()
+    claptrap_content = (
+        claptrap_path / "bootstrap" / "templates" / "agents_md.txt"
+    ).read_text()
 
     if agents_md_path.exists():
         content = agents_md_path.read_text()
@@ -175,20 +165,13 @@ def update_agents_md(agents_md_path, claptrap_path, provider_key):
                 flags=re.DOTALL,
             )
             success(f"Updated existing CLAPTRAP section in {agents_md_path}")
+        elif "<!-- OPENSPEC:END -->" in content:
+            content = content.replace(
+                "<!-- OPENSPEC:END -->", f"<!-- OPENSPEC:END -->\n\n{claptrap_content}"
+            )
+            success(f"Added CLAPTRAP section to {agents_md_path}")
         else:
-            insert_after = (
-                "<!-- OPENSPEC:END -->\n\n"
-                if "<!-- OPENSPEC:END -->" in content
-                else ""
-            )
-            content = (
-                content.replace(
-                    "<!-- OPENSPEC:END -->",
-                    f"<!-- OPENSPEC:END -->\n\n{claptrap_content}",
-                )
-                if insert_after
-                else content + "\n\n" + claptrap_content
-            )
+            content = content + "\n\n" + claptrap_content
             success(f"Added CLAPTRAP section to {agents_md_path}")
         agents_md_path.write_text(content)
     else:
@@ -223,35 +206,24 @@ def check_mcp_server(provider_key, server_name):
         if result.returncode == 0:
             for line in result.stdout.splitlines():
                 if server_name.lower() in line.lower():
-                    return False if "failed" in line.lower() else True
+                    return "failed" not in line.lower()
             return False
     except FileNotFoundError:
         pass
-
     return None
 
 
 def install_global_skills():
     success_count = 0
-    for skill in GLOBAL_SKILLS:
-        info(f"Installing {skill['skill']} from {skill['repo']}...")
+    for repo, skill in GLOBAL_SKILLS:
+        info(f"Installing {skill} from {repo}...")
         result = run_cmd(
-            [
-                "npx",
-                "-y",
-                "skills",
-                "add",
-                "--yes",
-                "--global",
-                skill["repo"],
-                "--skill",
-                skill["skill"],
-            ]
+            ["npx", "-y", "skills", "add", "--yes", "--global", repo, "--skill", skill]
         )
         if result.returncode == 0:
             success_count += 1
         else:
-            warning(f"Failed to install {skill['skill']}")
+            warning(f"Failed to install {skill}")
     return success_count, len(GLOBAL_SKILLS)
 
 
@@ -261,13 +233,12 @@ def generate_debate_agents(claptrap_path, agents_dir):
     models = frontmatter.get_key(content, "debate-models")
     if not models:
         return
-    content = frontmatter.set_key(content, "debate-models", None)
 
+    content = frontmatter.set_key(content, "debate-models", None)
     agents_dir.mkdir(parents=True, exist_ok=True)
     for i, model in enumerate(models, 1):
         agent_content = content.replace("{NAME}", str(i)).replace("{MODEL}", model)
         (agents_dir / f"debate-agent-{i}.md").write_text(agent_content)
-
     success(f"Generated {len(models)} debate agents → {agents_dir}")
 
 
@@ -330,7 +301,7 @@ conv_dest = workflow_dir / "code-conventions"
 conv_dest.mkdir(parents=True, exist_ok=True)
 for f in (claptrap_path / "src" / "code-conventions").glob("*.md"):
     shutil.copy2(f, conv_dest / f.name)
-success(f"Copied code conventions to {conv_dest.relative_to(target_dir)}")
+success(f"Copied code conventions → {conv_dest.relative_to(target_dir)}")
 
 # Design templates
 designs_dest = workflow_dir / "designs"
@@ -341,7 +312,7 @@ shutil.copy2(
 example_src = claptrap_path / "src" / "designs" / "example-feature"
 if example_src.exists():
     shutil.copytree(example_src, designs_dest / "example-feature", dirs_exist_ok=True)
-success(f"Copied design templates to {designs_dest.relative_to(target_dir)}")
+success(f"Copied design templates → {designs_dest.relative_to(target_dir)}")
 
 # Step 4: Memory system (inbox, memories, enforcement, hooks)
 step(4, "Memory System Setup")
@@ -391,13 +362,11 @@ else:
 step(9, "Checking MCP Servers")
 for server in MCP_SERVERS:
     status = check_mcp_server(provider_key, server)
-    if status is True:
-        success(f"{server} MCP is configured")
+    if status is True: success(f"{server} MCP is configured")
     elif status is False:
         warning(f"{server} MCP not configured")
         print(f"\n  {DIM}To install, ask your AI assistant:{RESET}")
-    else:
-        info(f"Could not check {server} MCP status for {cfg['name']}")
+    else: info(f"Could not check {server} MCP status for {cfg['name']}")
 
 # Done
 header("Installation Complete! 🎉")
