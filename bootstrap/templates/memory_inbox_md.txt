@@ -1,0 +1,16 @@
+# Memory Inbox
+
+Capture learnings here during work sessions. Entries will be reviewed and promoted to `memories.md` periodically.
+
+## Format
+
+```
+## [Date] - [Brief Title]
+- **Trigger**: What prompted this learning
+- **Action**: What to do differently  
+- **Context**: When this applies
+```
+
+---
+
+<!-- Add new entries below this line -->
