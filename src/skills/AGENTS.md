@@ -26,6 +26,16 @@ This folder contains **portable "Skills"**: small, reusable playbooks agents can
 - **Purpose**: Read/write/update/delete project memory entries (decisions, patterns, anti-patterns, lessons).
 - **Use when**: You observe a reusable decision/lesson/pattern worth capturing, or need to recall prior choices.
 
+### `memory-capture`
+- **Path**: `skills/memory-capture/SKILL.md`
+- **Purpose**: Capture candidate learnings to inbox during work sessions (high recall).
+- **Use when**: You discover non-obvious decisions, gotchas, patterns, or lessons worth potentially keeping.
+
+### `memory-curator`
+- **Path**: `skills/memory-curator/SKILL.md`
+- **Purpose**: Score inbox candidates and promote quality entries to durable memory (high precision).
+- **Use when**: Session end, or periodically when inbox has accumulated candidates.
+
 ### `claptrap-spawn-subagent`
 - **Path**: `skills/claptrap-spawn-subagent/SKILL.md`
 - **Purpose**: Spawn a subagent with fresh context and bounded scope, then integrate results back.
