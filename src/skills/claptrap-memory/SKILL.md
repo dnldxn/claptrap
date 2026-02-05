@@ -5,84 +5,86 @@ description: Capture and retain project decisions, patterns, anti-patterns, and 
 
 # Memory Skill
 
-## What this skill does
+This is a **two-file, two-skill memory system** for capturing and retaining project knowledge.
 
-Provides a lightweight memory system that lets agents record and retrieve project decisions, patterns, anti-patterns, and lessons in a single file (`.claptrap/memories.md`).
+## Files
 
-## When to activate
+| File | Purpose | Access |
+|------|---------|--------|
+| `.claptrap/memory_inbox.md` | Candidate learnings (high recall) | Write during work |
+| `.claptrap/memories.md` | Durable memories (high precision) | Read anytime, write via curator |
 
-Trigger this skill when **you (the agent)** need to **read or write** project memory.
+## Skills
 
-### Agent autonomy rules
+### memory-capture
+**Use during work** to capture candidate learnings as they happen.
 
-- **Do not wait for the user to ask** to record or maintain memory. Decide proactively.
-- **Generate then filter**: At the end of significant work, always generate 1-3 candidate memories, then critically evaluate each one.
-- **Be selective**: For each candidate, ask "Would this help a future agent working on this codebase?" Only add memories that pass this bar — it's okay to reject all candidates.
-- **Prefer update over duplication**: If a memory already exists on the topic, update it instead of adding a new entry.
-- **Prefer update over delete**: Delete only when an entry is clearly incorrect, redundant, or harmful.
-- **Never store secrets**: Do not write API keys, tokens, credentials, private customer data, or logs that may contain sensitive information.
+Trigger signals:
+- Non-obvious decisions or tradeoffs
+- Gotchas (env, tooling, CI, dependencies)
+- User corrections or preferences
+- Patterns/anti-patterns discovered
+- Multi-step procedures
+- Constraints that could be violated
 
-### Common activation signals
+### memory-curator
+**Use periodically** (or at session end) to review inbox and promote quality entries.
 
-- A **non-obvious decision** was made (trade-off, constraint, convention) that future work could accidentally undo.
-- Solutions to **tricky problems**
-- **Architectural decisions** and their rationale
-- A **pattern** emerged that should be repeated.
-- An **anti-pattern** caused avoidable pain and should be prevented.
-- A **lesson** was learned after implementing, reviewing, or debugging a change.
-- You need to **recall** prior choices to avoid conflicting guidance.
+Uses scoring rubric (0-8):
+- Recurrence (0-2)
+- Impact (0-2)  
+- Actionability (0-2)
+- Bonuses for specificity and repo-relevance
 
-## File location
+Thresholds: >=6 persist, 4-5 keep, <=3 drop
 
-All memories live in a single file: `.claptrap/memories.md`
+## Quick reference
+
+### Session start
+1. Read `.claptrap/memories.md` for relevant context
+2. Skim inbox for pending candidates
+
+### During work
+Use **memory-capture** when you notice durable learnings.
+
+### Session end (or periodically)
+Use **memory-curator** to review and promote inbox candidates.
 
 ## Memory format
 
-A memory entry must include frontmatter with a summary field.  The summary should be concise enough to determine whether to read the full content.
+### Inbox candidate
+```
+## [YYYY-MM-DD] - [Brief title]
+- **Trigger**: When this applies
+- **Action**: What to do/avoid
+- **Context**: Area this applies to
+```
 
-### Required:
-```markdown
+### Durable memory
+```
 ---
 
-## Use batch inserts for large datasets
-Type: pattern | Date: 2025-01-15 | Tags: database, performance
+## [Descriptive title]
+Type: decision | pattern | anti-pattern | lesson | solution | Date: YYYY-MM-DD | Tags: tag1, tag2
 
-Bulk operations are 10x faster than individual inserts. Always batch when inserting more than 100 rows.
+[1-3 sentences describing trigger, action, and rationale]
 
 ---
 ```
 
-### Format rules
-
-- **Heading**: `## <descriptive title>` — use imperative or declarative statement
-- **Metadata line**: `Type: <type> | Date: YYYY-MM-DD | Tags: tag1, tag2`
-- **Body**: 1-3 sentences, standalone (understandable without external context)
-- **Separator**: `---` between entries
-- **Ordering**: Newest entries at the top (after the file header)
-
-### Valid types
+## Valid memory types
 
 | Type | When to use |
-| --- | --- |
-| decision | Significant trade-offs or choices |
+|------|-------------|
+| decision | Significant tradeoffs or choices |
 | pattern | Approaches that worked well |
 | anti-pattern | Approaches to avoid |
 | lesson | Post-change learnings |
 | solution | Solutions to tricky problems |
-| architectural decision | Architectural decisions and their rationale |
 
-## How to edit
+## Rules
 
-- **Read**: Open `.claptrap/memories.md` and scan for relevant context
-- **Add**: Insert new entry at the top (after the header section), with `---` separator
-- **Update**: Edit the existing entry in place
-- **Delete**: Remove the entry and its separator (only when incorrect, redundant, or misleading)
-
-## Generate-then-filter workflow
-
-At the end of significant work:
-
-1. **Generate candidates (Required)** — Generate 1-3 potential memories from the work just completed
-2. **Critically evaluate** — For each candidate, ask: "Would this help a future agent working on this codebase?"
-3. **Be selective** — Only add memories that pass the bar; it's fine to generate candidates and reject all of them.  Justify your decision.
-4. **Write survivors** — Add any memories that passed evaluation to `.claptrap/memories.md`
+- **Never store secrets**: No API keys, tokens, credentials, or sensitive data
+- **Update over duplicate**: Prefer updating existing memories to adding duplicates
+- **Prefer update over delete**: Delete only when incorrect, redundant, or harmful
+- **Be selective**: Not everything is worth remembering - that's what the rubric is for
