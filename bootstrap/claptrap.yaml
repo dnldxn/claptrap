@@ -80,7 +80,8 @@ environments:
     root: ~/.config/opencode
     cli: opencode
     hooks:
-      file: opencode.jsonc
+      type: plugin  # Uses JS/TS plugin, not JSON config
+      file: claptrap-enforcement.ts
       events:
         session_end: session.idle
         post_tool: tool.execute.after
@@ -114,6 +115,7 @@ environments:
     cli: agent
     hooks:
       file: hooks.json
+      project_dir: .cursor
       events:
         session_end: stop
         post_tool: postToolUse

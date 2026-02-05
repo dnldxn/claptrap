@@ -6,6 +6,8 @@ from pathlib import Path
 from . import installer
 from .output import info, success, warning
 
+ENFORCEMENT_PLUGIN = "claptrap-enforcement.ts"
+
 
 def generate_hooks_config(env: str):
     env_cfg = installer.CONFIG["environments"].get(env, {})
@@ -49,6 +51,18 @@ def generate_hooks_config(env: str):
                 ]
         return {"version": 1, "hooks": hooks_output} if hooks_output else None
 
+    if env == "cursor":
+        hooks_output = {}
+        for canonical_name, hook_def in common_hooks.items():
+            event_name = events.get(canonical_name)
+            if event_name:
+                entry = {"command": hook_def["command"]}
+                matcher = hook_def.get("matcher")
+                if matcher and matcher != "*":
+                    entry["matcher"] = matcher
+                hooks_output[event_name] = [entry]
+        return {"version": 1, "hooks": hooks_output} if hooks_output else None
+
     hooks_output = {}
     for canonical_name, hook_def in common_hooks.items():
         event_name = events.get(canonical_name)
@@ -80,12 +94,13 @@ def install_hooks(env: str, target_dir: Path):
         warning(f"{env} doesn't support hooks (soft enforcement only)")
         return
 
+    # OpenCode uses plugin system instead of JSON hooks
+    if env == "opencode":
+        install_opencode_plugin(env_cfg)
+        return
+
     config = generate_hooks_config(env)
     if not config:
-        if env == "opencode":
-            info(
-                "OpenCode uses plugin system for hooks - see docs/opencode.md for setup"
-            )
         return
 
     project_dir = hooks_cfg.get("project_dir")
@@ -115,6 +130,23 @@ def install_hooks(env: str, target_dir: Path):
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config, indent=2))
     success(f"Configured memory hooks -> {config_path}")
+
+
+def install_opencode_plugin(env_cfg: dict):
+    """Install the enforcement plugin for OpenCode."""
+    claptrap_path = Path(__file__).resolve().parent.parent.parent
+    src = claptrap_path / "src" / "plugins" / ENFORCEMENT_PLUGIN
+    if not src.exists():
+        warning(f"Enforcement plugin not found: {src}")
+        return
+
+    root = Path(env_cfg["root"]).expanduser()
+    plugins_dir = root / "plugins"
+    plugins_dir.mkdir(parents=True, exist_ok=True)
+
+    dest = plugins_dir / ENFORCEMENT_PLUGIN
+    shutil.copy2(src, dest)
+    success(f"Installed enforcement plugin -> {dest}")
 
 
 def install_enforcement_script(claptrap_path: Path, workflow_dir: Path):
