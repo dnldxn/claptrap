@@ -1,72 +1,55 @@
-# Memory system installation - hooks configuration and enforcement
 import json
 import shutil
 from datetime import datetime
 from pathlib import Path
 
-from . import providers
-from .output import success, warning, info
+from . import installer
+from .output import info, success, warning
 
 
-def generate_hooks_config(provider_key):
-    """Generate hooks configuration for a provider."""
-    cfg = providers.get(provider_key)
-    events = cfg.get("hooks_events")
-    if not events: return None
+def generate_hooks_config(env: str):
+    env_cfg = installer.CONFIG["environments"].get(env, {})
+    hooks_cfg = env_cfg.get("hooks")
 
-    enforcement_cmd = "python3 .claptrap/enforcement.py"
-
-    # OpenCode uses plugin system, not hooks config - skip hook generation
-    if provider_key == "opencode":
+    if not hooks_cfg or hooks_cfg is False:
         return None
 
-    # Claude uses nested structure with matcher and hooks array
-    if provider_key == "claude":
-        return {
-            "hooks": {
-                events["session_end"]: [
-                    {
-                        "matcher": "*",
-                        "hooks": [
-                            {
-                                "type": "command",
-                                "command": f"{enforcement_cmd} --event session-end",
-                            }
-                        ],
-                    }
-                ],
-                events["post_tool"]: [
-                    {
-                        "matcher": "Write|Edit",
-                        "hooks": [
-                            {
-                                "type": "command",
-                                "command": f"{enforcement_cmd} --event post-tool",
-                            }
-                        ],
-                    }
-                ],
-            }
-        }
+    events = hooks_cfg.get("events", {})
+    if not events:
+        return None
 
-    # Cursor and others use simpler structure
-    return {
-        "hooks": {
-            events["session_end"]: [
-                {"matcher": "*", "command": f"{enforcement_cmd} --event session-end"}
-            ],
-            events["post_tool"]: [
+    common_hooks = installer.CONFIG.get("hooks", {})
+
+    if env == "opencode":
+        return None
+
+    if env == "claude":
+        hooks_output = {}
+        for canonical_name, hook_def in common_hooks.items():
+            event_name = events.get(canonical_name)
+            if event_name:
+                hooks_output[event_name] = [
+                    {
+                        "matcher": hook_def.get("matcher", "*"),
+                        "hooks": [{"type": "command", "command": hook_def["command"]}],
+                    }
+                ]
+        return {"hooks": hooks_output} if hooks_output else None
+
+    hooks_output = {}
+    for canonical_name, hook_def in common_hooks.items():
+        event_name = events.get(canonical_name)
+        if event_name:
+            hooks_output[event_name] = [
                 {
-                    "matcher": "Edit|Write" if provider_key == "cursor" else "*",
-                    "command": f"{enforcement_cmd} --event post-tool",
+                    "matcher": hook_def.get("matcher", "*"),
+                    "command": hook_def["command"],
                 }
-            ],
-        }
-    }
+            ]
+    return {"hooks": hooks_output} if hooks_output else None
 
 
-def backup_config(config_path):
-    """Create a timestamped backup of the config file."""
+def backup_config(config_path: Path):
     if not config_path.exists():
         return None
 
@@ -76,55 +59,56 @@ def backup_config(config_path):
     return backup_path
 
 
-def install_hooks(provider_key, target_dir):
-    """Install hooks configuration for memory enforcement."""
-    cfg = providers.get(provider_key)
+def install_hooks(env: str, target_dir: Path):
+    env_cfg = installer.CONFIG["environments"].get(env, {})
+    hooks_cfg = env_cfg.get("hooks")
 
-    if not cfg.get("hooks_config_path"):
-        warning(f"{cfg['name']} doesn't support hooks (soft enforcement only)")
+    if not hooks_cfg or hooks_cfg is False:
+        warning(f"{env} doesn't support hooks (soft enforcement only)")
         return
 
-    config = generate_hooks_config(provider_key)
+    config = generate_hooks_config(env)
     if not config:
-        if provider_key == "opencode":
-            info("OpenCode uses plugin system for hooks - see docs/opencode.md for setup")
+        if env == "opencode":
+            info(
+                "OpenCode uses plugin system for hooks - see docs/opencode.md for setup"
+            )
         return
 
-    config_path = (providers.get_root_dir(provider_key, target_dir) / cfg["hooks_config_path"])
+    root = Path(env_cfg["root"]).expanduser()
+    config_path = root / hooks_cfg["file"]
 
-    # Backup existing config before any modifications
     if config_path.exists():
         backup_path = backup_config(config_path)
         if backup_path:
-            info(f"Backed up existing config → {backup_path.name}")
+            info(f"Backed up existing config -> {backup_path.name}")
 
-    # Merge with existing config if present
     if config_path.exists():
         try:
             content = config_path.read_text()
-            lines = [l for l in content.split("\n") if not l.strip().startswith("//")]  # Strip JSONC comments
+            lines = [l for l in content.split("\n") if not l.strip().startswith("//")]
             existing = json.loads("\n".join(lines))
             existing.setdefault("hooks", {}).update(config.get("hooks", {}))
             config = existing
         except json.JSONDecodeError:
-            warning(f"Could not parse existing {config_path.name} - creating new config")
+            warning(
+                f"Could not parse existing {config_path.name} - creating new config"
+            )
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config, indent=2))
-    success(f"Configured memory hooks → {config_path}")
+    success(f"Configured memory hooks -> {config_path}")
 
 
-def install_enforcement_script(claptrap_path, workflow_dir):
-    """Copy enforcement script to .claptrap/"""
+def install_enforcement_script(claptrap_path: Path, workflow_dir: Path):
     src = claptrap_path / "bootstrap" / "lib" / "enforcement.py"
     dest = workflow_dir / "enforcement.py"
     shutil.copy(src, dest)
     dest.chmod(0o755)
-    success("Installed enforcement.py → .claptrap/")
+    success("Installed enforcement.py -> .claptrap/")
 
 
-def install_memory_files(claptrap_path, workflow_dir):
-    """Initialize memory inbox and memories files."""
+def install_memory_files(claptrap_path: Path, workflow_dir: Path):
     templates_dir = claptrap_path / "bootstrap" / "templates"
 
     for name, filename in [
@@ -139,11 +123,10 @@ def install_memory_files(claptrap_path, workflow_dir):
             info(f"{name} already exists")
 
 
-def install(provider_key, target_dir, claptrap_path):
-    """Install complete memory system for a provider."""
+def install(env: str, target_dir: Path, claptrap_path: Path):
     workflow_dir = target_dir / ".claptrap"
     workflow_dir.mkdir(parents=True, exist_ok=True)
 
     install_memory_files(claptrap_path, workflow_dir)
     install_enforcement_script(claptrap_path, workflow_dir)
-    install_hooks(provider_key, target_dir)
+    install_hooks(env, target_dir)
