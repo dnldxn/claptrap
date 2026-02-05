@@ -1,6 +1,7 @@
 # Memory system installation - hooks configuration and enforcement
 import json
 import shutil
+from datetime import datetime
 from pathlib import Path
 
 from . import providers
@@ -14,6 +15,10 @@ def generate_hooks_config(provider_key):
     if not events: return None
 
     enforcement_cmd = "python3 .claptrap/enforcement.py"
+
+    # OpenCode uses plugin system, not hooks config - skip hook generation
+    if provider_key == "opencode":
+        return None
 
     # Claude uses nested structure with matcher and hooks array
     if provider_key == "claude":
@@ -60,6 +65,17 @@ def generate_hooks_config(provider_key):
     }
 
 
+def backup_config(config_path):
+    """Create a timestamped backup of the config file."""
+    if not config_path.exists():
+        return None
+
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    backup_path = config_path.with_suffix(f".{timestamp}.backup")
+    shutil.copy2(config_path, backup_path)
+    return backup_path
+
+
 def install_hooks(provider_key, target_dir):
     """Install hooks configuration for memory enforcement."""
     cfg = providers.get(provider_key)
@@ -69,9 +85,18 @@ def install_hooks(provider_key, target_dir):
         return
 
     config = generate_hooks_config(provider_key)
-    if not config: return
+    if not config:
+        if provider_key == "opencode":
+            info("OpenCode uses plugin system for hooks - see docs/opencode.md for setup")
+        return
 
     config_path = (providers.get_root_dir(provider_key, target_dir) / cfg["hooks_config_path"])
+
+    # Backup existing config before any modifications
+    if config_path.exists():
+        backup_path = backup_config(config_path)
+        if backup_path:
+            info(f"Backed up existing config → {backup_path.name}")
 
     # Merge with existing config if present
     if config_path.exists():
@@ -81,7 +106,8 @@ def install_hooks(provider_key, target_dir):
             existing = json.loads("\n".join(lines))
             existing.setdefault("hooks", {}).update(config.get("hooks", {}))
             config = existing
-        except json.JSONDecodeError: pass
+        except json.JSONDecodeError:
+            warning(f"Could not parse existing {config_path.name} - creating new config")
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config, indent=2))
