@@ -1,7 +1,7 @@
 # Installer Revamp Design
 
 **Date:** 2025-02-04
-**Status:** Draft
+**Status:** Approved
 
 ## Overview
 
@@ -418,13 +418,13 @@ if __name__ == "__main__":
     main()
 ```
 
-## Open Questions
+## Decisions
 
-1. **Existing install.py features** - Should we keep global skills installation (`npx skills add`), `.claptrap/` setup, gitignore updates, MCP checks, or handle separately?
+1. **Existing install.py features** - Keep global skills installation (`npx skills add`), `.claptrap/` setup, gitignore updates, MCP checks.
 
-2. **Hook JSON merging** - If user has existing hooks in settings.json, should we merge or overwrite? (Recommend: merge, only touching claptrap-defined hooks)
+2. **Hook JSON handling** - Overwrite the hooks file entirely (don't merge with existing).
 
-3. **Windows compatibility** - Symlinks require admin privileges on Windows. Should we fall back to copy-only on Windows?
+3. **Windows compatibility** - Not needed. On Windows, installer runs in WSL (Linux).
 
 ## Success Criteria
 
