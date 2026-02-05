@@ -190,7 +190,7 @@ install.py
 
 ## Implementation Checklist
 
-### Completed ✅
+### Completed
 
 - [x] Research hooks across all 6 environments
 - [x] Document hooks in `docs/*.md` for each environment
@@ -203,12 +203,12 @@ install.py
 - [x] Implement `lib/enforcement.py` script
 - [x] Integrate into `bootstrap/install.py`
 - [x] Create `memory_inbox_md.txt` template
+- [x] Create `src/skills/memory-capture/SKILL.md`
+- [x] Create `src/skills/memory-curator/SKILL.md`
+- [x] Update `src/skills/claptrap-memory/SKILL.md`
 
-### Remaining 📋
+### Remaining
 
-- [ ] Create `src/skills/memory-capture/SKILL.md`
-- [ ] Create `src/skills/memory-curator/SKILL.md`
-- [ ] Update or replace `src/skills/claptrap-memory/SKILL.md`
 - [ ] Test installation across environments
 - [ ] Add memory system to AGENTS.md template
 
