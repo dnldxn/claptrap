@@ -71,7 +71,11 @@ src/
 # bootstrap/claptrap.yaml
 
 source_dir: src
-skip_patterns: ["**/AGENTS.md", "**/README.md", "**/_archive/**", "**/templates/**"]
+skip_patterns:
+  - "**/AGENTS.md"
+  - "**/README.md"
+  - "**/_archive/**"
+  - "**/templates/**"
 
 # Model alias registry - source files use these aliases
 models:
@@ -96,14 +100,37 @@ models:
     github-copilot: gpt-5.1-codex
     codex: gpt-5.1-codex
 
+  haiku:
+    opencode: anthropic/claude-haiku
+    claude: haiku
+    cursor: anthropic/claude-haiku
+    github-copilot: claude-haiku
+
+  flash:
+    opencode: google/gemini-3-flash
+    claude: sonnet
+    cursor: google/gemini-3-flash
+    github-copilot: gemini-3-flash
+    gemini: gemini-3-flash
+
+  flash-preview:
+    opencode: google/gemini-3-flash-preview
+    claude: sonnet
+    cursor: google/gemini-3-flash-preview
+    github-copilot: gemini-3-flash-preview
+    gemini: gemini-3-flash-preview
+
+  kimi:
+    opencode: opencode/kimi-k2.5-free
+
 # Common hook definitions (canonical event names)
 hooks:
   session_end:
-    command: "./scripts/capture-learnings.sh"
+    command: "python3 .claptrap/enforcement.py --event session-end"
     matcher: "*"
   
   post_tool:
-    command: "npm run lint:fix ${FILE}"
+    command: "python3 .claptrap/enforcement.py --event post-tool"
     matcher: "Write|Edit"
 
 # Default feature configuration
@@ -278,7 +305,7 @@ Each environment uses different event names and JSON structure. The installer:
       {
         "matcher": "*",
         "hooks": [
-          { "type": "command", "command": "./scripts/capture-learnings.sh" }
+          { "type": "command", "command": "python3 .claptrap/enforcement.py --event session-end" }
         ]
       }
     ],
@@ -286,7 +313,7 @@ Each environment uses different event names and JSON structure. The installer:
       {
         "matcher": "Write|Edit",
         "hooks": [
-          { "type": "command", "command": "npm run lint:fix ${FILE}" }
+          { "type": "command", "command": "python3 .claptrap/enforcement.py --event post-tool" }
         ]
       }
     ]
