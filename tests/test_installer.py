@@ -1,3 +1,4 @@
+import os
 import tempfile
 from pathlib import Path
 
@@ -43,3 +44,52 @@ Content here.
     assert "name: test-agent" in result
     assert "description: A test agent" in result
     assert "model: opus" in result
+
+
+def test_cleanup_removes_claptrap_symlinks():
+    from bootstrap.lib.installer import cleanup
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
+        staging = root / "claptrap" / "agents"
+        staging.mkdir(parents=True)
+
+        (staging / "test-agent.md").write_text("test")
+
+        agents_dir = root / "agents"
+        agents_dir.mkdir()
+        symlink = agents_dir / "test-agent.md"
+        symlink.symlink_to(staging / "test-agent.md")
+
+        user_file = agents_dir / "user-agent.md"
+        user_file.write_text("user content")
+
+        cleanup(root)
+
+        assert not symlink.exists()
+        assert user_file.exists()
+        assert user_file.read_text() == "user content"
+        assert not (root / "claptrap").exists()
+
+
+def test_cleanup_preserves_external_symlinks():
+    from bootstrap.lib.installer import cleanup
+
+    with tempfile.TemporaryDirectory() as tmpdir:
+        root = Path(tmpdir)
+        staging = root / "claptrap"
+        staging.mkdir()
+
+        agents_dir = root / "agents"
+        agents_dir.mkdir()
+
+        external_target = root / "external" / "agent.md"
+        external_target.parent.mkdir()
+        external_target.write_text("external")
+        external_link = agents_dir / "external-agent.md"
+        external_link.symlink_to(external_target)
+
+        cleanup(root)
+
+        assert external_link.is_symlink()
+        assert os.path.samefile(external_link, external_target)
