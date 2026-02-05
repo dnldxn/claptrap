@@ -26,7 +26,7 @@ MCP_SERVERS = ["serena", "context7", "snowflake"]
 
 
 def run_cmd(cmd):
-    return subprocess.run(cmd, capture_output = True, text = True, check = False)
+    return subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
 def select_environment():
@@ -76,13 +76,13 @@ def setup_workflow_dir(target_dir: Path, claptrap_path: Path):
     workflow_dir = target_dir / ".claptrap"
 
     conv_dest = workflow_dir / "code-conventions"
-    conv_dest.mkdir(parents = True, exist_ok = True)
+    conv_dest.mkdir(parents=True, exist_ok=True)
     for f in (claptrap_path / "src" / "code-conventions").glob("*.md"):
         shutil.copy2(f, conv_dest / f.name)
     success(f"Copied code conventions -> {conv_dest.relative_to(target_dir)}")
 
     designs_dest = workflow_dir / "designs"
-    designs_dest.mkdir(parents = True, exist_ok = True)
+    designs_dest.mkdir(parents=True, exist_ok=True)
     shutil.copy2(
         claptrap_path / "src" / "designs" / "TEMPLATE.md",
         designs_dest / "TEMPLATE.md",
@@ -90,7 +90,7 @@ def setup_workflow_dir(target_dir: Path, claptrap_path: Path):
     example_src = claptrap_path / "src" / "designs" / "example-feature"
     if example_src.exists():
         shutil.copytree(
-            example_src, designs_dest / "example-feature", dirs_exist_ok = True
+            example_src, designs_dest / "example-feature", dirs_exist_ok=True
         )
     success(f"Copied design templates -> {designs_dest.relative_to(target_dir)}")
 
@@ -159,14 +159,21 @@ def install_to_environment(env: str, claptrap_path: Path):
         feature_dir = root / feat_cfg.get("dir", feature)
 
         count = installer.install_feature(
-            src_dir = src_root / feature,
-            staging_dir = staging / feature,
-            feature_dir = feature_dir,
-            suffix = suffix,
-            env = env,
-            is_skill = is_skill,
+            src_dir=src_root / feature,
+            staging_dir=staging / feature,
+            feature_dir=feature_dir,
+            suffix=suffix,
+            env=env,
+            is_skill=is_skill,
         )
         success(f"  Installed {count} {feature} -> {feature_dir}")
+
+    if env_cfg.get("agents") is not False:
+        installer.generate_debate_agents(
+            claptrap_path,
+            root / (env_cfg.get("agents", {}).get("dir", "agents")),
+            env,
+        )
 
     return root
 

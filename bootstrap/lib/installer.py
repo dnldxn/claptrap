@@ -112,3 +112,39 @@ def install_feature(
                 )
 
     return count
+
+
+def generate_debate_agents(claptrap_path: Path, agents_dir: Path, env: str) -> int:
+    template_path = claptrap_path / "src" / "agents" / "templates" / "debate-agent.md"
+    if not template_path.exists():
+        return 0
+
+    content = template_path.read_text()
+
+    models = []
+    if match := re.search(r"^debate-models:\s*$", content, re.MULTILINE):
+        for line in content[match.end() :].splitlines():
+            if line.strip().startswith("- "):
+                models.append(line.strip()[2:].strip())
+            elif line.strip() and not line.startswith(" "):
+                break
+
+    if not models:
+        return 0
+
+    content = re.sub(
+        r"^debate-models:.*?(?=^[a-z]|\Z)",
+        "",
+        content,
+        flags=re.MULTILINE | re.DOTALL,
+    )
+
+    agents_dir.mkdir(parents=True, exist_ok=True)
+    count = 0
+    for i, model in enumerate(models, 1):
+        agent_content = content.replace("{NAME}", str(i)).replace("{MODEL}", model)
+        dest = agents_dir / f"debate-agent-{i}.md"
+        dest.write_text(agent_content)
+        count += 1
+
+    return count
