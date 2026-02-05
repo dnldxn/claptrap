@@ -1,13 +1,7 @@
 ---
 name: Research
 description: Researches across official docs and community sources, then writes a scoped developer reference.
-model: google/gemini-3-flash-preview
-models:
-    opencode: google/gemini-3-flash-preview
-    claude: sonnet
-    github-copilot: Claude Sonnet 4.5
-    cursor: auto
-    openai: gpt-5.2
+model: flash-preview
 ---
 
 Research the topic across multiple source types and deliver a developer-ready reference sized to the query scope. Prefer the most recent, authoritative information and clearly cite sources.

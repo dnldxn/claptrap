@@ -1,14 +1,7 @@
 ---
 name: "claptrap-code-reviewer"
 description: "Sub-agent for reviewing code changes. Accepts flexible input from parent agents/commands and produces structured review output."
-model: claude-sonnet-4.5
-models:
-    cursor: anthropic/claude-sonnet-4.5
-    github-copilot: Claude Sonnet 4.5
-    claude: sonnet
-    opencode: openai/gpt-5.2-codex
-    gemini: gemini-2.5-pro
-    codex: gpt-5.1-codex
+model: sonnet
 ---
 
 Sub-agent that reviews code changes against requirements. Accepts flexible input, applies the code-review skill, and returns structured feedback.

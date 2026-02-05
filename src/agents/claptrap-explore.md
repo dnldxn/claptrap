@@ -1,9 +1,7 @@
 ---
 name: claptrap-explore
-description: Subagent for intelligent codebase exploration. Receives a prompt from a parent agent, searches and analyzes the codebase, then returns structured insights and summaries. Use when a parent agent needs to understand codebase patterns, dependencies, structure, or conventions before making decisions.
-model: github-copilot/claude-sonnet-4.5
-    opencode: opencode/kimi-k2.5-free
-    claude: haiku
+description: This subagent should only be called manually by the user.
+model: sonnet
 ---
 
 ## Tool Variable Definitions

@@ -1,10 +1,7 @@
 ---
 name: Plan Reviewer
 description: Validates change proposals and tasks against requirements.
-model: github-copilot/claude-sonnet-4.5
-models:
-    opencode: openai/gpt-5.2-codex
-    claude: sonnet
+model: sonnet
 ---
 
 Validate that proposal/specs/tasks are consistent with the source design. Act as the explicit quality gate before implementation.
