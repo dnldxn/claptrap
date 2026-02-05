@@ -101,11 +101,15 @@ def install_feature(
             if skill_name not in created_skill_links:
                 link = feature_dir / skill_name
                 target = staging_dir / skill_name
+                if link.is_symlink():
+                    link.unlink()
                 if not link.exists() and target.is_dir():
                     link.symlink_to(Path("..") / "claptrap" / "skills" / skill_name)
                     created_skill_links.add(skill_name)
         else:
             link = feature_dir / staged.name
+            if link.is_symlink():
+                link.unlink()
             if not link.exists():
                 link.symlink_to(
                     Path("..") / "claptrap" / feature_dir.name / staged.name

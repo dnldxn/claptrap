@@ -14,7 +14,7 @@
 | **Custom Slash Commands** | ✅ Yes | Reusable prompt templates in `.md` files |
 | **Rules** | ✅ Yes | Persistent instructions in `.mdc` files with metadata |
 | **Agent Modes** | ✅ Yes | Built-in modes (Agent, Ask, Custom) |
-| **Skills** | ⚠️ Beta | Experimental; workaround via rules with `alwaysApply: false` |
+| **Skills** | ✅ Yes | Official support for portable, version-controlled domain-specific packages |
 | **Background Agents** | ✅ Yes | Asynchronous agents that run in remote environments |
 | **Subagents** | ✅ Yes | Custom agents in `.cursor/agents/` and `~/.cursor/agents/` |
 
@@ -27,6 +27,12 @@
 │   │   └── *.md
 │   ├── commands/                # Custom slash commands
 │   │   └── *.md
+│   ├── skills/                  # Project skills
+│   │   └── skill-name/
+│   │       ├── SKILL.md
+│   │       ├── scripts/
+│   │       ├── references/
+│   │       └── assets/
 │   └── rules/                   # Project rules
 │       └── *.mdc
 ├── AGENTS.md                    # Simple project-wide instructions
@@ -38,6 +44,9 @@
 │   └── *.md
 ├── commands/                    # Global custom commands
 │   └── *.md
+├── skills/                      # Global skills
+│   └── skill-name/
+│       └── SKILL.md
 └── rules/                       # Global user rules
 ```
 
@@ -61,6 +70,15 @@
 |-------|----------|
 | Project | `.cursor/rules/` |
 | User | Global settings (plain text) |
+
+### Skills Location
+
+| Scope | Location |
+|-------|----------|
+| Project | `.cursor/skills/` (as folders with `SKILL.md`) |
+| Project (Compat) | `.claude/skills/` or `.codex/skills/` |
+| User/Global | `~/.cursor/skills/` |
+| User/Global (Compat) | `~/.claude/skills/` or `~/.codex/skills/` |
 
 ---
 
@@ -156,6 +174,83 @@ This is a Next.js 14 application using the App Router.
 - Run `npm test` before committing
 - Maintain >80% coverage
 ```
+
+### Skills (`.cursor/skills/SKILL.md`)
+
+Skills are portable, version-controlled packages for domain-specific tasks. Each skill lives in its own folder with a `SKILL.md` file:
+
+```markdown
+---
+name: my-skill
+description: Brief description of what this skill does and when to use it.
+license: MIT
+compatibility: "Python 3.8+, Node.js 16+"
+metadata:
+  category: development
+  version: 1.0.0
+disable-model-invocation: false
+---
+
+# My Skill
+
+Detailed instructions for the agent.
+
+## When to Use
+
+- Use this skill when...
+- This skill is helpful for...
+
+## Instructions
+
+- Step-by-step guidance for the agent
+- Domain-specific conventions
+- Best practices and patterns
+
+## Usage Example
+
+Run the script: `scripts/deploy.sh production`
+```
+
+#### Skill Frontmatter Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `name` | Yes | Skill identifier (lowercase, alphanumeric + hyphens) |
+| `description` | Yes | What the skill does and when to use it |
+| `license` | No | License name (e.g., `MIT`) |
+| `compatibility` | No | Environment requirements (system packages, network, etc.) |
+| `metadata` | No | Arbitrary key-value mapping for additional metadata |
+| `disable-model-invocation` | No | If `true`, only invoked explicitly via `/skill-name` (default: `false`) |
+
+#### Skill Directory Structure
+
+```
+.cursor/skills/
+└── my-skill/
+    ├── SKILL.md              # Main skill definition
+    ├── scripts/              # Optional: executable scripts
+    │   ├── deploy.sh
+    │   └── validate.py
+    ├── references/           # Optional: additional documentation
+    │   └── REFERENCE.md
+    └── assets/               # Optional: static resources
+        └── config-template.json
+```
+
+Skills can include **scripts in any language** (Bash, Python, JavaScript, etc.) that agents can execute. Scripts should include helpful error messages and handle edge cases gracefully.
+
+#### Skill Auto-Discovery
+
+Cursor automatically discovers and loads skills from skill directories. Skills are presented to the Agent, which decides when they're relevant based on context. Skills can also be manually invoked with `/skill-name` in chat.
+
+#### Migrating Rules and Commands to Skills
+
+Cursor includes a built-in `/migrate-to-skills` skill that helps convert existing rules and commands:
+
+- **Dynamic rules**: Rules with `alwaysApply: false` or no `globs` patterns are converted to skills
+- **Slash commands**: Both user and workspace commands are converted to skills with `disable-model-invocation: true`
+
+To migrate, type `/migrate-to-skills` in Agent chat. Rules with `alwaysApply: true` or specific `globs` patterns are not migrated.
 
 ### environment.json (Background Agents)
 
@@ -546,6 +641,8 @@ Full Language Server Protocol support:
 | Project commands | `.cursor/commands/` |
 | User commands | `~/.cursor/commands/` |
 | Project rules | `.cursor/rules/` |
+| Project skills | `.cursor/skills/` |
+| User skills | `~/.cursor/skills/` |
 | Project instructions | `AGENTS.md` |
 | Background agent config | `environment.json` |
 
@@ -610,4 +707,3 @@ Description of expected response format.
 - No agent frontmatter for model/tools specification
 - Limited CLI support for automation
 - No subagent spawning mechanism
-- Skills feature still in beta

@@ -36,6 +36,19 @@ def generate_hooks_config(env: str):
                 ]
         return {"hooks": hooks_output} if hooks_output else None
 
+    if env == "github-copilot":
+        hooks_output = {}
+        for canonical_name, hook_def in common_hooks.items():
+            event_name = events.get(canonical_name)
+            if event_name:
+                hooks_output[event_name] = [
+                    {
+                        "type": "command",
+                        "bash": hook_def["command"],
+                    }
+                ]
+        return {"version": 1, "hooks": hooks_output} if hooks_output else None
+
     hooks_output = {}
     for canonical_name, hook_def in common_hooks.items():
         event_name = events.get(canonical_name)
@@ -75,8 +88,12 @@ def install_hooks(env: str, target_dir: Path):
             )
         return
 
-    root = Path(env_cfg["root"]).expanduser()
-    config_path = root / hooks_cfg["file"]
+    project_dir = hooks_cfg.get("project_dir")
+    if project_dir:
+        config_path = target_dir / project_dir / hooks_cfg["file"]
+    else:
+        root = Path(env_cfg["root"]).expanduser()
+        config_path = root / hooks_cfg["file"]
 
     if config_path.exists():
         backup_path = backup_config(config_path)

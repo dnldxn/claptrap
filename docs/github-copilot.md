@@ -490,57 +490,66 @@ Run custom scripts at lifecycle points:
 
 #### Hook Configuration
 
-Hooks are configured in `.github/copilot-hooks.json` or `.copilot/hooks.json`:
+Hooks are stored as JSON files in `.github/hooks/*.json` within the repository. Each file must include a `version` field set to `1`.
+
+See: https://docs.github.com/en/copilot/concepts/agents/coding-agent/about-hooks
 
 ```json
+// .github/hooks/my-hooks.json
 {
+  "version": 1,
   "hooks": {
     "postToolUse": [
       {
-        "matcher": "edit|write",
-        "command": "npm run lint:fix ${FILE}"
+        "type": "command",
+        "bash": "npm run lint:fix",
+        "cwd": "."
       }
     ],
     "sessionEnd": [
       {
-        "matcher": "*",
-        "command": "./scripts/capture-learnings.sh"
+        "type": "command",
+        "bash": "./scripts/capture-learnings.sh",
+        "cwd": "scripts"
       }
     ],
     "preToolUse": [
       {
-        "matcher": "execute",
-        "command": "./scripts/validate-shell.sh"
+        "type": "command",
+        "bash": "./scripts/security-check.sh",
+        "cwd": "scripts",
+        "timeoutSec": 15
       }
     ]
   }
 }
 ```
 
+#### Hook Entry Fields
+
+| Field | Required | Description |
+|-------|----------|-------------|
+| `type` | Yes | Must be `"command"` |
+| `bash` | Yes (Unix) | Shell command or script path to execute |
+| `powershell` | Yes (Windows) | PowerShell command or script path |
+| `cwd` | No | Working directory relative to repo root |
+| `env` | No | Additional environment variables (`{"KEY": "value"}`) |
+| `timeoutSec` | No | Max execution time in seconds (default: 30) |
+
 #### Blocking Actions
 
-Hooks can block operations by returning a permission denial:
-
-```bash
-#!/bin/bash
-# Example: Block writes to sensitive files
-if [[ "$FILE" == *".env"* ]]; then
-  echo '{"permissionDecision": "deny", "reason": "Cannot modify .env files"}'
-  exit 2
-fi
-```
+Hooks receive JSON input via stdin with context about the action. `preToolUse` hooks can approve or deny operations:
 
 **Exit codes / Response:**
-- Return `{"permissionDecision": "allow"}` or exit 0 to allow
-- Return `{"permissionDecision": "deny"}` or exit 2 to block
+- Exit 0 to allow the operation
+- Exit 2 to block — the agent will see the hook's stdout as the reason
 
-#### Environment Variables in Hooks
+#### Performance Notes
 
-| Variable | Description |
-|----------|-------------|
-| `${FILE}` | File path being operated on |
-| `${TOOL_NAME}` | Name of the tool being used |
-| `${TOOL_INPUT}` | Tool input as JSON |
+- Hooks run synchronously and block agent execution
+- Keep execution under 5 seconds when possible
+- Use async logging (append to files) over synchronous I/O
+- Set appropriate `timeoutSec` to prevent hangs
 
 ### Permissions System
 
@@ -598,6 +607,7 @@ copilot --resume
 | Agent instructions | `AGENTS.md`, `CLAUDE.md`, `GEMINI.md` |
 | MCP config (user) | `~/.copilot/mcp-config.json` |
 | MCP config (project) | `.copilot/mcp-config.json` |
+| Hooks | `.github/hooks/*.json` |
 
 ### Agent Frontmatter Template
 

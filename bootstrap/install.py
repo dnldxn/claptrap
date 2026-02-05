@@ -29,31 +29,52 @@ def run_cmd(cmd):
     return subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
+def detect_environments():
+    # Detect which environments have their CLI tool installed.
+    available = []
+    for env, cfg in installer.CONFIG["environments"].items():
+        cli = cfg.get("cli")
+        if not cli:
+            continue
+        if shutil.which(cli):
+            result = run_cmd([cli, "--version"])
+            version = result.stdout.strip().splitlines()[0] if result.stdout.strip() else "unknown"
+            available.append((env, cfg, version))
+        else:
+            info(f"Skipping {env} ({cli} not found)")
+    return available
+
+
 def select_environment():
-    # Prompt user to select environment or install to all.
-    envs = list(installer.CONFIG["environments"].keys())
+    # Prompt user to select from detected environments.
+    available = detect_environments()
 
     print("\nSelect installation target:\n")
-    print(f"  {BOLD}0{RESET}) All environments")
-    for i, env in enumerate(envs, 1):
-        root = Path(installer.CONFIG["environments"][env]["root"]).expanduser()
-        print(f"  {BOLD}{i}{RESET}) {env} ({root})")
+    if len(available) > 1:
+        print(f"  {BOLD}0{RESET}) All environments")
+    for i, (env, cfg, version) in enumerate(available, 1):
+        root = Path(cfg["root"]).expanduser()
+        print(f"  {BOLD}{i}{RESET}) {env} ({cfg['cli']} {version})")
     print()
+
+    # If only one environment detected, default to it
+    default = "1" if len(available) == 1 else "0"
 
     while True:
         try:
-            choice = input(f"Enter 0-{len(envs)} [0]: ").strip() or "0"
+            choice = input(f"Enter {'0-' if len(available) > 1 else ''}{len(available)} [{default}]: ").strip() or default
             idx = int(choice)
-            if idx == 0:
+            if idx == 0 and len(available) > 1:
                 return None
-            if 1 <= idx <= len(envs):
-                return envs[idx - 1]
-        except ValueError:
-            pass
+            if 1 <= idx <= len(available):
+                return available[idx - 1][0]
+        except ValueError: pass
         except KeyboardInterrupt:
             print("\nAborted.")
             raise SystemExit(1)
-        print(f"Please enter a number between 0 and {len(envs)}.")
+        max_val = len(available)
+        low = 0 if len(available) > 1 else 1
+        print(f"Please enter a number between {low} and {max_val}.")
 
 
 def install_global_skills():
@@ -61,9 +82,7 @@ def install_global_skills():
     success_count = 0
     for repo, skill in GLOBAL_SKILLS:
         info(f"Installing {skill} from {repo}...")
-        result = run_cmd(
-            ["npx", "-y", "skills", "add", "--yes", "--global", repo, "--skill", skill]
-        )
+        result = run_cmd(["npx", "-y", "skills", "add", "--yes", "--global", repo, "--skill", skill])
         if result.returncode == 0:
             success_count += 1
         else:
@@ -178,64 +197,61 @@ def install_to_environment(env: str, claptrap_path: Path):
     return root
 
 
-def main():
-    header("Claptrap Installer")
+###################################################################################################
+# Main Installer Logic
+###################################################################################################
+header("Claptrap Installer")
 
-    claptrap_path = Path(__file__).resolve().parent.parent
-    target_dir = Path.cwd()
+claptrap_path = Path(__file__).resolve().parent.parent
+target_dir = Path.cwd()
 
-    info(f"Claptrap path: {claptrap_path}")
-    info(f"Target project: {target_dir}")
+info(f"Claptrap path: {claptrap_path}")
+info(f"Target project: {target_dir}")
 
-    step(1, "Environment Selection")
-    selected_env = select_environment()
-    if selected_env:
-        success(f"Selected: {selected_env}")
-        envs_to_install = [selected_env]
+step(1, "Environment Selection")
+selected_env = select_environment()
+if selected_env:
+    success(f"Selected: {selected_env}")
+    envs_to_install = [selected_env]
+else:
+    success("Installing to all environments")
+    envs_to_install = list(installer.CONFIG["environments"].keys())
+
+step(2, "Installing Global Skills")
+success_count, total_count = install_global_skills()
+if success_count == total_count:
+    success(f"Installed {success_count}/{total_count} global skills")
+elif success_count > 0:
+    warning(f"Installed {success_count}/{total_count} global skills (some failed)")
+else:
+    warning("No skills were installed successfully")
+
+step(3, "Workflow Directory Setup")
+setup_workflow_dir(target_dir, claptrap_path)
+
+step(4, "Memory System Setup")
+for env in envs_to_install:
+    memory.install(env, target_dir, claptrap_path)
+
+step(5, "Installing Features")
+for env in envs_to_install:
+    install_to_environment(env, claptrap_path)
+
+step(6, "Configuring .gitignore")
+update_gitignore(target_dir)
+
+step(7, "Checking MCP Servers")
+for server in MCP_SERVERS:
+    status = check_mcp_server(server)
+    if status is True:
+        success(f"{server} MCP is configured")
+    elif status is False:
+        warning(f"{server} MCP not configured")
     else:
-        success("Installing to all environments")
-        envs_to_install = list(installer.CONFIG["environments"].keys())
+        info(f"Could not check {server} MCP status")
 
-    step(2, "Installing Global Skills")
-    success_count, total_count = install_global_skills()
-    if success_count == total_count:
-        success(f"Installed {success_count}/{total_count} global skills")
-    elif success_count > 0:
-        warning(f"Installed {success_count}/{total_count} global skills (some failed)")
-    else:
-        warning("No skills were installed successfully")
-
-    step(3, "Workflow Directory Setup")
-    setup_workflow_dir(target_dir, claptrap_path)
-
-    step(4, "Memory System Setup")
-    for env in envs_to_install:
-        memory.install(env, target_dir, claptrap_path)
-        break
-
-    step(5, "Installing Features")
-    for env in envs_to_install:
-        install_to_environment(env, claptrap_path)
-
-    step(6, "Configuring .gitignore")
-    update_gitignore(target_dir)
-
-    step(7, "Checking MCP Servers")
-    for server in MCP_SERVERS:
-        status = check_mcp_server(server)
-        if status is True:
-            success(f"{server} MCP is configured")
-        elif status is False:
-            warning(f"{server} MCP not configured")
-        else:
-            info(f"Could not check {server} MCP status")
-
-    header("Installation Complete!")
-    print(f"\n  Environments: {BOLD}{', '.join(envs_to_install)}{RESET}")
-    print(f"  Workflow:     {CYAN}.claptrap/{RESET}")
-    print(f"  Memory:       {CYAN}.claptrap/memory_inbox.md, memories.md{RESET}")
-    print()
-
-
-if __name__ == "__main__":
-    main()
+header("Installation Complete!")
+print(f"\n  Environments: {BOLD}{', '.join(envs_to_install)}{RESET}")
+print(f"  Workflow:     {CYAN}.claptrap/{RESET}")
+print(f"  Memory:       {CYAN}.claptrap/memory_inbox.md, memories.md{RESET}")
+print()

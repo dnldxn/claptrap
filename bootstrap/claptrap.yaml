@@ -78,6 +78,7 @@ defaults:
 environments:
   opencode:
     root: ~/.config/opencode
+    cli: opencode
     hooks:
       file: opencode.jsonc
       events:
@@ -86,6 +87,7 @@ environments:
   
   claude:
     root: ~/.claude
+    cli: claude
     hooks:
       file: settings.json
       events:
@@ -94,20 +96,22 @@ environments:
   
   github-copilot:
     root: ~/.copilot
+    cli: copilot
     agents:
       suffix: .agent.md
     commands:
       dir: prompts
       suffix: .prompt.md
     hooks:
-      file: copilot-hooks.json
+      file: claptrap-hooks.json
+      project_dir: .github/hooks
       events:
         session_end: sessionEnd
         post_tool: postToolUse
   
   cursor:
     root: ~/.cursor
-    skills: false  # Not supported
+    cli: agent
     hooks:
       file: hooks.json
       events:
@@ -116,6 +120,7 @@ environments:
   
   codex:
     root: ~/.codex
+    cli: codex
     agents: false  # Not supported
     commands:
       dir: prompts
@@ -123,6 +128,7 @@ environments:
   
   gemini:
     root: ~/.gemini
+    cli: gemini
     agents: false  # Not supported
     commands: false  # Uses TOML, skip
     hooks:
