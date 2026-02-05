@@ -1,4 +1,3 @@
-import os
 import tempfile
 from pathlib import Path
 
@@ -86,10 +85,11 @@ def test_cleanup_preserves_external_symlinks():
         external_target = root / "external" / "agent.md"
         external_target.parent.mkdir()
         external_target.write_text("external")
+        external_target = external_target.resolve()
         external_link = agents_dir / "external-agent.md"
         external_link.symlink_to(external_target)
 
         cleanup(root)
 
         assert external_link.is_symlink()
-        assert os.path.samefile(external_link, external_target)
+        assert external_link.resolve() == external_target
