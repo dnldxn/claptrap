@@ -13,22 +13,9 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent))
 
 from lib import frontmatter
-from lib import providers
 from lib import memory
-
-
-########################################################################################################################
-# Pretty Output
-########################################################################################################################
-
-GREEN, YELLOW, CYAN, BOLD, DIM, RESET = "\033[92m", "\033[93m", "\033[96m", "\033[1m", "\033[2m", "\033[0m"
-
-
-def success(msg): print(f"{GREEN}✓{RESET} {msg}")
-def warning(msg): print(f"{YELLOW}⚠{RESET} {msg}")
-def info(msg): print(f"{CYAN}→{RESET} {msg}")
-def header(msg): print(f"\n{BOLD}📦 {msg}{RESET}")
-def step(num, msg): print(f"\n{BOLD}[{num}]{RESET} {msg}")
+from lib import providers
+from lib.output import BOLD, CYAN, DIM, RESET, header, info, step, success, warning
 
 
 ########################################################################################################################
@@ -38,7 +25,10 @@ def step(num, msg): print(f"\n{BOLD}[{num}]{RESET} {msg}")
 GLOBAL_SKILLS = [
     {"repo": "https://github.com/anthropics/skills", "skill": "skill-creator"},
     {"repo": "https://github.com/anthropics/skills", "skill": "frontend-design"},
-    {"repo": "https://github.com/forrestchang/andrej-karpathy-skills", "skill": "karpathy-guidelines"},
+    {
+        "repo": "https://github.com/forrestchang/andrej-karpathy-skills",
+        "skill": "karpathy-guidelines",
+    },
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "codex"},
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "gemini"},
     # {"repo": "https://github.com/softaworks/agent-toolkit", "skill": "mermaid-diagrams"},
@@ -51,6 +41,7 @@ MCP_SERVERS = ["serena", "context7", "snowflake"]
 ########################################################################################################################
 # Helper Functions
 ########################################################################################################################
+
 
 def run_cmd(cmd, capture=True):
     return subprocess.run(cmd, capture_output=capture, text=True, check=False)
@@ -65,11 +56,14 @@ def select_provider():
     print()
     while True:
         try:
-            choice = (input(f"Enter 1-{len(providers.PROVIDER_ORDER)} [1]: ").strip() or "1")
+            choice = (
+                input(f"Enter 1-{len(providers.PROVIDER_ORDER)} [1]: ").strip() or "1"
+            )
             idx = int(choice) - 1
             if 0 <= idx < len(providers.PROVIDER_ORDER):
                 return providers.PROVIDER_ORDER[idx]
-        except ValueError: pass
+        except ValueError:
+            pass
         except KeyboardInterrupt:
             print("\nAborted.")
             raise SystemExit(1)
@@ -81,10 +75,12 @@ def copy_and_transform(src_dir, dest_dir, provider_key, new_suffix):
     count = 0
 
     for src_file in src_dir.rglob("*.md"):
-        if src_file.name in ("AGENTS.md", "README.md"): continue
+        if src_file.name in ("AGENTS.md", "README.md"):
+            continue
 
         rel_path = src_file.relative_to(src_dir)
-        if rel_path.parts[0] == "templates" or "_archive" in rel_path.parts: continue
+        if rel_path.parts[0] == "templates" or "_archive" in rel_path.parts:
+            continue
 
         if len(rel_path.parts) > 1:
             new_name = (
@@ -112,10 +108,12 @@ def copy_skills(src_dir, dest_dir):
     count = 0
 
     for src_file in src_dir.rglob("*"):
-        if not src_file.is_file() or src_file.name in ("AGENTS.md", "README.md"): continue
+        if not src_file.is_file() or src_file.name in ("AGENTS.md", "README.md"):
+            continue
 
         rel_path = src_file.relative_to(src_dir)
-        if "_archive" in rel_path.parts: continue
+        if "_archive" in rel_path.parts:
+            continue
 
         dest_file = dest_dir / rel_path
         dest_file.parent.mkdir(parents=True, exist_ok=True)
