@@ -1,0 +1,132 @@
+# Single declarative config for all environments
+
+source_dir: src
+skip_patterns:
+  - "**/AGENTS.md"
+  - "**/README.md"
+  - "**/_archive/**"
+  - "**/templates/**"
+
+# Model alias registry - source files use these aliases
+models:
+  sonnet:
+    opencode: anthropic/claude-sonnet-4-5
+    claude: sonnet
+    cursor: anthropic/claude-sonnet-4.5
+    github-copilot: claude-sonnet-4.5
+    codex: gpt-5.1-codex
+    gemini: gemini-2.5-pro
+  
+  opus:
+    opencode: anthropic/claude-opus-4-5
+    claude: opus
+    cursor: anthropic/claude-opus-4.5
+    github-copilot: claude-opus-4.5
+    codex: gpt-5.2
+    gemini: gemini-2.5-pro
+  
+  gpt5-codex:
+    opencode: openai/gpt-5.1-codex
+    github-copilot: gpt-5.1-codex
+    codex: gpt-5.1-codex
+  
+  haiku:
+    opencode: anthropic/claude-haiku
+    claude: haiku
+    cursor: anthropic/claude-haiku
+    github-copilot: claude-haiku
+  
+  flash:
+    opencode: google/gemini-3-flash
+    claude: sonnet
+    cursor: google/gemini-3-flash
+    github-copilot: gemini-3-flash
+    gemini: gemini-3-flash
+  
+  flash-preview:
+    opencode: google/gemini-3-flash-preview
+    claude: sonnet
+    cursor: google/gemini-3-flash-preview
+    github-copilot: gemini-3-flash-preview
+    gemini: gemini-3-flash-preview
+  
+  kimi:
+    opencode: opencode/kimi-k2.5-free
+
+# Common hook definitions (canonical event names)
+hooks:
+  session_end:
+    command: "python3 .claptrap/enforcement.py --event session-end"
+    matcher: "*"
+  
+  post_tool:
+    command: "python3 .claptrap/enforcement.py --event post-tool"
+    matcher: "Write|Edit"
+
+# Default feature configuration
+defaults:
+  agents:
+    dir: agents
+    suffix: .md
+  commands:
+    dir: commands
+    suffix: .md
+  skills:
+    dir: skills
+
+# Environment-specific overrides (only specify what differs)
+environments:
+  opencode:
+    root: ~/.config/opencode
+    hooks:
+      file: opencode.jsonc
+      events:
+        session_end: session.idle
+        post_tool: tool.execute.after
+  
+  claude:
+    root: ~/.claude
+    hooks:
+      file: settings.json
+      events:
+        session_end: Stop
+        post_tool: PostToolUse
+  
+  github-copilot:
+    root: ~/.copilot
+    agents:
+      suffix: .agent.md
+    commands:
+      dir: prompts
+      suffix: .prompt.md
+    hooks:
+      file: copilot-hooks.json
+      events:
+        session_end: sessionEnd
+        post_tool: postToolUse
+  
+  cursor:
+    root: ~/.cursor
+    skills: false  # Not supported
+    hooks:
+      file: hooks.json
+      events:
+        session_end: stop
+        post_tool: postToolUse
+  
+  codex:
+    root: ~/.codex
+    agents: false  # Not supported
+    commands:
+      dir: prompts
+    hooks: false  # Not supported
+  
+  gemini:
+    root: ~/.gemini
+    agents: false  # Not supported
+    commands: false  # Uses TOML, skip
+    hooks:
+      file: settings.json
+      events:
+        session_end: SessionEnd
+        post_tool: AfterTool
