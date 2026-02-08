@@ -57,6 +57,8 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
         staging_dir = staging_root / feature
         src_dir = src_root / feature
 
+        if feature in {"commands", "skills"}:
+            print()
         info(f"  {feature.capitalize()}:")
         total += 1
         passed += check(
@@ -66,66 +68,88 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
         )
 
         source_files = _collect_source_files(src_dir)
-        skill_names = set()
+
+        if is_skill:
+            skill_files = {}
+            for src in source_files:
+                rel = src.relative_to(src_dir)
+                skill_files.setdefault(rel.parts[0], []).append(src)
+
+            for skill_name in sorted(skill_files):
+                staged_exists = True
+                content_valid = True
+                symlink_valid = False
+                detail = ""
+
+                for src in skill_files[skill_name]:
+                    rel = src.relative_to(src_dir)
+                    staged = _staged_path(rel, staging_dir, suffix, is_skill)
+                    if not staged.exists():
+                        staged_exists = False
+                        if not detail:
+                            detail = f"expected at {staged}; run the installer"
+                        continue
+
+                    expected = src.read_text()
+                    if staged.read_text() != expected:
+                        content_valid = False
+                        if not detail:
+                            detail = "staged file is out of date; run the installer to update"
+
+                link = feature_dir / skill_name
+                target = staging_dir / skill_name
+                is_link = link.is_symlink()
+                symlink_valid = is_link and link.resolve() == target.resolve()
+                if not symlink_valid and not detail:
+                    if is_link:
+                        detail = f"symlink target mismatch: {link.resolve()} != {target.resolve()}"
+                    else:
+                        detail = (
+                            f"expected symlink at {link} -> {target}; run the installer"
+                        )
+
+                total += 1
+                passed += check(
+                    f"{skill_name} is valid",
+                    staged_exists and content_valid and symlink_valid,
+                    detail,
+                )
+            continue
 
         for src in source_files:
             rel = src.relative_to(src_dir)
             staged = _staged_path(rel, staging_dir, suffix, is_skill)
 
-            total += 1
-            passed += check(
-                f"{rel} staged",
-                staged.exists(),
-                f"expected at {staged}; run the installer",
-            )
+            staged_exists = staged.exists()
+            content_valid = False
+            symlink_valid = False
+            detail = f"expected at {staged}; run the installer"
 
-            if staged.exists():
+            if staged_exists:
                 content = src.read_text()
                 # Agents/commands are transformed per-environment on install.
-                expected = (
-                    content if is_skill else installer.transform_model(content, env)
-                )
-                total += 1
-                passed += check(
-                    f"{rel} content",
-                    staged.read_text() == expected,
-                    "staged file is out of date; run the installer to update",
-                )
-
-            if is_skill:
-                skill_names.add(rel.parts[0])
-                continue
+                expected = installer.transform_model(content, env)
+                content_valid = staged.read_text() == expected
+                if not content_valid:
+                    detail = "staged file is out of date; run the installer to update"
 
             link = feature_dir / staged.name
-            total += 1
             is_link = link.is_symlink()
-            if is_link:
-                hint = (
-                    f"symlink target mismatch: {link.resolve()} != {staged.resolve()}"
-                )
-            else:
-                hint = f"expected symlink at {link} -> {staged}; run the installer"
-            passed += check(
-                f"{link.name} symlink",
-                is_link and link.resolve() == staged.resolve(),
-                hint,
-            )
-
-        if is_skill:
-            for skill_name in sorted(skill_names):
-                link = feature_dir / skill_name
-                target = staging_dir / skill_name
-                total += 1
-                is_link = link.is_symlink()
+            symlink_valid = is_link and link.resolve() == staged.resolve()
+            if not symlink_valid and staged_exists and content_valid:
                 if is_link:
-                    hint = f"symlink target mismatch: {link.resolve()} != {target.resolve()}"
+                    detail = f"symlink target mismatch: {link.resolve()} != {staged.resolve()}"
                 else:
-                    hint = f"expected symlink at {link} -> {target}; run the installer"
-                passed += check(
-                    f"{skill_name} symlink",
-                    is_link and link.resolve() == target.resolve(),
-                    hint,
-                )
+                    detail = (
+                        f"expected symlink at {link} -> {staged}; run the installer"
+                    )
+
+            total += 1
+            passed += check(
+                f"{rel} is valid",
+                staged_exists and content_valid and symlink_valid,
+                detail,
+            )
 
     if env_cfg.get("agents") is not False:
         agents_dir = root / (env_cfg.get("agents", {}).get("dir", "agents"))
@@ -136,6 +160,7 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
             else []
         )
         if models:
+            print()
             info("  Debate Agents:")
             for i in range(1, len(models) + 1):
                 name = f"debate-agent-{i}.md"
