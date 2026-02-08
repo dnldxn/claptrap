@@ -101,16 +101,18 @@ Install the Cursor authentication plugin for OpenCode following the steps below.
   - Use `@latest` for the plugin instead of the specified version in the instructions.
   - Assume the cursor-agent and bun are already installed.
 4. Only install the Cursor models listed below.  Do not configure other models.
-- "auto": { "name": "Cursor Auto" },
-- "gpt-5.2-high": { "name": "Cursor GPT-5.2 High" },
-- "gpt-5.2-codex-high": { "name": "Cursor GPT-5.2 Codex High" },
-- "sonnet-4.5": { "name": "Cursor Sonnet 4.5" },
-- "sonnet-4.5-thinking": { "name": "Cursor Sonnet 4.5 Thinking" },
-- "opus-4.5": { "name": "Cursor Opus 4.5" },
-- "opus-4.5-thinking": { "name": "Cursor Opus 4.5 Thinking" },
-- "gemini-3-pro": { "name": "Cursor Gemini 3 Pro" },
-- "gemini-3-flash": { "name": "Cursor Gemini 3 Flash" },
-- "grok": { "name": "Cursor Grok" }
+  "models": {
+    "auto": { "name": "Auto" },
+    "gpt-5.2-high": { "name": "GPT-5.2 High" },
+    "gpt-5.2-codex-high": { "name": "GPT-5.2 Codex High" },
+    "haiku-4.5-thinking": { "name": "Haiku 4.5 Thinking" },
+    "sonnet-4.5": { "name": "Sonnet 4.5" },
+    "sonnet-4.5-thinking": { "name": "Sonnet 4.5 Thinking" },
+    "opus-4.6-thinking": { "name": "Opus 4.6 Thinking" },
+    "gemini-3-pro": { "name": "Gemini 3 Pro" },
+    "gemini-3-flash": { "name": "Gemini 3 Flash" },
+    "grok": { "name": "Grok" }
+  }
 ```
 
 ```bash
