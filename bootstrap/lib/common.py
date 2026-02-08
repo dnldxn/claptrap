@@ -1,9 +1,20 @@
+import json
 import shutil
 import subprocess
 from pathlib import Path
 
 from . import installer
 from .output import BOLD, RESET, info
+
+
+def parse_json_with_comments(content: str) -> dict | None:
+    # Parse JSON content, stripping // comments. Returns None on parse error.
+    lines = [l for l in content.split("\n") if not l.strip().startswith("//")]
+    try:
+        return json.loads("\n".join(lines))
+    except json.JSONDecodeError:
+        return None
+
 
 GLOBAL_SKILLS = [
     ("https://github.com/anthropics/skills", "skill-creator"),
@@ -38,7 +49,11 @@ def detect_environments():
             continue
         if shutil.which(cli):
             result = run_cmd([cli, "--version"])
-            version = result.stdout.strip().splitlines()[0] if result.stdout.strip() else "unknown"
+            version = (
+                result.stdout.strip().splitlines()[0]
+                if result.stdout.strip()
+                else "unknown"
+            )
             available.append((env, cfg, version))
         else:
             info(f"Skipping {env} ({cli} not found)")
@@ -61,9 +76,12 @@ def select_environment():
 
     while True:
         try:
-            choice = input(
-                f"Enter {'0-' if len(available) > 1 else ''}{len(available)} [{default}]: "
-            ).strip() or default
+            choice = (
+                input(
+                    f"Enter {'0-' if len(available) > 1 else ''}{len(available)} [{default}]: "
+                ).strip()
+                or default
+            )
             idx = int(choice)
             if idx == 0 and len(available) > 1:
                 return None

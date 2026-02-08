@@ -7,7 +7,6 @@
 #     --env ENV    Install only to specified environment (default: all)
 
 import argparse
-import re
 import shutil
 import sys
 from pathlib import Path
@@ -24,28 +23,6 @@ from lib.common import (
     select_environment,
 )
 from lib.output import BOLD, CYAN, RESET, header, info, step, success, warning
-
-
-def transform_frontmatter(content: str, env: str) -> str:
-    """Replace frontmatter model via models block and strip the block."""
-    block_match = re.search(r"^models:\s*$((?:\n[ \t]+.*)*)", content, re.MULTILINE)
-    if not block_match:
-        return content
-
-    models_block = block_match.group(1)
-    env_match = re.search(
-        rf"^[ \t]+{re.escape(env)}:\s*(.+)$", models_block, re.MULTILINE
-    )
-    if not env_match:
-        return content
-
-    model_value = env_match.group(1).strip()
-    content = re.sub(
-        r"^model:\s*.*$", f"model: {model_value}", content, flags=re.MULTILINE
-    )
-    content = content.replace(block_match.group(0), "")
-    content = re.sub(r"\n{3,}", "\n\n", content)
-    return content
 
 
 def get_installed_global_skills() -> set[str]:

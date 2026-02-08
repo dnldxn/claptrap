@@ -4,76 +4,52 @@ from datetime import datetime
 from pathlib import Path
 
 from . import installer
+from .common import parse_json_with_comments
 from .output import info, success, warning
 
 ENFORCEMENT_PLUGIN = "claptrap-enforcement.ts"
+
+
+def _build_hook_entry(env: str, hook_def: dict) -> dict:
+    # Format a single hook entry based on env-specific schema.
+    cmd = hook_def["command"]
+    matcher = hook_def.get("matcher", "*")
+
+    if env == "claude":
+        return {"matcher": matcher, "hooks": [{"type": "command", "command": cmd}]}
+    if env == "github-copilot":
+        return {"type": "command", "bash": cmd}
+    if env == "cursor":
+        entry = {"command": cmd}
+        if matcher != "*":
+            entry["matcher"] = matcher
+        return entry
+    return {"matcher": matcher, "command": cmd}
 
 
 def generate_hooks_config(env: str):
     env_cfg = installer.CONFIG["environments"].get(env, {})
     hooks_cfg = env_cfg.get("hooks")
 
-    if not hooks_cfg or hooks_cfg is False:
+    if not hooks_cfg or hooks_cfg is False or env == "opencode":
         return None
 
     events = hooks_cfg.get("events", {})
-    if not events:
-        return None
-
     common_hooks = installer.CONFIG.get("hooks", {})
-
-    if env == "opencode":
+    if not events or not common_hooks:
         return None
-
-    if env == "claude":
-        hooks_output = {}
-        for canonical_name, hook_def in common_hooks.items():
-            event_name = events.get(canonical_name)
-            if event_name:
-                hooks_output[event_name] = [
-                    {
-                        "matcher": hook_def.get("matcher", "*"),
-                        "hooks": [{"type": "command", "command": hook_def["command"]}],
-                    }
-                ]
-        return {"hooks": hooks_output} if hooks_output else None
-
-    if env == "github-copilot":
-        hooks_output = {}
-        for canonical_name, hook_def in common_hooks.items():
-            event_name = events.get(canonical_name)
-            if event_name:
-                hooks_output[event_name] = [
-                    {
-                        "type": "command",
-                        "bash": hook_def["command"],
-                    }
-                ]
-        return {"version": 1, "hooks": hooks_output} if hooks_output else None
-
-    if env == "cursor":
-        hooks_output = {}
-        for canonical_name, hook_def in common_hooks.items():
-            event_name = events.get(canonical_name)
-            if event_name:
-                entry = {"command": hook_def["command"]}
-                matcher = hook_def.get("matcher")
-                if matcher and matcher != "*":
-                    entry["matcher"] = matcher
-                hooks_output[event_name] = [entry]
-        return {"version": 1, "hooks": hooks_output} if hooks_output else None
 
     hooks_output = {}
     for canonical_name, hook_def in common_hooks.items():
         event_name = events.get(canonical_name)
         if event_name:
-            hooks_output[event_name] = [
-                {
-                    "matcher": hook_def.get("matcher", "*"),
-                    "command": hook_def["command"],
-                }
-            ]
-    return {"hooks": hooks_output} if hooks_output else None
+            hooks_output[event_name] = [_build_hook_entry(env, hook_def)]
+
+    if not hooks_output:
+        return None
+    if env in {"github-copilot", "cursor"}:
+        return {"version": 1, "hooks": hooks_output}
+    return {"hooks": hooks_output}
 
 
 def backup_config(config_path: Path):
@@ -116,13 +92,11 @@ def install_hooks(env: str, target_dir: Path):
             info(f"Backed up existing config -> {backup_path.name}")
 
     if config_path.exists():
-        try:
-            content = config_path.read_text()
-            lines = [l for l in content.split("\n") if not l.strip().startswith("//")]
-            existing = json.loads("\n".join(lines))
+        existing = parse_json_with_comments(config_path.read_text())
+        if existing:
             existing.setdefault("hooks", {}).update(config.get("hooks", {}))
             config = existing
-        except json.JSONDecodeError:
+        else:
             warning(
                 f"Could not parse existing {config_path.name} - creating new config"
             )
@@ -133,7 +107,6 @@ def install_hooks(env: str, target_dir: Path):
 
 
 def install_opencode_plugin(env_cfg: dict):
-    """Install the enforcement plugin for OpenCode."""
     claptrap_path = Path(__file__).resolve().parent.parent.parent
     src = claptrap_path / "src" / "plugins" / ENFORCEMENT_PLUGIN
     if not src.exists():
@@ -147,6 +120,38 @@ def install_opencode_plugin(env_cfg: dict):
     dest = plugins_dir / ENFORCEMENT_PLUGIN
     shutil.copy2(src, dest)
     success(f"Installed enforcement plugin -> {dest}")
+
+    configure_opencode_formatter(root)
+
+
+def configure_opencode_formatter(root: Path):
+    # Disable formatter in opencode.jsonc (insert after $schema line).
+    config_path = root / "opencode.jsonc"
+    if not config_path.exists():
+        info("opencode.jsonc not found, skipping formatter config")
+        return
+
+    content = config_path.read_text()
+    if '"formatter"' in content:
+        info("formatter already configured in opencode.jsonc")
+        return
+
+    # Insert after the $schema line
+    import re
+
+    updated = re.sub(
+        r'("\\$schema"\s*:\s*"[^"]*",?\s*\n)',
+        r'\1  "formatter": false,\n',
+        content,
+        count=1,
+    )
+
+    if updated == content:
+        warning("Could not find $schema line in opencode.jsonc")
+        return
+
+    config_path.write_text(updated)
+    success("Disabled formatter in opencode.jsonc")
 
 
 def install_enforcement_script(claptrap_path: Path, workflow_dir: Path):

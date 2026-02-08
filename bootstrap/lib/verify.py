@@ -1,4 +1,3 @@
-import json
 from pathlib import Path
 
 from . import installer, memory
@@ -7,6 +6,7 @@ from .common import (
     GITIGNORE_ENTRIES,
     MCP_SERVERS,
     check_mcp_server,
+    parse_json_with_comments,
     run_cmd,
 )
 from .output import info, step, success, warning
@@ -36,14 +36,113 @@ def _staged_path(rel: Path, staging_dir: Path, suffix: str, is_skill: bool) -> P
     return staging_dir / (rel.stem + suffix)
 
 
+def _check_symlink(link: Path, target: Path) -> tuple[bool, str]:
+    # Check if symlink exists and points to target. Returns (valid, error_detail).
+    is_link = link.is_symlink()
+    if is_link and link.resolve() == target.resolve():
+        return True, ""
+    if is_link:
+        return False, f"symlink target mismatch: {link.resolve()} != {target.resolve()}"
+    return False, f"expected symlink at {link} -> {target}; run the installer"
+
+
+def _verify_skill(
+    skill_name: str,
+    skill_files: list[Path],
+    src_dir: Path,
+    staging_dir: Path,
+    feature_dir: Path,
+) -> bool:
+    # Verify a single skill's staged files and symlink.
+    staged_exists, content_valid, detail = True, True, ""
+
+    for src in skill_files:
+        rel = src.relative_to(src_dir)
+        staged = staging_dir / rel
+        if not staged.exists():
+            staged_exists = False
+            if not detail:
+                detail = f"expected at {staged}; run the installer"
+            continue
+        if staged.read_text() != src.read_text():
+            content_valid = False
+            if not detail:
+                detail = "staged file is out of date; run the installer to update"
+
+    link = feature_dir / skill_name
+    symlink_valid, symlink_detail = _check_symlink(link, staging_dir / skill_name)
+    if not symlink_valid and not detail:
+        detail = symlink_detail
+
+    return check(
+        f"{skill_name} is valid",
+        staged_exists and content_valid and symlink_valid,
+        detail,
+    )
+
+
+def _verify_feature_file(
+    src: Path,
+    src_dir: Path,
+    staging_dir: Path,
+    feature_dir: Path,
+    suffix: str,
+    env: str,
+) -> bool:
+    # Verify a single agent/command file's staged copy and symlink.
+    rel = src.relative_to(src_dir)
+    staged = _staged_path(rel, staging_dir, suffix, False)
+    detail = f"expected at {staged}; run the installer"
+
+    staged_exists = staged.exists()
+    content_valid = False
+
+    if staged_exists:
+        expected = installer.transform_model(src.read_text(), env)
+        content_valid = staged.read_text() == expected
+        if not content_valid:
+            detail = "staged file is out of date; run the installer to update"
+
+    symlink_valid, symlink_detail = _check_symlink(feature_dir / staged.name, staged)
+    if not symlink_valid and staged_exists and content_valid:
+        detail = symlink_detail
+
+    return check(
+        f"{rel} is valid", staged_exists and content_valid and symlink_valid, detail
+    )
+
+
+def _verify_debate_agents(claptrap_path: Path, agents_dir: Path) -> tuple[int, int]:
+    # Verify generated debate agents exist.
+    template = claptrap_path / "src" / "agents" / "templates" / "debate-agent.md"
+    if not template.exists():
+        return 0, 0
+
+    models = installer.parse_debate_models(template.read_text())
+    if not models:
+        return 0, 0
+
+    print()
+    info("  Debate Agents:")
+    passed, total = 0, 0
+    for i in range(1, len(models) + 1):
+        name = f"debate-agent-{i}.md"
+        total += 1
+        passed += check(
+            name,
+            (agents_dir / name).exists(),
+            f"expected at {agents_dir / name}; run the installer",
+        )
+    return passed, total
+
+
 def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
     env_cfg = installer.CONFIG["environments"][env]
     root = Path(env_cfg["root"]).expanduser()
     src_root = claptrap_path / installer.CONFIG["source_dir"]
     staging_root = root / "claptrap"
 
-    passed = 0
-    total = 0
+    passed, total = 0, 0
 
     for feature in ["agents", "commands", "skills"]:
         feat_cfg = installer.get_feature_config(env_cfg, feature)
@@ -60,6 +159,7 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
         if feature in {"commands", "skills"}:
             print()
         info(f"  {feature.capitalize()}:")
+
         total += 1
         passed += check(
             f"{feature} staging dir exists",
@@ -76,100 +176,26 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
                 skill_files.setdefault(rel.parts[0], []).append(src)
 
             for skill_name in sorted(skill_files):
-                staged_exists = True
-                content_valid = True
-                symlink_valid = False
-                detail = ""
-
-                for src in skill_files[skill_name]:
-                    rel = src.relative_to(src_dir)
-                    staged = _staged_path(rel, staging_dir, suffix, is_skill)
-                    if not staged.exists():
-                        staged_exists = False
-                        if not detail:
-                            detail = f"expected at {staged}; run the installer"
-                        continue
-
-                    expected = src.read_text()
-                    if staged.read_text() != expected:
-                        content_valid = False
-                        if not detail:
-                            detail = "staged file is out of date; run the installer to update"
-
-                link = feature_dir / skill_name
-                target = staging_dir / skill_name
-                is_link = link.is_symlink()
-                symlink_valid = is_link and link.resolve() == target.resolve()
-                if not symlink_valid and not detail:
-                    if is_link:
-                        detail = f"symlink target mismatch: {link.resolve()} != {target.resolve()}"
-                    else:
-                        detail = (
-                            f"expected symlink at {link} -> {target}; run the installer"
-                        )
-
                 total += 1
-                passed += check(
-                    f"{skill_name} is valid",
-                    staged_exists and content_valid and symlink_valid,
-                    detail,
+                passed += _verify_skill(
+                    skill_name,
+                    skill_files[skill_name],
+                    src_dir,
+                    staging_dir,
+                    feature_dir,
                 )
-            continue
-
-        for src in source_files:
-            rel = src.relative_to(src_dir)
-            staged = _staged_path(rel, staging_dir, suffix, is_skill)
-
-            staged_exists = staged.exists()
-            content_valid = False
-            symlink_valid = False
-            detail = f"expected at {staged}; run the installer"
-
-            if staged_exists:
-                content = src.read_text()
-                # Agents/commands are transformed per-environment on install.
-                expected = installer.transform_model(content, env)
-                content_valid = staged.read_text() == expected
-                if not content_valid:
-                    detail = "staged file is out of date; run the installer to update"
-
-            link = feature_dir / staged.name
-            is_link = link.is_symlink()
-            symlink_valid = is_link and link.resolve() == staged.resolve()
-            if not symlink_valid and staged_exists and content_valid:
-                if is_link:
-                    detail = f"symlink target mismatch: {link.resolve()} != {staged.resolve()}"
-                else:
-                    detail = (
-                        f"expected symlink at {link} -> {staged}; run the installer"
-                    )
-
-            total += 1
-            passed += check(
-                f"{rel} is valid",
-                staged_exists and content_valid and symlink_valid,
-                detail,
-            )
+        else:
+            for src in source_files:
+                total += 1
+                passed += _verify_feature_file(
+                    src, src_dir, staging_dir, feature_dir, suffix, env
+                )
 
     if env_cfg.get("agents") is not False:
         agents_dir = root / (env_cfg.get("agents", {}).get("dir", "agents"))
-        template = claptrap_path / "src" / "agents" / "templates" / "debate-agent.md"
-        models = (
-            installer.parse_debate_models(template.read_text())
-            if template.exists()
-            else []
-        )
-        if models:
-            print()
-            info("  Debate Agents:")
-            for i in range(1, len(models) + 1):
-                name = f"debate-agent-{i}.md"
-                total += 1
-                passed += check(
-                    name,
-                    (agents_dir / name).exists(),
-                    f"expected at {agents_dir / name}; run the installer",
-                )
+        p, t = _verify_debate_agents(claptrap_path, agents_dir)
+        passed += p
+        total += t
 
     return passed, total
 
@@ -261,11 +287,8 @@ def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
         if not config_path.exists():
             continue
 
-        try:
-            content = config_path.read_text()
-            lines = [l for l in content.split("\n") if not l.strip().startswith("//")]
-            existing = json.loads("\n".join(lines))
-        except json.JSONDecodeError:
+        existing = parse_json_with_comments(config_path.read_text())
+        if not existing:
             total += 1
             passed += check(
                 f"{config_path} valid JSON", False, "file contains invalid JSON"
