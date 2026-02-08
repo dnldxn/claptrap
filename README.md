@@ -178,6 +178,12 @@ Pasthe the following into any LLM agent:
 Install the opencode-antigravity-auth plugin and add the Antigravity model definitions to ~/.config/opencode/opencode.json by following: https://raw.githubusercontent.com/NoeFabris/opencode-antigravity-auth/dev/README.md
 ```
 
+## CodeNomad
+
+```bash
+npx @neuralnomads/codenomad --dangerously-skip-auth --host 127.0.0.1 --https false --http true
+```
+
 ## Zed IDE
 
 Click the "+ Add Agent" -> "Add Custom Agent", then add this to the "agent_servers" section:

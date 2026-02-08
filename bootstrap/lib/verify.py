@@ -13,8 +13,12 @@ from .output import info, step, success, warning
 
 
 def check(name: str, passed: bool, detail: str = "") -> bool:
-    msg = f"  {name}" + (f" ({detail})" if detail else "")
-    (success if passed else warning)(msg)
+    # Show detail only on failure to explain what went wrong.
+    msg = f"  {name}"
+    if passed:
+        success(msg)
+    else:
+        warning(msg + (f" — {detail}" if detail else ""))
     return passed
 
 
@@ -26,9 +30,7 @@ def _collect_source_files(src_dir: Path) -> list[Path]:
     ]
 
 
-def _staged_path(
-    rel: Path, staging_dir: Path, suffix: str, is_skill: bool
-) -> Path:
+def _staged_path(rel: Path, staging_dir: Path, suffix: str, is_skill: bool) -> Path:
     if is_skill or suffix == ".md":
         return staging_dir / rel
     return staging_dir / (rel.stem + suffix)
@@ -57,7 +59,11 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
 
         info(f"  {feature.capitalize()}:")
         total += 1
-        passed += check(f"{feature} staging dir exists", staging_dir.exists())
+        passed += check(
+            f"{feature} staging dir exists",
+            staging_dir.exists(),
+            f"expected {staging_dir}; run the installer",
+        )
 
         source_files = _collect_source_files(src_dir)
         skill_names = set()
@@ -67,7 +73,11 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
             staged = _staged_path(rel, staging_dir, suffix, is_skill)
 
             total += 1
-            passed += check(f"{rel} staged", staged.exists())
+            passed += check(
+                f"{rel} staged",
+                staged.exists(),
+                f"expected at {staged}; run the installer",
+            )
 
             if staged.exists():
                 content = src.read_text()
@@ -76,7 +86,11 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
                     content if is_skill else installer.transform_model(content, env)
                 )
                 total += 1
-                passed += check(f"{rel} content", staged.read_text() == expected)
+                passed += check(
+                    f"{rel} content",
+                    staged.read_text() == expected,
+                    "staged file is out of date; run the installer to update",
+                )
 
             if is_skill:
                 skill_names.add(rel.parts[0])
@@ -84,9 +98,17 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
 
             link = feature_dir / staged.name
             total += 1
+            is_link = link.is_symlink()
+            if is_link:
+                hint = (
+                    f"symlink target mismatch: {link.resolve()} != {staged.resolve()}"
+                )
+            else:
+                hint = f"expected symlink at {link} -> {staged}; run the installer"
             passed += check(
                 f"{link.name} symlink",
-                link.is_symlink() and link.resolve() == staged.resolve(),
+                is_link and link.resolve() == staged.resolve(),
+                hint,
             )
 
         if is_skill:
@@ -94,23 +116,35 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
                 link = feature_dir / skill_name
                 target = staging_dir / skill_name
                 total += 1
+                is_link = link.is_symlink()
+                if is_link:
+                    hint = f"symlink target mismatch: {link.resolve()} != {target.resolve()}"
+                else:
+                    hint = f"expected symlink at {link} -> {target}; run the installer"
                 passed += check(
                     f"{skill_name} symlink",
-                    link.is_symlink() and link.resolve() == target.resolve(),
+                    is_link and link.resolve() == target.resolve(),
+                    hint,
                 )
 
     if env_cfg.get("agents") is not False:
         agents_dir = root / (env_cfg.get("agents", {}).get("dir", "agents"))
         template = claptrap_path / "src" / "agents" / "templates" / "debate-agent.md"
         models = (
-            installer.parse_debate_models(template.read_text()) if template.exists() else []
+            installer.parse_debate_models(template.read_text())
+            if template.exists()
+            else []
         )
         if models:
             info("  Debate Agents:")
             for i in range(1, len(models) + 1):
                 name = f"debate-agent-{i}.md"
                 total += 1
-                passed += check(name, (agents_dir / name).exists())
+                passed += check(
+                    name,
+                    (agents_dir / name).exists(),
+                    f"expected at {agents_dir / name}; run the installer",
+                )
 
     return passed, total
 
@@ -126,32 +160,35 @@ def verify_workflow(claptrap_path: Path, target_dir: Path) -> tuple[int, int]:
     for src in conv_src.glob("*.md"):
         dest = conv_dest / src.name
         total += 1
-        passed += check(f"{dest.relative_to(target_dir)} exists", dest.exists())
+        passed += check(
+            f"{dest.relative_to(target_dir)} exists",
+            dest.exists(),
+            "run the installer to copy code conventions",
+        )
         if dest.exists():
             total += 1
             passed += check(
-                f"{dest.relative_to(target_dir)} content", dest.read_text() == src.read_text()
+                f"{dest.relative_to(target_dir)} content",
+                dest.read_text() == src.read_text(),
+                "file is out of date; run the installer to update",
             )
-
-    template_dest = workflow_dir / "designs" / "TEMPLATE.md"
-    total += 1
-    passed += check(f"{template_dest.relative_to(target_dir)} exists", template_dest.exists())
-
-    example_dest = workflow_dir / "designs" / "example-feature"
-    total += 1
-    passed += check(
-        f"{example_dest.relative_to(target_dir)} exists",
-        example_dest.exists() and example_dest.is_dir(),
-    )
 
     enforcement_dest = workflow_dir / "enforcement.py"
     total += 1
-    passed += check(f"{enforcement_dest.relative_to(target_dir)} exists", enforcement_dest.exists())
+    passed += check(
+        f"{enforcement_dest.relative_to(target_dir)} exists",
+        enforcement_dest.exists(),
+        "run the installer to generate enforcement.py",
+    )
 
     for name in ["memory_inbox.md", "memories.md"]:
         dest = workflow_dir / name
         total += 1
-        passed += check(f"{dest.relative_to(target_dir)} exists", dest.exists())
+        passed += check(
+            f"{dest.relative_to(target_dir)} exists",
+            dest.exists(),
+            "run the installer to create memory files",
+        )
 
     return passed, total
 
@@ -171,7 +208,11 @@ def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
             root = Path(env_cfg["root"]).expanduser()
             plugin_path = root / "plugins" / memory.ENFORCEMENT_PLUGIN
             total += 1
-            passed += check(f"{plugin_path} exists", plugin_path.exists())
+            passed += check(
+                f"{plugin_path} exists",
+                plugin_path.exists(),
+                "enforcement plugin missing; run the installer",
+            )
             continue
 
         config = memory.generate_hooks_config(env)
@@ -187,7 +228,11 @@ def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
             config_path = root / hooks_cfg["file"]
 
         total += 1
-        passed += check(f"{config_path} exists", config_path.exists())
+        passed += check(
+            f"{config_path} exists",
+            config_path.exists(),
+            "hooks config file missing; run the installer",
+        )
         if not config_path.exists():
             continue
 
@@ -197,7 +242,9 @@ def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
             existing = json.loads("\n".join(lines))
         except json.JSONDecodeError:
             total += 1
-            passed += check(f"{config_path} valid JSON", False)
+            passed += check(
+                f"{config_path} valid JSON", False, "file contains invalid JSON"
+            )
             continue
 
         expected_hooks = config.get("hooks", {})
@@ -207,6 +254,7 @@ def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
             passed += check(
                 f"{env} hook {hook_name}",
                 hook_name in existing_hooks,
+                f"hook not found in {config_path}; run the installer",
             )
 
     return passed, total
@@ -224,7 +272,11 @@ def verify_gitignore(target_dir: Path) -> tuple[int, int]:
     total = 0
     for entry in missing:
         total += 1
-        passed += check(f"Missing {entry} in .gitignore", False)
+        passed += check(
+            f"Missing {entry} in .gitignore",
+            False,
+            "add it manually or run the installer",
+        )
     return passed, total
 
 
@@ -234,7 +286,12 @@ def verify_mcp(servers: list[str]) -> tuple[int, int]:
     for server in servers:
         status = check_mcp_server(server)
         total += 1
-        detail = "" if status is not None else "could not check"
+        if status is None:
+            detail = "neither opencode nor claude CLI found to check"
+        elif status is False:
+            detail = "server not found; configure it via 'opencode mcp add' or 'claude mcp add'"
+        else:
+            detail = "server reported as failed"
         passed += check(f"{server} MCP configured", status is True, detail)
     return passed, total
 
@@ -252,7 +309,11 @@ def verify_global_skills(skills: list[tuple[str, str]]) -> tuple[int, int]:
     output = result.stdout.lower()
     for _, skill in skills:
         total += 1
-        passed += check(f"{skill} installed", skill.lower() in output)
+        passed += check(
+            f"{skill} installed",
+            skill.lower() in output,
+            "run the installer or: npx skills add --global <repo> --skill " + skill,
+        )
     return passed, total
 
 
@@ -274,7 +335,9 @@ def verify_all(envs: list[str], claptrap_path: Path, target_dir: Path) -> None:
     for env in envs:
         env_cfg = installer.CONFIG["environments"][env]
         root = Path(env_cfg["root"]).expanduser()
-        run(f"Verifying {env} Features ({root})", verify_environment, env, claptrap_path)
+        run(
+            f"Verifying {env} Features ({root})", verify_environment, env, claptrap_path
+        )
 
     run("Hooks Configuration Verification", verify_hooks, envs, target_dir)
     run(".gitignore Verification", verify_gitignore, target_dir)

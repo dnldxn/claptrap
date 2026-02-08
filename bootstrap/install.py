@@ -25,6 +25,7 @@ from lib.common import (
 )
 from lib.output import BOLD, CYAN, RESET, header, info, step, success, warning
 
+
 def transform_frontmatter(content: str, env: str) -> str:
     """Replace frontmatter model via models block and strip the block."""
     block_match = re.search(r"^models:\s*$((?:\n[ \t]+.*)*)", content, re.MULTILINE)
@@ -39,18 +40,35 @@ def transform_frontmatter(content: str, env: str) -> str:
         return content
 
     model_value = env_match.group(1).strip()
-    content = re.sub(r"^model:\s*.*$", f"model: {model_value}", content, flags=re.MULTILINE)
+    content = re.sub(
+        r"^model:\s*.*$", f"model: {model_value}", content, flags=re.MULTILINE
+    )
     content = content.replace(block_match.group(0), "")
     content = re.sub(r"\n{3,}", "\n\n", content)
     return content
 
 
+def get_installed_global_skills() -> set[str]:
+    # Query already-installed global skills via npx.
+    result = run_cmd(["npx", "-y", "skills", "list", "--global"])
+    if result.returncode != 0:
+        return set()
+    return {line.strip() for line in result.stdout.splitlines() if line.strip()}
+
+
 def install_global_skills():
-    # Install global skills via npx.
+    # Install global skills via npx, skipping already-installed ones.
+    installed = get_installed_global_skills()
     success_count = 0
     for repo, skill in GLOBAL_SKILLS:
+        if skill in installed:
+            info(f"{skill} already installed, skipping")
+            success_count += 1
+            continue
         info(f"Installing {skill} from {repo}...")
-        result = run_cmd(["npx", "-y", "skills", "add", "--yes", "--global", repo, "--skill", skill])
+        result = run_cmd(
+            ["npx", "-y", "skills", "add", "--yes", "--global", repo, "--skill", skill]
+        )
         if result.returncode == 0:
             success_count += 1
         else:
@@ -59,7 +77,7 @@ def install_global_skills():
 
 
 def setup_workflow_dir(target_dir: Path, claptrap_path: Path):
-    # Create .claptrap directory with code conventions and design templates.
+    # Create .claptrap directory with code conventions.
     workflow_dir = target_dir / ".claptrap"
 
     conv_dest = workflow_dir / "code-conventions"
@@ -67,19 +85,6 @@ def setup_workflow_dir(target_dir: Path, claptrap_path: Path):
     for f in (claptrap_path / "src" / "code-conventions").glob("*.md"):
         shutil.copy2(f, conv_dest / f.name)
     success(f"Copied code conventions -> {conv_dest.relative_to(target_dir)}")
-
-    designs_dest = workflow_dir / "designs"
-    designs_dest.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(
-        claptrap_path / "src" / "designs" / "TEMPLATE.md",
-        designs_dest / "TEMPLATE.md",
-    )
-    example_src = claptrap_path / "src" / "designs" / "example-feature"
-    if example_src.exists():
-        shutil.copytree(
-            example_src, designs_dest / "example-feature", dirs_exist_ok=True
-        )
-    success(f"Copied design templates -> {designs_dest.relative_to(target_dir)}")
 
     return workflow_dir
 

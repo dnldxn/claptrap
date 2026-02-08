@@ -15,7 +15,7 @@ The installer sets up your project with:
 
 1. **OpenSpec** - Change proposal workflow (installed/upgraded automatically)
 2. **Provider config** - Agents, commands, and skills for your AI tool
-3. **Workflow directory** - Code conventions, design templates, and memories
+3. **Workflow directory** - Code conventions and memories
 4. **Tool checks** - Verifies ripgrep and Serena MCP are available
 
 ## Supported Providers
@@ -48,7 +48,7 @@ python ~/projects/claptrap/bootstrap/install.py ~/projects/claptrap
 The installer will:
 - Prompt you to select your AI provider
 - Install or upgrade OpenSpec (shows version changes)
-- Create `.claptrap/` with conventions and templates
+- Create `.claptrap/` with conventions
 - Copy agents/commands/skills to your provider's directory
 - Update `.gitignore` with appropriate entries
 - Add claptrap instructions to `AGENTS.md`
@@ -64,9 +64,6 @@ your-project/
 │   └── skills/
 ├── .claptrap/
 │   ├── code-conventions/
-│   ├── designs/
-│   │   ├── TEMPLATE.md
-│   │   └── example-feature/
 │   └── memories.md
 ├── openspec/             # Created by openspec init
 ├── AGENTS.md             # Updated with claptrap instructions

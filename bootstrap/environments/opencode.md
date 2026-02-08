@@ -59,12 +59,6 @@ All of these go into `TARGET/.claptrap/` (the current project directory).
 
 Currently this includes: `python.md`, `snowflake.md`.
 
-### 2b: Design Templates
-
-1. Create directory `TARGET/.claptrap/designs/`.
-2. Copy `CLAPTRAP_REPO/src/designs/TEMPLATE.md` into it.
-3. If `CLAPTRAP_REPO/src/designs/example-feature/` exists, copy the entire directory into `TARGET/.claptrap/designs/example-feature/`.
-
 ---
 
 ## Step 3: Memory System
@@ -287,9 +281,6 @@ Look for each server name in the output. Report OK, failed, or not found for eac
     code-conventions/
       python.md
       snowflake.md
-    designs/
-      TEMPLATE.md
-      example-feature/design.md
     enforcement.py
     memory_inbox.md
     memories.md
