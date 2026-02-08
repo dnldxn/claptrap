@@ -6,75 +6,43 @@
 # Options:
 #     --env ENV    Install only to specified environment (default: all)
 
+import argparse
+import re
 import shutil
-import subprocess
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from lib import installer, memory
+from lib import installer, memory, verify
+from lib.common import (
+    GLOBAL_SKILLS,
+    GITIGNORE_ENTRIES,
+    MCP_SERVERS,
+    check_mcp_server,
+    run_cmd,
+    select_environment,
+)
 from lib.output import BOLD, CYAN, RESET, header, info, step, success, warning
 
-GLOBAL_SKILLS = [
-    ("https://github.com/anthropics/skills", "skill-creator"),
-    ("https://github.com/anthropics/skills", "frontend-design"),
-    ("https://github.com/forrestchang/andrej-karpathy-skills", "karpathy-guidelines"),
-]
+def transform_frontmatter(content: str, env: str) -> str:
+    """Replace frontmatter model via models block and strip the block."""
+    block_match = re.search(r"^models:\s*$((?:\n[ \t]+.*)*)", content, re.MULTILINE)
+    if not block_match:
+        return content
 
-MCP_SERVERS = ["serena", "context7", "snowflake"]
+    models_block = block_match.group(1)
+    env_match = re.search(
+        rf"^[ \t]+{re.escape(env)}:\s*(.+)$", models_block, re.MULTILINE
+    )
+    if not env_match:
+        return content
 
-
-def run_cmd(cmd):
-    return subprocess.run(cmd, capture_output=True, text=True, check=False)
-
-
-def detect_environments():
-    # Detect which environments have their CLI tool installed.
-    available = []
-    for env, cfg in installer.CONFIG["environments"].items():
-        cli = cfg.get("cli")
-        if not cli:
-            continue
-        if shutil.which(cli):
-            result = run_cmd([cli, "--version"])
-            version = result.stdout.strip().splitlines()[0] if result.stdout.strip() else "unknown"
-            available.append((env, cfg, version))
-        else:
-            info(f"Skipping {env} ({cli} not found)")
-    return available
-
-
-def select_environment():
-    # Prompt user to select from detected environments.
-    available = detect_environments()
-
-    print("\nSelect installation target:\n")
-    if len(available) > 1:
-        print(f"  {BOLD}0{RESET}) All environments")
-    for i, (env, cfg, version) in enumerate(available, 1):
-        root = Path(cfg["root"]).expanduser()
-        print(f"  {BOLD}{i}{RESET}) {env} ({cfg['cli']} {version})")
-    print()
-
-    # If only one environment detected, default to it
-    default = "1" if len(available) == 1 else "0"
-
-    while True:
-        try:
-            choice = input(f"Enter {'0-' if len(available) > 1 else ''}{len(available)} [{default}]: ").strip() or default
-            idx = int(choice)
-            if idx == 0 and len(available) > 1:
-                return None
-            if 1 <= idx <= len(available):
-                return available[idx - 1][0]
-        except ValueError: pass
-        except KeyboardInterrupt:
-            print("\nAborted.")
-            raise SystemExit(1)
-        max_val = len(available)
-        low = 0 if len(available) > 1 else 1
-        print(f"Please enter a number between {low} and {max_val}.")
+    model_value = env_match.group(1).strip()
+    content = re.sub(r"^model:\s*.*$", f"model: {model_value}", content, flags=re.MULTILINE)
+    content = content.replace(block_match.group(0), "")
+    content = re.sub(r"\n{3,}", "\n\n", content)
+    return content
 
 
 def install_global_skills():
@@ -119,40 +87,15 @@ def setup_workflow_dir(target_dir: Path, claptrap_path: Path):
 def update_gitignore(target_dir: Path):
     # Add standard entries to .gitignore.
     gitignore = target_dir / ".gitignore"
-    entries = [
-        ".claude/",
-        ".codex/",
-        ".cursor/",
-        ".gemini/",
-        ".github/",
-        ".opencode/",
-        ".claptrap/",
-        ".serena/",
-    ]
     existing = set(gitignore.read_text().splitlines()) if gitignore.exists() else set()
 
-    added = [e for e in entries if e not in existing]
+    added = [e for e in GITIGNORE_ENTRIES if e not in existing]
     if added:
         with open(gitignore, "a") as f:
             f.write("\n".join(added) + "\n")
         success(f"Added to .gitignore: {', '.join(added)}")
     else:
         info(".gitignore already configured")
-
-
-def check_mcp_server(server_name: str) -> bool | None:
-    # Check if MCP server is available.
-    for cmd in [["opencode", "mcp", "list"], ["claude", "mcp", "list"]]:
-        try:
-            result = run_cmd(cmd)
-            if result.returncode == 0:
-                for line in result.stdout.splitlines():
-                    if server_name.lower() in line.lower():
-                        return "failed" not in line.lower()
-                return False
-        except FileNotFoundError:
-            continue
-    return None
 
 
 def install_to_environment(env: str, claptrap_path: Path):
@@ -197,61 +140,89 @@ def install_to_environment(env: str, claptrap_path: Path):
     return root
 
 
-###################################################################################################
-# Main Installer Logic
-###################################################################################################
-header("Claptrap Installer")
+def resolve_envs(selected_env: str | None, verb: str) -> list[str]:
+    if selected_env:
+        success(f"Selected: {selected_env}")
+        return [selected_env]
+    success(f"{verb} all environments")
+    return list(installer.CONFIG["environments"].keys())
 
-claptrap_path = Path(__file__).resolve().parent.parent
-target_dir = Path.cwd()
 
-info(f"Claptrap path: {claptrap_path}")
-info(f"Target project: {target_dir}")
+def parse_args():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--verify", action="store_true")
+    parser.add_argument("--env", type=str, default=None)
+    return parser.parse_args()
 
-step(1, "Environment Selection")
-selected_env = select_environment()
-if selected_env:
-    success(f"Selected: {selected_env}")
-    envs_to_install = [selected_env]
-else:
-    success("Installing to all environments")
-    envs_to_install = list(installer.CONFIG["environments"].keys())
 
-step(2, "Installing Global Skills")
-success_count, total_count = install_global_skills()
-if success_count == total_count:
-    success(f"Installed {success_count}/{total_count} global skills")
-elif success_count > 0:
-    warning(f"Installed {success_count}/{total_count} global skills (some failed)")
-else:
-    warning("No skills were installed successfully")
+def main() -> None:
+    args = parse_args()
 
-step(3, "Workflow Directory Setup")
-setup_workflow_dir(target_dir, claptrap_path)
+    claptrap_path = Path(__file__).resolve().parent.parent
+    target_dir = Path.cwd()
 
-step(4, "Memory System Setup")
-for env in envs_to_install:
-    memory.install(env, target_dir, claptrap_path)
-
-step(5, "Installing Features")
-for env in envs_to_install:
-    install_to_environment(env, claptrap_path)
-
-step(6, "Configuring .gitignore")
-update_gitignore(target_dir)
-
-step(7, "Checking MCP Servers")
-for server in MCP_SERVERS:
-    status = check_mcp_server(server)
-    if status is True:
-        success(f"{server} MCP is configured")
-    elif status is False:
-        warning(f"{server} MCP not configured")
+    if args.verify:
+        header("Claptrap Verification")
     else:
-        info(f"Could not check {server} MCP status")
+        header("Claptrap Installer")
 
-header("Installation Complete!")
-print(f"\n  Environments: {BOLD}{', '.join(envs_to_install)}{RESET}")
-print(f"  Workflow:     {CYAN}.claptrap/{RESET}")
-print(f"  Memory:       {CYAN}.claptrap/memory_inbox.md, memories.md{RESET}")
-print()
+    info(f"Claptrap path: {claptrap_path}")
+    info(f"Target project: {target_dir}")
+
+    step(1, "Environment Selection")
+    if args.env:
+        if args.env not in installer.CONFIG["environments"]:
+            warning(f"Unknown environment: {args.env}")
+            raise SystemExit(1)
+        selected_env = args.env
+    else:
+        selected_env = select_environment()
+    verb = "Verifying" if args.verify else "Installing to"
+    envs_to_use = resolve_envs(selected_env, verb)
+
+    if args.verify:
+        verify.verify_all(envs_to_use, claptrap_path, target_dir)
+        return
+
+    step(2, "Installing Global Skills")
+    success_count, total_count = install_global_skills()
+    if success_count == total_count:
+        success(f"Installed {success_count}/{total_count} global skills")
+    elif success_count > 0:
+        warning(f"Installed {success_count}/{total_count} global skills (some failed)")
+    else:
+        warning("No skills were installed successfully")
+
+    step(3, "Workflow Directory Setup")
+    setup_workflow_dir(target_dir, claptrap_path)
+
+    step(4, "Memory System Setup")
+    for env in envs_to_use:
+        memory.install(env, target_dir, claptrap_path)
+
+    step(5, "Installing Features")
+    for env in envs_to_use:
+        install_to_environment(env, claptrap_path)
+
+    step(6, "Configuring .gitignore")
+    update_gitignore(target_dir)
+
+    step(7, "Checking MCP Servers")
+    for server in MCP_SERVERS:
+        status = check_mcp_server(server)
+        if status is True:
+            success(f"{server} MCP is configured")
+        elif status is False:
+            warning(f"{server} MCP not configured")
+        else:
+            info(f"Could not check {server} MCP status")
+
+    header("Installation Complete!")
+    print(f"\n  Environments: {BOLD}{', '.join(envs_to_use)}{RESET}")
+    print(f"  Workflow:     {CYAN}.claptrap/{RESET}")
+    print(f"  Memory:       {CYAN}.claptrap/memory_inbox.md, memories.md{RESET}")
+    print()
+
+
+if __name__ == "__main__":
+    main()

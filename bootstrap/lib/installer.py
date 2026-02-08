@@ -10,6 +10,19 @@ MODELS = CONFIG.get("models", {})
 DEFAULTS = CONFIG.get("defaults", {})
 SKIP_NAMES = {"AGENTS.md", "README.md"}
 
+def parse_debate_models(content: str) -> list[str]:
+    match = re.search(r"^debate-models:\s*$", content, re.MULTILINE)
+    if not match:
+        return []
+
+    models = []
+    for line in content[match.end() :].splitlines():
+        if line.strip().startswith("- "):
+            models.append(line.strip()[2:].strip())
+        elif line.strip() and not line.startswith(" "):
+            break
+    return models
+
 
 def transform_model(content: str, env: str) -> str:
     def replace(m):
@@ -124,14 +137,7 @@ def generate_debate_agents(claptrap_path: Path, agents_dir: Path, env: str) -> i
         return 0
 
     content = template_path.read_text()
-
-    models = []
-    if match := re.search(r"^debate-models:\s*$", content, re.MULTILINE):
-        for line in content[match.end() :].splitlines():
-            if line.strip().startswith("- "):
-                models.append(line.strip()[2:].strip())
-            elif line.strip() and not line.startswith(" "):
-                break
+    models = parse_debate_models(content)
 
     if not models:
         return 0
