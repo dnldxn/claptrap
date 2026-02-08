@@ -26,6 +26,11 @@ This folder contains **portable "Skills"**: small, reusable playbooks agents can
 - **Purpose**: Read/write/update/delete project memory entries (decisions, patterns, anti-patterns, lessons).
 - **Use when**: You observe a reusable decision/lesson/pattern worth capturing, or need to recall prior choices.
 
+### `claptrap-roadmap`
+- **Path**: `skills/claptrap-roadmap/SKILL.md`
+- **Purpose**: Create and maintain a project-level ROADMAP.md tracking features, phases, and progress.
+- **Use when**: After completing a design doc or implementation plan, after finishing implementation tasks, or when asked about project status.
+
 ### `memory-capture`
 - **Path**: `skills/memory-capture/SKILL.md`
 - **Purpose**: Capture candidate learnings to inbox during work sessions (high recall).
