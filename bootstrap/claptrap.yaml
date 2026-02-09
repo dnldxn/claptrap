@@ -79,6 +79,7 @@ environments:
   opencode:
     root: ~/.config/opencode
     cli: opencode
+    mcp: cli  # Uses `opencode mcp list`
     hooks:
       type: plugin  # Uses JS/TS plugin, not JSON config
       file: claptrap-enforcement.ts
@@ -89,6 +90,7 @@ environments:
   claude:
     root: ~/.claude
     cli: claude
+    mcp: cli  # Uses `claude mcp list`
     hooks:
       file: settings.json
       events:
@@ -98,6 +100,7 @@ environments:
   github-copilot:
     root: ~/.copilot
     cli: copilot
+    mcp: mcp-config.json  # Uses config file, no CLI command
     agents:
       suffix: .agent.md
     commands:
@@ -113,6 +116,7 @@ environments:
   cursor:
     root: ~/.cursor
     cli: agent
+    mcp: cli  # Uses `agent mcp list`
     hooks:
       file: hooks.json
       project_dir: .cursor
@@ -123,6 +127,7 @@ environments:
   codex:
     root: ~/.codex
     cli: codex
+    mcp: cli  # Uses `codex mcp list`
     agents: false  # Not supported
     commands:
       dir: prompts
@@ -131,6 +136,7 @@ environments:
   gemini:
     root: ~/.gemini
     cli: gemini
+    mcp: cli  # Uses `gemini mcp list`
     agents: false  # Not supported
     commands: false  # Uses TOML, skip
     hooks:

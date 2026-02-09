@@ -18,7 +18,8 @@ from lib.common import (
     GLOBAL_SKILLS,
     GITIGNORE_ENTRIES,
     MCP_SERVERS,
-    check_mcp_server,
+    check_mcp_server_cli,
+    check_mcp_server_config,
     run_cmd,
     select_environment,
 )
@@ -190,14 +191,30 @@ def main() -> None:
     update_gitignore(target_dir)
 
     step(7, "Checking MCP Servers")
-    for server in MCP_SERVERS:
-        status = check_mcp_server(server)
-        if status is True:
-            success(f"{server} MCP is configured")
-        elif status is False:
-            warning(f"{server} MCP not configured")
-        else:
-            info(f"Could not check {server} MCP status")
+    for env in envs_to_use:
+        env_cfg = installer.CONFIG["environments"].get(env, {})
+        mcp_type = env_cfg.get("mcp")
+        cli = env_cfg.get("cli")
+        root = Path(env_cfg.get("root", "")).expanduser()
+
+        if not mcp_type:
+            info(f"{env}: MCP not supported")
+            continue
+
+        info(f"{env}:")
+        for server in MCP_SERVERS:
+            if mcp_type == "cli":
+                status = check_mcp_server_cli(server, cli)
+            else:
+                config_path = root / mcp_type
+                status = check_mcp_server_config(server, config_path)
+
+            if status is True:
+                success(f"  {server} MCP is configured")
+            elif status is False:
+                warning(f"  {server} MCP not configured")
+            else:
+                info(f"  Could not check {server} MCP status")
 
     header("Installation Complete!")
     print(f"\n  Environments: {BOLD}{', '.join(envs_to_use)}{RESET}")

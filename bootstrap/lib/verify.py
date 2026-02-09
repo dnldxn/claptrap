@@ -5,7 +5,8 @@ from .common import (
     GLOBAL_SKILLS,
     GITIGNORE_ENTRIES,
     MCP_SERVERS,
-    check_mcp_server,
+    check_mcp_server_cli,
+    check_mcp_server_config,
     parse_json_with_comments,
     run_cmd,
 )
@@ -328,19 +329,45 @@ def verify_gitignore(target_dir: Path) -> tuple[int, int]:
     return passed, total
 
 
-def verify_mcp(servers: list[str]) -> tuple[int, int]:
+def verify_mcp(servers: list[str], envs: list[str]) -> tuple[int, int]:
     passed = 0
     total = 0
-    for server in servers:
-        status = check_mcp_server(server)
-        total += 1
-        if status is None:
-            detail = "neither opencode nor claude CLI found to check"
-        elif status is False:
-            detail = "server not found; configure it via 'opencode mcp add' or 'claude mcp add'"
-        else:
-            detail = "server reported as failed"
-        passed += check(f"{server} MCP configured", status is True, detail)
+
+    for env in envs:
+        env_cfg = installer.CONFIG["environments"].get(env, {})
+        mcp_type = env_cfg.get("mcp")
+        cli = env_cfg.get("cli")
+        root = Path(env_cfg.get("root", "")).expanduser()
+
+        if not mcp_type:
+            info(f"  {env}: MCP not supported")
+            continue
+
+        info(f"  {env}:")
+        for server in servers:
+            if mcp_type == "cli":
+                # Use CLI command (e.g., `opencode mcp list`)
+                status = check_mcp_server_cli(server, cli)
+                if status is None:
+                    detail = f"{cli} CLI not found"
+                elif status is False:
+                    detail = f"configure via '{cli} mcp add'"
+                else:
+                    detail = "server reported as failed"
+            else:
+                # Use config file (e.g., ~/.copilot/mcp-config.json)
+                config_path = root / mcp_type
+                status = check_mcp_server_config(server, config_path)
+                if status is None:
+                    detail = f"config file not found: {config_path}"
+                elif status is False:
+                    detail = f"add to {config_path}"
+                else:
+                    detail = ""
+
+            total += 1
+            passed += check(f"{server} MCP configured", status is True, detail)
+
     return passed, total
 
 
@@ -378,6 +405,7 @@ def verify_all(envs: list[str], claptrap_path: Path, target_dir: Path) -> None:
         passed += p
         total += t
 
+    run("Global Skills Verification", verify_global_skills, GLOBAL_SKILLS)
     run("Workflow Directory Verification", verify_workflow, claptrap_path, target_dir)
 
     for env in envs:
@@ -389,8 +417,7 @@ def verify_all(envs: list[str], claptrap_path: Path, target_dir: Path) -> None:
 
     run("Hooks Configuration Verification", verify_hooks, envs, target_dir)
     run(".gitignore Verification", verify_gitignore, target_dir)
-    run("MCP Server Verification", verify_mcp, MCP_SERVERS)
-    run("Global Skills Verification", verify_global_skills, GLOBAL_SKILLS)
+    run("MCP Server Verification", verify_mcp, MCP_SERVERS, envs)
 
     warnings = total - passed
     print(f"\nVerification complete: {passed} passed, {warnings} warnings")
