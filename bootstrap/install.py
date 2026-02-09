@@ -18,20 +18,34 @@ from lib.common import GLOBAL_SKILLS, GITIGNORE_ENTRIES, run_cmd, select_environ
 from lib.output import BOLD, CYAN, RESET, header, info, step, success, warning
 
 
-def get_installed_global_skills() -> set[str]:
-    # Query already-installed global skills via npx.
-    result = run_cmd(["npx", "-y", "skills", "list", "--global"])
-    if result.returncode != 0:
-        return set()
-    return {line.strip() for line in result.stdout.splitlines() if line.strip()}
+def is_global_skill_installed(skill: str, envs: list[str]) -> bool:
+    # Check if a global skill is already symlinked into every environment's skills dir.
+    agents_skills = Path("~/.agents/skills").expanduser()
+    for env in envs:
+        env_cfg = installer.CONFIG["environments"].get(env, {})
+        skills_cfg = installer.get_feature_config(env_cfg, "skills")
+        if skills_cfg is None:
+            continue
+        root = Path(env_cfg["root"]).expanduser()
+        skills_dir = skills_cfg.get("dir", "skills")
+        skill_path = root / skills_dir / skill
+        if not skill_path.is_symlink():
+            return False
+        # Verify the symlink points into ~/.agents/skills/
+        try:
+            target = skill_path.resolve()
+            if not target.is_relative_to(agents_skills):
+                return False
+        except (OSError, ValueError):
+            return False
+    return True
 
 
-def install_global_skills():
+def install_global_skills(envs: list[str]):
     # Install global skills via npx, skipping already-installed ones.
-    installed = get_installed_global_skills()
     success_count = 0
     for repo, skill in GLOBAL_SKILLS:
-        if skill in installed:
+        if is_global_skill_installed(skill, envs):
             info(f"{skill} already installed, skipping")
             success_count += 1
             continue
@@ -174,7 +188,7 @@ def main() -> None:
         return
 
     step(2, "Installing Global Skills")
-    success_count, total_count = install_global_skills()
+    success_count, total_count = install_global_skills(envs_to_use)
     if success_count == total_count:
         success(f"Installed {success_count}/{total_count} global skills")
     elif success_count > 0:

@@ -92,7 +92,7 @@ Install the OpenAI Codex authentication plugin for OpenCode following the steps 
 https://github.com/POSO-PocketSolutions/opencode-cursor-auth
 
 Paste the following into any LLM agent:
-```
+"""
 Install the Cursor authentication plugin for OpenCode following the steps below.  If you run into issues, stop and ask for help.
 
 1. Remove any existing installation: `npm uninstall opencode-cursor-auth` and `rm -rf ~/.cache/opencode/node_modules/opencode-cursor-auth`
@@ -101,6 +101,7 @@ Install the Cursor authentication plugin for OpenCode following the steps below.
   - Use `@latest` for the plugin instead of the specified version in the instructions.
   - Assume the cursor-agent and bun are already installed.
 4. Only install the Cursor models listed below.  Do not configure other models.
+```json
   "models": {
     "auto": { "name": "Auto" },
     "gpt-5.2-high": { "name": "GPT-5.2 High" },
@@ -114,6 +115,7 @@ Install the Cursor authentication plugin for OpenCode following the steps below.
     "grok": { "name": "Grok" }
   }
 ```
+"""
 
 ```bash
 opencode auth login
