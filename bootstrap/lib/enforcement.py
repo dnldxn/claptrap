@@ -12,7 +12,6 @@ INBOX_FILE = CLAPTRAP_DIR / "memory_inbox.md"
 
 
 def get_session_activity():
-    # Check if meaningful work was done this session.
     try:
         result = subprocess.run(
             ["git", "diff", "--stat"], capture_output=True, text=True, timeout=5
@@ -22,23 +21,19 @@ def get_session_activity():
                 "has_changes": True,
                 "files": len(result.stdout.strip().split("\n")) - 1,
             }
-    except Exception:
-        pass
+    except Exception: pass
     return {"has_changes": False, "files": 0}
 
 
 def get_inbox_entry_count():
-    if not INBOX_FILE.exists():
-        return 0
+    if not INBOX_FILE.exists(): return 0
     return INBOX_FILE.read_text().count("\n## ")
 
 
+# Block session end if work was done but no memories captured. Returns 0=allow, 2=block.
 def session_end_gate():
-    # Block session end if work was done but no memories captured. Returns 0=allow, 2=block.
     activity = get_session_activity()
-
-    if not activity["has_changes"] or get_inbox_entry_count() > 0:
-        return 0
+    if not activity["has_changes"] or get_inbox_entry_count() > 0: return 0
 
     output = {
         "action": "prompt",
@@ -55,8 +50,8 @@ def session_end_gate():
     return 2
 
 
+# Occasional nudge after file edits. Always returns 0.
 def post_tool_nudge():
-    # Occasional reminder after file edits. Always returns 0 (never blocks).
     counter_file = CLAPTRAP_DIR / ".edit_counter"
 
     count = int(counter_file.read_text().strip()) if counter_file.exists() else 0

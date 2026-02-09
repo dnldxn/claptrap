@@ -5,10 +5,10 @@ mode: subagent
 hidden: true
 model: {MODEL}
 debate-models:
-   - github-copilot/claude-sonnet-4.5
-   - opencode/kimi-k2.5-free
-   - openai/gpt-5.2
-   - google/gemini-3-flash-preview
+   - sonnet
+   - kimi
+   - opus
+   - flash-preview
 tools:
    write: false
    edit: false

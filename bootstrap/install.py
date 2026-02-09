@@ -18,63 +18,50 @@ from lib.common import GLOBAL_SKILLS, GITIGNORE_ENTRIES, run_cmd, select_environ
 from lib.output import BOLD, CYAN, RESET, header, info, step, success, warning
 
 
+# Check if a global skill is already symlinked into every environment's skills dir.
 def is_global_skill_installed(skill: str, envs: list[str]) -> bool:
-    # Check if a global skill is already symlinked into every environment's skills dir.
     agents_skills = Path("~/.agents/skills").expanduser()
     for env in envs:
         env_cfg = installer.CONFIG["environments"].get(env, {})
         skills_cfg = installer.get_feature_config(env_cfg, "skills")
-        if skills_cfg is None:
-            continue
-        root = Path(env_cfg["root"]).expanduser()
-        skills_dir = skills_cfg.get("dir", "skills")
-        skill_path = root / skills_dir / skill
-        if not skill_path.is_symlink():
-            return False
-        # Verify the symlink points into ~/.agents/skills/
+        if not skills_cfg: continue
+
+        skill_path = Path(env_cfg["root"]).expanduser() / skills_cfg.get("dir", "skills") / skill
+        if not skill_path.is_symlink(): return False
         try:
-            target = skill_path.resolve()
-            if not target.is_relative_to(agents_skills):
-                return False
-        except (OSError, ValueError):
-            return False
+            if not skill_path.resolve().is_relative_to(agents_skills): return False
+        except (OSError, ValueError): return False
     return True
 
 
 def install_global_skills(envs: list[str]):
-    # Install global skills via npx, skipping already-installed ones.
     success_count = 0
     for repo, skill in GLOBAL_SKILLS:
         if is_global_skill_installed(skill, envs):
             info(f"{skill} already installed, skipping")
             success_count += 1
             continue
+
         info(f"Installing {skill} from {repo}...")
         result = run_cmd(
             ["npx", "-y", "skills", "add", "--yes", "--global", repo, "--skill", skill]
         )
-        if result.returncode == 0:
-            success_count += 1
-        else:
-            warning(f"Failed to install {skill}")
+        if result.returncode == 0: success_count += 1
+        else: warning(f"Failed to install {skill}")
     return success_count, len(GLOBAL_SKILLS)
 
 
 def setup_workflow_dir(target_dir: Path, claptrap_path: Path):
-    # Create .claptrap directory with code conventions.
     workflow_dir = target_dir / ".claptrap"
-
     conv_dest = workflow_dir / "code-conventions"
     conv_dest.mkdir(parents=True, exist_ok=True)
     for f in (claptrap_path / "src" / "code-conventions").glob("*.md"):
         shutil.copy2(f, conv_dest / f.name)
     success(f"Copied code conventions -> {conv_dest.relative_to(target_dir)}")
-
     return workflow_dir
 
 
 def update_gitignore(target_dir: Path):
-    # Add standard entries to .gitignore.
     gitignore = target_dir / ".gitignore"
     existing = set(gitignore.read_text().splitlines()) if gitignore.exists() else set()
 
@@ -88,12 +75,10 @@ def update_gitignore(target_dir: Path):
 
 
 def install_to_environment(env: str, claptrap_path: Path):
-    # Install agents, commands, skills to a single environment.
     env_cfg = installer.CONFIG["environments"][env]
     root = Path(env_cfg["root"]).expanduser()
 
     info(f"Installing to {env} ({root})")
-
     installer.cleanup(root)
 
     src_root = claptrap_path / installer.CONFIG["source_dir"]
@@ -146,16 +131,12 @@ def parse_args():
 
 def main() -> None:
     args = parse_args()
-
     claptrap_path = Path(__file__).resolve().parent.parent
     target_dir = Path.cwd()
 
-    if args.command == "mcp":
-        header("Claptrap MCP Installer")
-    elif args.command == "verify":
-        header("Claptrap Verification")
-    else:
-        header("Claptrap Installer")
+    if args.command == "mcp": header("Claptrap MCP Installer")
+    elif args.command == "verify": header("Claptrap Verification")
+    else: header("Claptrap Installer")
 
     info(f"Claptrap path: {claptrap_path}")
     info(f"Target project: {target_dir}")

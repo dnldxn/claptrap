@@ -111,6 +111,17 @@ mcp_servers:
       PRIVATE_KEY_FILE_PWD:
         prompt: Private key file password
 
+# Entries to add to target project's .gitignore
+gitignore:
+  - ".claude/"
+  - ".codex/"
+  - ".cursor/"
+  - ".gemini/"
+  - ".github/"
+  - ".opencode/"
+  - ".claptrap/"
+  - ".serena/"
+
 # Default feature configuration
 defaults:
   agents:

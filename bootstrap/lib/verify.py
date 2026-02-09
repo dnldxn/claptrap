@@ -6,37 +6,19 @@ from .mcp import MCP_SERVERS, check_mcp_server_cli, check_mcp_server_config
 from .output import info, step, success, warning
 
 
+# Show detail only on failure to explain what went wrong.
 def check(name: str, passed: bool, detail: str = "") -> bool:
-    # Show detail only on failure to explain what went wrong.
     msg = f"  {name}"
-    if passed:
-        success(msg)
-    else:
-        warning(msg + (f" — {detail}" if detail else ""))
+    if passed: success(msg)
+    else: warning(msg + (f" — {detail}" if detail else ""))
     return passed
 
 
-def _collect_source_files(src_dir: Path) -> list[Path]:
-    return [
-        src
-        for src in src_dir.rglob("*")
-        if src.is_file() and not installer.should_skip(src, src_dir)
-    ]
-
-
-def _staged_path(rel: Path, staging_dir: Path, suffix: str, is_skill: bool) -> Path:
-    if is_skill or suffix == ".md":
-        return staging_dir / rel
-    return staging_dir / (rel.stem + suffix)
-
-
+# Verify symlink exists and points to expected target. Returns (valid, detail).
 def _check_symlink(link: Path, target: Path) -> tuple[bool, str]:
-    # Check if symlink exists and points to target. Returns (valid, error_detail).
     is_link = link.is_symlink()
-    if is_link and link.resolve() == target.resolve():
-        return True, ""
-    if is_link:
-        return False, f"symlink target mismatch: {link.resolve()} != {target.resolve()}"
+    if is_link and link.resolve() == target.resolve(): return True, ""
+    if is_link: return False, f"symlink target mismatch: {link.resolve()} != {target.resolve()}"
     return False, f"expected symlink at {link} -> {target}; run the installer"
 
 
@@ -47,7 +29,6 @@ def _verify_skill(
     staging_dir: Path,
     feature_dir: Path,
 ) -> bool:
-    # Verify a single skill's staged files and symlink.
     staged_exists, content_valid, detail = True, True, ""
 
     for src in skill_files:
@@ -55,18 +36,15 @@ def _verify_skill(
         staged = staging_dir / rel
         if not staged.exists():
             staged_exists = False
-            if not detail:
-                detail = f"expected at {staged}; run the installer"
+            if not detail: detail = f"expected at {staged}; run the installer"
             continue
         if staged.read_text() != src.read_text():
             content_valid = False
-            if not detail:
-                detail = "staged file is out of date; run the installer to update"
+            if not detail: detail = "staged file is out of date; run the installer to update"
 
     link = feature_dir / skill_name
     symlink_valid, symlink_detail = _check_symlink(link, staging_dir / skill_name)
-    if not symlink_valid and not detail:
-        detail = symlink_detail
+    if not symlink_valid and not detail: detail = symlink_detail
 
     return check(
         f"{skill_name} is valid",
@@ -83,9 +61,8 @@ def _verify_feature_file(
     suffix: str,
     env: str,
 ) -> bool:
-    # Verify a single agent/command file's staged copy and symlink.
     rel = src.relative_to(src_dir)
-    staged = _staged_path(rel, staging_dir, suffix, False)
+    staged = installer.staged_path(rel, staging_dir, suffix, False)
     detail = f"expected at {staged}; run the installer"
 
     staged_exists = staged.exists()
@@ -98,8 +75,7 @@ def _verify_feature_file(
             detail = "staged file is out of date; run the installer to update"
 
     symlink_valid, symlink_detail = _check_symlink(feature_dir / staged.name, staged)
-    if not symlink_valid and staged_exists and content_valid:
-        detail = symlink_detail
+    if not symlink_valid and staged_exists and content_valid: detail = symlink_detail
 
     return check(
         f"{rel} is valid", staged_exists and content_valid and symlink_valid, detail
@@ -107,14 +83,11 @@ def _verify_feature_file(
 
 
 def _verify_debate_agents(claptrap_path: Path, agents_dir: Path) -> tuple[int, int]:
-    # Verify generated debate agents exist.
     template = claptrap_path / "src" / "agents" / "templates" / "debate-agent.md"
-    if not template.exists():
-        return 0, 0
+    if not template.exists(): return 0, 0
 
     models = installer.parse_debate_models(template.read_text())
-    if not models:
-        return 0, 0
+    if not models: return 0, 0
 
     print()
     info("  Debate Agents:")
@@ -150,8 +123,7 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
         staging_dir = staging_root / feature
         src_dir = src_root / feature
 
-        if feature in {"commands", "skills"}:
-            print()
+        if feature in {"commands", "skills"}: print()
         info(f"  {feature.capitalize()}:")
 
         total += 1
@@ -161,7 +133,7 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
             f"expected {staging_dir}; run the installer",
         )
 
-        source_files = _collect_source_files(src_dir)
+        source_files = installer.collect_source_files(src_dir)
 
         if is_skill:
             skill_files = {}
@@ -172,11 +144,8 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
             for skill_name in sorted(skill_files):
                 total += 1
                 passed += _verify_skill(
-                    skill_name,
-                    skill_files[skill_name],
-                    src_dir,
-                    staging_dir,
-                    feature_dir,
+                    skill_name, skill_files[skill_name],
+                    src_dir, staging_dir, feature_dir,
                 )
         else:
             for src in source_files:
@@ -195,8 +164,7 @@ def verify_environment(env: str, claptrap_path: Path) -> tuple[int, int]:
 
 
 def verify_workflow(claptrap_path: Path, target_dir: Path) -> tuple[int, int]:
-    passed = 0
-    total = 0
+    passed, total = 0, 0
 
     workflow_dir = target_dir / ".claptrap"
     conv_src = claptrap_path / "src" / "code-conventions"
@@ -239,8 +207,7 @@ def verify_workflow(claptrap_path: Path, target_dir: Path) -> tuple[int, int]:
 
 
 def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
-    passed = 0
-    total = 0
+    passed, total = 0, 0
 
     for env in envs:
         env_cfg = installer.CONFIG["environments"].get(env, {})
@@ -269,8 +236,7 @@ def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
         if project_dir:
             config_path = target_dir / project_dir / hooks_cfg["file"]
         else:
-            root = Path(env_cfg["root"]).expanduser()
-            config_path = root / hooks_cfg["file"]
+            config_path = Path(env_cfg["root"]).expanduser() / hooks_cfg["file"]
 
         total += 1
         passed += check(
@@ -278,8 +244,7 @@ def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
             config_path.exists(),
             "hooks config file missing; run the installer",
         )
-        if not config_path.exists():
-            continue
+        if not config_path.exists(): continue
 
         existing = parse_json_with_comments(config_path.read_text())
         if not existing:
@@ -291,7 +256,7 @@ def verify_hooks(envs: list[str], target_dir: Path) -> tuple[int, int]:
 
         expected_hooks = config.get("hooks", {})
         existing_hooks = existing.get("hooks", {})
-        for hook_name in expected_hooks.keys():
+        for hook_name in expected_hooks:
             total += 1
             passed += check(
                 f"{env} hook {hook_name}",
@@ -307,11 +272,9 @@ def verify_gitignore(target_dir: Path) -> tuple[int, int]:
     existing = set(gitignore.read_text().splitlines()) if gitignore.exists() else set()
 
     missing = [entry for entry in GITIGNORE_ENTRIES if entry not in existing]
-    if not missing:
-        return check(".gitignore entries present", True), 1
+    if not missing: return check(".gitignore entries present", True), 1
 
-    passed = 0
-    total = 0
+    passed, total = 0, 0
     for entry in missing:
         total += 1
         passed += check(
@@ -323,8 +286,7 @@ def verify_gitignore(target_dir: Path) -> tuple[int, int]:
 
 
 def verify_mcp(servers: list[str], envs: list[str]) -> tuple[int, int]:
-    passed = 0
-    total = 0
+    passed, total = 0, 0
 
     for env in envs:
         env_cfg = installer.CONFIG["environments"].get(env, {})
@@ -339,24 +301,16 @@ def verify_mcp(servers: list[str], envs: list[str]) -> tuple[int, int]:
         info(f"  {env}:")
         for server in servers:
             if mcp_type == "cli":
-                # Use CLI command (e.g., `opencode mcp list`)
                 status = check_mcp_server_cli(server, cli)
-                if status is None:
-                    detail = f"{cli} CLI not found"
-                elif status is False:
-                    detail = f"configure via '{cli} mcp add'"
-                else:
-                    detail = "server reported as failed"
+                if status is None: detail = f"{cli} CLI not found"
+                elif status is False: detail = f"configure via '{cli} mcp add'"
+                else: detail = "server reported as failed"
             else:
-                # Use config file (e.g., ~/.copilot/mcp-config.json)
                 config_path = root / mcp_type
                 status = check_mcp_server_config(server, config_path)
-                if status is None:
-                    detail = f"config file not found: {config_path}"
-                elif status is False:
-                    detail = f"add to {config_path}"
-                else:
-                    detail = ""
+                if status is None: detail = f"config file not found: {config_path}"
+                elif status is False: detail = f"add to {config_path}"
+                else: detail = ""
 
             total += 1
             passed += check(f"{server} MCP configured", status is True, detail)
@@ -365,8 +319,7 @@ def verify_mcp(servers: list[str], envs: list[str]) -> tuple[int, int]:
 
 
 def verify_global_skills(skills: list[tuple[str, str]]) -> tuple[int, int]:
-    passed = 0
-    total = 0
+    passed, total = 0, 0
     result = run_cmd(["npx", "-y", "skills", "list", "--global"])
     if result.returncode != 0:
         for _, skill in skills:
@@ -386,9 +339,7 @@ def verify_global_skills(skills: list[tuple[str, str]]) -> tuple[int, int]:
 
 
 def verify_all(envs: list[str], claptrap_path: Path, target_dir: Path) -> None:
-    passed = 0
-    total = 0
-    step_num = 2
+    passed, total, step_num = 0, 0, 2
 
     def run(label, fn, *args):
         nonlocal passed, total, step_num

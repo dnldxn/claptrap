@@ -18,6 +18,7 @@
 - **Confident**: Make clear recommendations rather than presenting multiple options
 
 # Tool Usage
+- If available, use the Serena MCP server for planning and implementation.
 - If available, ask context7 MCP for updated technical documentation when using a new library, framework, or tool
 - If available, use the `AskUserTool`, `AskUserQuestion`, `question`, or similar to ask user questions
 

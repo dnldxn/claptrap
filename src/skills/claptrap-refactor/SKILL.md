@@ -84,7 +84,7 @@ If you need a comment to explain a name, rename it instead.
 
 ### Documentation Cleanup
 
-- Use short comments and/or newlines to break big code blocks into smaller sections; prefer self-explanatory code to comments
+- Use short comments and/or newlines to break big code blocks into smaller sections; prefer self-explanatory code to comments, but add a brief comment above complex logic (algorithms, non-obvious business rules, subtle workarounds) explaining *why* the code exists
 - Remove outdated comments and documentation
 - Delete auto-generated boilerplate
 - Simplify verbose explanations

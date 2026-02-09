@@ -1,4 +1,5 @@
 import json
+import re
 import shutil
 from datetime import datetime
 from pathlib import Path
@@ -10,8 +11,8 @@ from .output import info, success, warning
 ENFORCEMENT_PLUGIN = "claptrap-enforcement.ts"
 
 
+# Build env-specific hook entry.
 def _build_hook_entry(env: str, hook_def: dict) -> dict:
-    # Format a single hook entry based on env-specific schema.
     cmd = hook_def["command"]
     matcher = hook_def.get("matcher", "*")
 
@@ -21,8 +22,7 @@ def _build_hook_entry(env: str, hook_def: dict) -> dict:
         return {"type": "command", "bash": cmd}
     if env == "cursor":
         entry = {"command": cmd}
-        if matcher != "*":
-            entry["matcher"] = matcher
+        if matcher != "*": entry["matcher"] = matcher
         return entry
     return {"matcher": matcher, "command": cmd}
 
@@ -30,14 +30,11 @@ def _build_hook_entry(env: str, hook_def: dict) -> dict:
 def generate_hooks_config(env: str):
     env_cfg = installer.CONFIG["environments"].get(env, {})
     hooks_cfg = env_cfg.get("hooks")
-
-    if not hooks_cfg or hooks_cfg is False or env == "opencode":
-        return None
+    if not hooks_cfg or hooks_cfg is False or env == "opencode": return None
 
     events = hooks_cfg.get("events", {})
     common_hooks = installer.CONFIG.get("hooks", {})
-    if not events or not common_hooks:
-        return None
+    if not events or not common_hooks: return None
 
     hooks_output = {}
     for canonical_name, hook_def in common_hooks.items():
@@ -45,16 +42,14 @@ def generate_hooks_config(env: str):
         if event_name:
             hooks_output[event_name] = [_build_hook_entry(env, hook_def)]
 
-    if not hooks_output:
-        return None
+    if not hooks_output: return None
     if env in {"github-copilot", "cursor"}:
         return {"version": 1, "hooks": hooks_output}
     return {"hooks": hooks_output}
 
 
 def backup_config(config_path: Path):
-    if not config_path.exists():
-        return None
+    if not config_path.exists(): return None
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     backup_path = config_path.with_suffix(f".{timestamp}.backup")
@@ -76,20 +71,17 @@ def install_hooks(env: str, target_dir: Path):
         return
 
     config = generate_hooks_config(env)
-    if not config:
-        return
+    if not config: return
 
     project_dir = hooks_cfg.get("project_dir")
     if project_dir:
         config_path = target_dir / project_dir / hooks_cfg["file"]
     else:
-        root = Path(env_cfg["root"]).expanduser()
-        config_path = root / hooks_cfg["file"]
+        config_path = Path(env_cfg["root"]).expanduser() / hooks_cfg["file"]
 
     if config_path.exists():
         backup_path = backup_config(config_path)
-        if backup_path:
-            info(f"Backed up existing config -> {backup_path.name}")
+        if backup_path: info(f"Backed up existing config -> {backup_path.name}")
 
     if config_path.exists():
         existing = parse_json_with_comments(config_path.read_text())
@@ -97,9 +89,7 @@ def install_hooks(env: str, target_dir: Path):
             existing.setdefault("hooks", {}).update(config.get("hooks", {}))
             config = existing
         else:
-            warning(
-                f"Could not parse existing {config_path.name} - creating new config"
-            )
+            warning(f"Could not parse existing {config_path.name} - creating new config")
 
     config_path.parent.mkdir(parents=True, exist_ok=True)
     config_path.write_text(json.dumps(config, indent=2))
@@ -124,8 +114,8 @@ def install_opencode_plugin(env_cfg: dict):
     configure_opencode_formatter(root)
 
 
+# Disable formatter in opencode.jsonc (insert after $schema line).
 def configure_opencode_formatter(root: Path):
-    # Disable formatter in opencode.jsonc (insert after $schema line).
     config_path = root / "opencode.jsonc"
     if not config_path.exists():
         info("opencode.jsonc not found, skipping formatter config")
@@ -135,9 +125,6 @@ def configure_opencode_formatter(root: Path):
     if '"formatter"' in content:
         info("formatter already configured in opencode.jsonc")
         return
-
-    # Insert after the $schema line
-    import re
 
     updated = re.sub(
         r'("\\$schema"\s*:\s*"[^"]*",?\s*\n)',

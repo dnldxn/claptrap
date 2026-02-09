@@ -15,8 +15,8 @@ def _server_def(server_name: str) -> dict | None:
     return installer.CONFIG.get("mcp_servers", {}).get(server_name)
 
 
+# Servers with params or env that need prompting cannot be installed headlessly.
 def requires_user_config(server_name: str) -> bool:
-    # Servers with params or env that need prompting cannot be installed headlessly.
     server = _server_def(server_name)
     if not server: return False
     return bool(server.get("params") or server.get("env"))
@@ -53,9 +53,8 @@ def build_server_entry(server_name: str, server_config: dict, config_format: str
     return entry
 
 
+# Check MCP server via CLI command. Returns True/False/None.
 def check_mcp_server_cli(server_name: str, cli: str) -> bool | None:
-    # Check MCP server via CLI command (e.g., `opencode mcp list`).
-    # Returns True if configured, False if not configured, None if CLI not found.
     try:
         result = run_cmd([cli, "mcp", "list"])
         if result.returncode == 0:
@@ -63,35 +62,29 @@ def check_mcp_server_cli(server_name: str, cli: str) -> bool | None:
                 if server_name.lower() in line.lower():
                     return "failed" not in line.lower()
             return False
-    except FileNotFoundError:
-        pass
+    except FileNotFoundError: pass
     return None
 
 
+# Check MCP server via config file. Returns True/False/None.
 def check_mcp_server_config(server_name: str, config_path: Path) -> bool | None:
-    # Check MCP server via config file (e.g., ~/.copilot/mcp-config.json).
-    # Returns True if configured, False if not configured, None if file not found or unparseable.
     if not config_path.exists(): return None
 
     content = parse_json_with_comments(config_path.read_text())
     if content is None: return None
 
-    if "mcpServers" in content:
-        servers = content["mcpServers"]
-    elif "mcp" in content:
-        servers = content["mcp"]
-    else:
-        return False
+    if "mcpServers" in content: servers = content["mcpServers"]
+    elif "mcp" in content: servers = content["mcp"]
+    else: return False
 
     return server_name.lower() in [s.lower() for s in servers.keys()]
 
 
+# Legacy backward-compat wrapper — checks any available CLI.
 def check_mcp_server(server_name: str, cli: str | None = None) -> bool | None:
-    # Legacy function for backward compatibility - checks any available CLI.
     for cmd_cli in CLI_CHECK_ORDER:
         result = check_mcp_server_cli(server_name, cmd_cli)
-        if result is not None:
-            return result
+        if result is not None: return result
     return None
 
 
@@ -139,26 +132,20 @@ def install_via_cli(server_name: str, env: str) -> bool:
         return True
 
     warning(f"  {server_name} MCP install failed (exit {result.returncode})")
-    if result.stderr.strip():
-        for line in result.stderr.strip().splitlines()[:5]:
-            warning(f"    {line}")
-    elif result.stdout.strip():
-        for line in result.stdout.strip().splitlines()[:5]:
-            warning(f"    {line}")
+    output = result.stderr.strip() or result.stdout.strip()
+    for line in output.splitlines()[:5]:
+        warning(f"    {line}")
     return False
 
 
+# Insert a server entry into a JSONC file, preserving comments/formatting.
 def _insert_into_jsonc(text: str, key: str, server_name: str, entry_json: str) -> str | None:
-    # Insert a server entry into a JSONC file by text manipulation, preserving comments/formatting.
-    # Returns the updated text, or None if the key block can't be found.
     pattern = rf'("{key}"\s*:\s*\{{)'
     match = re.search(pattern, text)
-    if not match:
-        return None
+    if not match: return None
 
-    insert_pos = match.end()
     entry_text = f'\n    "{server_name}": {entry_json},'
-    return text[:insert_pos] + entry_text + text[insert_pos:]
+    return text[:match.end()] + entry_text + text[match.end():]
 
 
 def install_via_config(server_name: str, env: str) -> bool:
@@ -184,7 +171,7 @@ def install_via_config(server_name: str, env: str) -> bool:
         raw_text = None
         content = None
 
-    # Check if server already present (works for both JSON and JSONC).
+    # Check if server already present
     if content is not None:
         format_type = _config_format(config_path, content)
         key = "mcp" if format_type == "opencode" else "mcpServers"
@@ -193,17 +180,15 @@ def install_via_config(server_name: str, env: str) -> bool:
             info(f"  {server_name} MCP already in {config_path.name}")
             return False
 
-    # Backup before any write.
     backup_path = backup_config(config_path)
-    if backup_path:
-        info(f"  Backed up {config_path.name} -> {backup_path.name}")
+    if backup_path: info(f"  Backed up {config_path.name} -> {backup_path.name}")
 
     format_type = _config_format(config_path, content)
     entry = build_server_entry(server_name, server_config, format_type)
     key = "mcp" if format_type == "opencode" else "mcpServers"
     entry_json = json.dumps(entry, indent=6)
 
-    # JSONC files: targeted text insertion to preserve comments and formatting.
+    # JSONC: targeted text insertion to preserve comments/formatting
     if is_jsonc and raw_text:
         updated = _insert_into_jsonc(raw_text, key, server_name, entry_json)
         if updated:
@@ -213,7 +198,7 @@ def install_via_config(server_name: str, env: str) -> bool:
         warning(f"  {server_name}: could not find \"{key}\" block in {config_path.name}")
         return False
 
-    # Plain JSON: standard parse-modify-serialize.
+    # Plain JSON: standard parse-modify-serialize
     if content is None:
         if raw_text is not None:
             warning(f"  {server_name}: could not parse {config_path.name}, writing fresh config")
@@ -282,12 +267,8 @@ def check_all(envs: list[str]) -> None:
             if mcp_type == "cli":
                 status = check_mcp_server_cli(server, cli)
             else:
-                config_path = root / mcp_type
-                status = check_mcp_server_config(server, config_path)
+                status = check_mcp_server_config(server, root / mcp_type)
 
-            if status is True:
-                success(f"  {server} MCP is configured")
-            elif status is False:
-                warning(f"  {server} MCP not configured")
-            else:
-                info(f"  Could not check {server} MCP status")
+            if status is True: success(f"  {server} MCP is configured")
+            elif status is False: warning(f"  {server} MCP not configured")
+            else: info(f"  Could not check {server} MCP status")
