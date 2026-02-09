@@ -22,7 +22,7 @@ GLOBAL_SKILLS = [
     ("https://github.com/forrestchang/andrej-karpathy-skills", "karpathy-guidelines"),
 ]
 
-MCP_SERVERS = ["serena", "context7", "snowflake"]
+MCP_SERVERS = list(installer.CONFIG.get("mcp_servers", {}).keys())
 
 GITIGNORE_ENTRIES = [
     ".claude/",
@@ -98,39 +98,20 @@ def select_environment():
 
 
 def check_mcp_server_cli(server_name: str, cli: str) -> bool | None:
-    # Check MCP server via CLI command (e.g., `opencode mcp list`).
-    # Returns True if configured, False if not configured, None if CLI not found.
-    try:
-        result = run_cmd([cli, "mcp", "list"])
-        if result.returncode == 0:
-            for line in result.stdout.splitlines():
-                if server_name.lower() in line.lower():
-                    return "failed" not in line.lower()
-            return False
-    except FileNotFoundError:
-        pass
-    return None
+    from .mcp import check_mcp_server_cli as _check
+
+    return _check(server_name, cli)
 
 
 def check_mcp_server_config(server_name: str, config_path: Path) -> bool | None:
-    # Check MCP server via config file (e.g., ~/.copilot/mcp-config.json).
-    # Returns True if configured, False if not configured, None if file not found.
-    if not config_path.exists():
-        return None
-    try:
-        content = parse_json_with_comments(config_path.read_text())
-        if content and "mcpServers" in content:
-            servers = content["mcpServers"]
-            return server_name.lower() in [s.lower() for s in servers.keys()]
-        return False
-    except Exception:
-        return None
+    from .mcp import check_mcp_server_config as _check
+
+    return _check(server_name, config_path)
 
 
 def check_mcp_server(server_name: str, cli: str | None = None) -> bool | None:
-    # Legacy function for backward compatibility - checks any available CLI.
-    for cmd_cli in ["opencode", "claude", "agent", "codex", "gemini"]:
-        result = check_mcp_server_cli(server_name, cmd_cli)
-        if result is not None:
-            return result
-    return None
+    from .mcp import check_mcp_server as _check
+
+    return _check(server_name, cli)
+
+

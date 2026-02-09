@@ -5,6 +5,7 @@ Installs claptrap agents, commands, skills, and memory system to target projects
 ## Entry Point
 
 - **`install.py`** - Main installer script. Run from target project: `python bootstrap/install.py [--env ENV] [--verify]`
+- **`install.py mcp`** - MCP installer. Run from target project: `python bootstrap/install.py mcp [--env ENV]`
 
 ## Configuration
 
@@ -17,7 +18,8 @@ Installs claptrap agents, commands, skills, and memory system to target projects
 | `installer.py` | Core installation logic: staging, symlinks, model transforms, debate agent generation |
 | `memory.py` | Memory system: hooks config, enforcement script, OpenCode plugin, formatter config |
 | `verify.py` | Verification: checks staged files, symlinks, hooks, gitignore, MCP servers, global skills |
-| `common.py` | Shared utilities: `run_cmd()`, `parse_json_with_comments()`, environment detection, MCP checks |
+| `common.py` | Shared utilities: `run_cmd()`, `parse_json_with_comments()`, environment detection |
+| `mcp.py` | MCP server installation and verification: server definitions, CLI/config install, status checks |
 | `output.py` | Terminal output: `success()`, `warning()`, `info()`, `header()`, `step()` with ANSI colors |
 | `enforcement.py` | Standalone script copied to target projects for memory capture enforcement |
 
@@ -68,6 +70,14 @@ configure_opencode_formatter(root)       # Disables formatter in opencode.jsonc
 verify_all(envs, claptrap_path, target_dir)  # Full verification suite
 ```
 
+**MCP servers:**
+```python
+# lib/mcp.py
+install_all(envs)                    # Install MCP servers to environments
+install_server(server_name, env)     # Install single server
+get_server_config(server_name, env)  # Resolve server command/args
+```
+
 ## Data Flow
 
 ```
@@ -76,6 +86,7 @@ claptrap.yaml
 install.py (orchestrator)
     ├── installer.py → staging/ + symlinks to env dirs
     ├── memory.py → .claptrap/ files + hooks config
+    ├── mcp.py → MCP server install + status checks
     └── common.py → environment detection, utilities
 ```
 

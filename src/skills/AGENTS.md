@@ -63,6 +63,11 @@ This folder contains **portable "Skills"**: small, reusable playbooks agents can
 - **Purpose**: Generic methodology for reviewing code changes against requirements, specs, or proposals.
 - **Use when**: You need to review code changes and produce structured, actionable feedback.
 
+### `create-agents-md`
+- **Path**: `skills/create-agents-md/SKILL.md`
+- **Purpose**: Generate a concise, effective AGENTS.md and minimal CLAUDE.md stub for a target directory.
+- **Use when**: Creating or improving an AGENTS.md file, or onboarding AI agents to a repository or subproject.
+
 ### `snowflake`
 - **Path**: `skills/snowflake/SKILL.md`
 - **Purpose**: Execute SQL queries against Snowflake databases and maintain a data dictionary of queried tables.

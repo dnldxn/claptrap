@@ -63,6 +63,54 @@ hooks:
     command: "python3 .claptrap/enforcement.py --event post-tool"
     matcher: "Write|Edit"
 
+# MCP server definitions (provider-agnostic)
+mcp_servers:
+  serena:
+    command: uvx
+    args:
+      - --from
+      - git+https://github.com/oraios/serena
+      - serena
+      - start-mcp-server
+      - --open-web-dashboard
+      - "false"
+    context:
+      codex: codex
+      claude: claude-code
+      default: ide
+
+  context7:
+    command: npx
+    args:
+      - -y
+      - "@upstash/context7-mcp"
+
+  snowflake:
+    command: npx
+    args:
+      - -y
+      - "@snowflake-labs/mcp"
+    params:
+      - flag: --service-config-file
+        prompt: Service config file path
+      - flag: --account
+        prompt: Account
+      - flag: --user
+        prompt: User
+      - flag: --role
+        prompt: Role
+      - flag: --warehouse
+        prompt: Warehouse
+      - flag: --private-key-file
+        prompt: Private key file path
+      - flag: --private-key-file-pwd
+        prompt: Private key file password
+      - flag: --authenticator
+        prompt: Authenticator
+    env:
+      PRIVATE_KEY_FILE_PWD:
+        prompt: Private key file password
+
 # Default feature configuration
 defaults:
   agents:
@@ -80,6 +128,7 @@ environments:
     root: ~/.config/opencode
     cli: opencode
     mcp: cli  # Uses `opencode mcp list`
+    mcp_install: opencode.jsonc
     hooks:
       type: plugin  # Uses JS/TS plugin, not JSON config
       file: claptrap-enforcement.ts
@@ -91,6 +140,7 @@ environments:
     root: ~/.claude
     cli: claude
     mcp: cli  # Uses `claude mcp list`
+    mcp_install: cli
     hooks:
       file: settings.json
       events:
@@ -101,6 +151,7 @@ environments:
     root: ~/.copilot
     cli: copilot
     mcp: mcp-config.json  # Uses config file, no CLI command
+    mcp_install: mcp-config.json
     agents:
       suffix: .agent.md
     commands:
@@ -117,6 +168,7 @@ environments:
     root: ~/.cursor
     cli: agent
     mcp: cli  # Uses `agent mcp list`
+    mcp_install: mcp.json
     hooks:
       file: hooks.json
       project_dir: .cursor
@@ -128,6 +180,7 @@ environments:
     root: ~/.codex
     cli: codex
     mcp: cli  # Uses `codex mcp list`
+    mcp_install: cli
     agents: false  # Not supported
     commands:
       dir: prompts
@@ -137,6 +190,7 @@ environments:
     root: ~/.gemini
     cli: gemini
     mcp: cli  # Uses `gemini mcp list`
+    mcp_install: cli
     agents: false  # Not supported
     commands: false  # Uses TOML, skip
     hooks:

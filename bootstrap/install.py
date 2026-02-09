@@ -13,16 +13,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from lib import installer, memory, verify
-from lib.common import (
-    GLOBAL_SKILLS,
-    GITIGNORE_ENTRIES,
-    MCP_SERVERS,
-    check_mcp_server_cli,
-    check_mcp_server_config,
-    run_cmd,
-    select_environment,
-)
+from lib import installer, mcp, memory, verify
+from lib.common import GLOBAL_SKILLS, GITIGNORE_ENTRIES, run_cmd, select_environment
 from lib.output import BOLD, CYAN, RESET, header, info, step, success, warning
 
 
@@ -133,7 +125,7 @@ def resolve_envs(selected_env: str | None, verb: str) -> list[str]:
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--verify", action="store_true")
+    parser.add_argument("command", nargs="?", default="install", choices=["install", "verify", "mcp"])
     parser.add_argument("--env", type=str, default=None)
     return parser.parse_args()
 
@@ -144,7 +136,9 @@ def main() -> None:
     claptrap_path = Path(__file__).resolve().parent.parent
     target_dir = Path.cwd()
 
-    if args.verify:
+    if args.command == "mcp":
+        header("Claptrap MCP Installer")
+    elif args.command == "verify":
         header("Claptrap Verification")
     else:
         header("Claptrap Installer")
@@ -160,10 +154,22 @@ def main() -> None:
         selected_env = args.env
     else:
         selected_env = select_environment()
-    verb = "Verifying" if args.verify else "Installing to"
+    verb = "Verifying" if args.command == "verify" else "Installing to"
     envs_to_use = resolve_envs(selected_env, verb)
 
-    if args.verify:
+    if args.command == "mcp":
+        step(2, "Installing MCP Servers")
+        mcp.install_all(envs_to_use)
+
+        step(3, "Checking MCP Servers")
+        mcp.check_all(envs_to_use)
+
+        header("MCP Installation Complete!")
+        print(f"\n  Environments: {BOLD}{', '.join(envs_to_use)}{RESET}")
+        print()
+        return
+
+    if args.command == "verify":
         verify.verify_all(envs_to_use, claptrap_path, target_dir)
         return
 
@@ -191,30 +197,7 @@ def main() -> None:
     update_gitignore(target_dir)
 
     step(7, "Checking MCP Servers")
-    for env in envs_to_use:
-        env_cfg = installer.CONFIG["environments"].get(env, {})
-        mcp_type = env_cfg.get("mcp")
-        cli = env_cfg.get("cli")
-        root = Path(env_cfg.get("root", "")).expanduser()
-
-        if not mcp_type:
-            info(f"{env}: MCP not supported")
-            continue
-
-        info(f"{env}:")
-        for server in MCP_SERVERS:
-            if mcp_type == "cli":
-                status = check_mcp_server_cli(server, cli)
-            else:
-                config_path = root / mcp_type
-                status = check_mcp_server_config(server, config_path)
-
-            if status is True:
-                success(f"  {server} MCP is configured")
-            elif status is False:
-                warning(f"  {server} MCP not configured")
-            else:
-                info(f"  Could not check {server} MCP status")
+    mcp.check_all(envs_to_use)
 
     header("Installation Complete!")
     print(f"\n  Environments: {BOLD}{', '.join(envs_to_use)}{RESET}")

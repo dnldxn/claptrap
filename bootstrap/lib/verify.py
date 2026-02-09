@@ -1,15 +1,8 @@
 from pathlib import Path
 
 from . import installer, memory
-from .common import (
-    GLOBAL_SKILLS,
-    GITIGNORE_ENTRIES,
-    MCP_SERVERS,
-    check_mcp_server_cli,
-    check_mcp_server_config,
-    parse_json_with_comments,
-    run_cmd,
-)
+from .common import GLOBAL_SKILLS, GITIGNORE_ENTRIES, parse_json_with_comments, run_cmd
+from .mcp import MCP_SERVERS, check_mcp_server_cli, check_mcp_server_config
 from .output import info, step, success, warning
 
 
