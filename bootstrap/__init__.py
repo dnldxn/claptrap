@@ -1,1 +1,0 @@
-# Claptrap bootstrap package

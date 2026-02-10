@@ -17,6 +17,4 @@ secrets.toml
 .gemini/
 .claptrap/
 .serena/
-.ralph/
-/openspec/
 .worktrees/
