@@ -23,10 +23,8 @@
 - If available, use the `AskUserTool`, `AskUserQuestion`, `question`, or similar to ask user questions
 
 # Project Roadmap
-- After completing a design doc or implementation plan, load the
-  `claptrap-roadmap` skill and update `docs/plans/ROADMAP.md`.
-- After completing implementation tasks, update the roadmap to
-  reflect progress.
+- After completing a design doc or implementation plan, load the `claptrap-roadmap` skill and update `docs/plans/ROADMAP.md`.
+- After completing implementation tasks, update the roadmap to reflect progress.
 - The roadmap should stay concise - feature-level items only.
 
 <!-- CLAPTRAP:END -->

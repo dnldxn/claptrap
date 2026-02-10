@@ -37,18 +37,11 @@ models:
     github-copilot: claude-haiku
   
   flash:
-    opencode: google/gemini-3-flash
+    opencode: github-copilot/gemini-3-flash-preview
     claude: sonnet
-    cursor: google/gemini-3-flash
-    github-copilot: gemini-3-flash
+    cursor: gemini-3-flash
+    github-copilot: claude-sonnet-4.5
     gemini: gemini-3-flash
-  
-  flash-preview:
-    opencode: google/gemini-3-flash-preview
-    claude: sonnet
-    cursor: google/gemini-3-flash-preview
-    github-copilot: gemini-3-flash-preview
-    gemini: gemini-3-flash-preview
   
   kimi:
     opencode: opencode/kimi-k2.5-free
@@ -165,6 +158,7 @@ environments:
     mcp_install: mcp-config.json
     agents:
       suffix: .agent.md
+      strip_model: true  # Copilot agents inherit model from calling agent
     commands:
       dir: prompts
       suffix: .prompt.md

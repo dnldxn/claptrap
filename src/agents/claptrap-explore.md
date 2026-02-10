@@ -1,6 +1,6 @@
 ---
 name: claptrap-explore
-description: This subagent should only be called manually by the user.
+description: Explore and analyze codebases with powerful search and read capabilities. Use glob patterns, regex searching, and file reading to find relevant code and information efficiently. Strictly read-only - no file modifications allowed.
 model: sonnet
 ---
 

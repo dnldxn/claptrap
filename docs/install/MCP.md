@@ -10,7 +10,6 @@ Instructions on how to install and configure various MCP Servers in various envi
 - Local (stdio) servers - Run local processes (preferred)
 - Remote (HTTP) servers - Connect to external services
 
-
 ## Instructions:
 - Before installing any MCP Servers, use the environment-specific MCP CLI command below to check if they are already installed.
 - Each MCP Server should be installed and configured system-wide (not per-project).
@@ -19,9 +18,7 @@ Instructions on how to install and configure various MCP Servers in various envi
 
 ## Environment Example Config Files
 
-See the following template config files for each environment.
-
-The `env`/`environment` key for each environment's config file below is optional.
+See the following template config files for each environment.  The `env`/`environment` key for each environment's config file below is optional.
 
 ### Cursor
 
@@ -71,27 +68,10 @@ https://opencode.ai/docs/mcp-servers/#local
 
 To check if a MCP Server is already installed, use the `opencode mcp list` command.  After adding a MCP Server, use the `opencode mcp list --print-logs` command to verify it is installed successfully.
 
-To add a MCP Server, add the following to your `~/.config/opencode/opencode.jsonc` file:
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "mcp": {
-    "my-local-mcp-server": {
-      "type": "local",
-      "command": [ "<command>", "<args>" ],
-      "enabled": true,
-      "environment": {
-        "MY_ENV_VAR": "my_env_var_value"
-      }
-    },
-  },
-}
+To add a MCP Server, use the following command:
+```bash
+opencode mcp add <mcp-server-name> --env VAR1=VALUE1 --env VAR2=VALUE2 -- <command> <args>
 ```
-
-<!-- opencode mcp add <mcp-server-name> --env VAR1=VALUE1 --env VAR2=VALUE2 -- <command> <args>
-opencode mcp add --log-level DEBUG serena -- uvx --from git+https://github.com/oraios/serena serena start-mcp-server --context codex --project-from-cwd --open-web-dashboard false -->
-
-
 
 ### Claude Code
 
@@ -146,7 +126,65 @@ The API key is optional, but is recommended for higher rate limits.
 
 This Snowflake MCP server provides tooling for Snowflake Cortex AI, object management, and SQL orchestration.  See [Snowflake documentation](https://github.com/Snowflake-Labs/mcp) for more details.
 
-Command: `npx`
-Args: `-y @snowflake-labs/mcp --service-config-file <service-config-file> --account <account> --user <user> --role <role> --warehouse <warehouse> --private-key-file <private-key-file> --private-key-file-pwd <private-key-file-pwd> --authenticator <authenticator>`
-Environment Variables:
-- PRIVATE_KEY_FILE_PWD
+Credentials are stored in ~/.snowflake/connections.toml
+```bash
+[snowflake_mcp]
+account = "XXX"
+user = "XXX"
+role = "XXX"
+warehouse = "XXX"
+database = "XXX"
+schema = "XXX"
+authenticator = "SNOWFLAKE_JWT"
+private_key_file = "~/.ssh/XXX.p8"
+```
+
+Command: `uvx`
+Args: `snowflake-labs-mcp --service-config-file ~/.snowflake/mcp_service_config.yaml --connection-name snowflake_mcp`
+
+### Service Config File
+
+The service config file is located at `~/.snowflake/mcp_service_config.yaml`.
+
+```yaml
+# Snowflake MCP Service Configuration
+# This file configures which Cortex AI services and SQL operations are available
+
+# Cortex Agent services (for orchestrating structured/unstructured data)
+agent_services: []
+
+# Cortex Search services (for querying unstructured data in RAG applications)
+search_services: []
+
+# Cortex Analyst services (for querying structured data via semantic modeling)
+analyst_services: []
+
+# Other available services
+other_services:
+  object_manager: false # Enable Snowflake object management
+  query_manager: true # Enable SQL query execution
+  semantic_manager: true # Enable semantic view discovery and querying
+
+# SQL statement permissions (granular control over allowed operations)
+sql_statement_permissions:
+  # - All: True  # leave this commented/absent (otherwise it allows everything)
+  - Select: true
+  - Unknown: false
+
+  # Everything else explicitly denied
+  - Alter: false
+  - Command: false
+  - Comment: false
+  - Commit: false
+  - Create: false
+  - Delete: false
+  - Describe: false
+  - Drop: false
+  - Insert: false
+  - Merge: false
+  - Rollback: false
+  - Transaction: false
+  - TruncateTable: false
+  - Update: false
+  - Use: false
+```

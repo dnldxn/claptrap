@@ -24,8 +24,10 @@ def parse_debate_models(content: str) -> list[str]:
     return models
 
 
-def transform_model(content: str, env: str) -> str:
+def transform_model(content: str, env: str, strip_model: bool = False) -> str:
     def replace(m):
+        if strip_model:
+            return ""
         alias = m.group(1)
         if alias in MODELS and env in MODELS[alias]:
             return f"model: {MODELS[alias][env]}"
@@ -79,6 +81,7 @@ def install_feature(
     suffix: str,
     env: str,
     is_skill: bool,
+    strip_model: bool = False,
 ) -> int:
     staging_dir.mkdir(parents=True, exist_ok=True)
     feature_dir.mkdir(parents=True, exist_ok=True)
@@ -92,7 +95,7 @@ def install_feature(
 
         staged.parent.mkdir(parents=True, exist_ok=True)
         content = src.read_text()
-        staged.write_text(content if is_skill else transform_model(content, env))
+        staged.write_text(content if is_skill else transform_model(content, env, strip_model))
         count += 1
 
         if is_skill:
@@ -113,7 +116,7 @@ def install_feature(
     return count
 
 
-def generate_debate_agents(claptrap_path: Path, agents_dir: Path, env: str) -> int:
+def generate_debate_agents(claptrap_path: Path, agents_dir: Path, env: str, strip_model: bool = False) -> int:
     template_path = claptrap_path / "src" / "agents" / "templates" / "debate-agent.md"
     if not template_path.exists(): return 0
 
@@ -129,7 +132,7 @@ def generate_debate_agents(claptrap_path: Path, agents_dir: Path, env: str) -> i
     agents_dir.mkdir(parents=True, exist_ok=True)
     for i, model in enumerate(models, 1):
         agent_content = content.replace("{NAME}", str(i)).replace("{MODEL}", model)
-        agent_content = transform_model(agent_content, env)
+        agent_content = transform_model(agent_content, env, strip_model)
         (agents_dir / f"debate-agent-{i}.md").write_text(agent_content)
 
     return len(models)

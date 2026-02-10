@@ -94,6 +94,7 @@ def install_to_environment(env: str, claptrap_path: Path):
         suffix = ".md" if is_skill else feat_cfg.get("suffix", ".md")
         feature_dir = root / feat_cfg.get("dir", feature)
 
+        strip_model = feat_cfg.get("strip_model", False)
         count = installer.install_feature(
             src_dir=src_root / feature,
             staging_dir=staging / feature,
@@ -101,14 +102,17 @@ def install_to_environment(env: str, claptrap_path: Path):
             suffix=suffix,
             env=env,
             is_skill=is_skill,
+            strip_model=strip_model,
         )
         success(f"  Installed {count} {feature} -> {feature_dir}")
 
     if env_cfg.get("agents") is not False:
+        agents_cfg = installer.get_feature_config(env_cfg, "agents") or {}
         installer.generate_debate_agents(
             claptrap_path,
-            root / (env_cfg.get("agents", {}).get("dir", "agents")),
+            root / agents_cfg.get("dir", "agents"),
             env,
+            strip_model=agents_cfg.get("strip_model", False),
         )
 
     return root

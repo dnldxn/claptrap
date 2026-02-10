@@ -45,6 +45,31 @@ Content here.
     assert "model: opus" in result
 
 
+def test_transform_model_strips_model_when_strip_model_true():
+    from bootstrap.lib.installer import transform_model
+
+    content = """---
+name: test-agent
+description: A test agent
+model: sonnet
+---
+Content here.
+"""
+    result = transform_model(content, "github-copilot", strip_model=True)
+    assert "model:" not in result
+    assert "name: test-agent" in result
+    assert "description: A test agent" in result
+
+
+def test_transform_model_strips_all_aliases_when_strip_model_true():
+    from bootstrap.lib.installer import transform_model
+
+    for alias in ["sonnet", "opus", "flash", "haiku"]:
+        content = f"---\nmodel: {alias}\n---\n"
+        result = transform_model(content, "github-copilot", strip_model=True)
+        assert "model:" not in result, f"model: {alias} was not stripped"
+
+
 def test_cleanup_removes_claptrap_symlinks():
     from bootstrap.lib.installer import cleanup
 

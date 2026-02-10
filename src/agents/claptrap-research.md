@@ -1,7 +1,7 @@
 ---
 name: Research
 description: Researches across official docs and community sources, then writes a scoped developer reference.
-model: flash-preview
+model: flash
 ---
 
 Research the topic across multiple source types and deliver a developer-ready reference sized to the query scope. Prefer the most recent, authoritative information and clearly cite sources.
