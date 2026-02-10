@@ -1,24 +1,34 @@
 # Claptrap
 
 
-## everything-claude-code
+## External Tools
 
-https://github.com/affaan-m/everything-claude-code
+- https://github.com/affaan-m/everything-claude-code
+- https://github.com/obra/superpowers (for brainstorming skill)
 
-**Add it as a subtree:**
+Run the following commands from inside your existing repo:
+
+**Add as a subtree:**
+
 ```bash
-# from inside your existing repo
+# everything-claude-code
 git remote add ecc https://github.com/affaan-m/everything-claude-code.git
 git fetch ecc
-
-# bring upstream main into a subdir
 git subtree add --prefix=external/everything-claude-code ecc main --squash
+
+# superpowers
+git remote add sp https://github.com/obra/superpowers.git
+git fetch sp
+git subtree add --prefix=external/superpowers sp main --squash
 ```
 
-**Update it:**
+**Update:**
+
 ```bash
 git fetch ecc
+git fetch sp
 git subtree pull --prefix=external/everything-claude-code ecc main --squash
+git subtree pull --prefix=external/superpowers sp main --squash
 ```
 
-`--squash` keeps my history clean by combining all ECC updates into a single commit.
+`--squash` keeps the project history clean by combining all external updates into a single commit.
