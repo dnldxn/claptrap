@@ -1,0 +1,20 @@
+providers:
+    opencode:
+        cli: opencode
+        root: "~/.config/opencode"
+
+    claude:
+        cli: claude
+        root: "~/.claude"
+
+features:
+    agents:
+        - external/everything-claude-code/agents/planner.md
+
+    skills:
+        - external/superpowers/skills/brainstorming
+        - external/everything-claude-code/skills/continuous-learning-v2
+        - external/everything-claude-code/skills/iterative-retrieval
+
+    commands:
+        - external/superpowers/commands/brainstorm.md

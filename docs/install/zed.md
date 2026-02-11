@@ -1,3 +1,10 @@
+# Zed Configuration
+
+## Settings
+
+- `format_on_save`: Set to `off`
+
+## MCP
 
 ```json
 {
