@@ -218,6 +218,7 @@ everything-claude-code/
 |   |-- verification-loop/          # Continuous verification (Longform Guide)
 |   |-- golang-patterns/            # Go idioms and best practices
 |   |-- golang-testing/             # Go testing patterns, TDD, benchmarks
+|   |-- cpp-testing/                # C++ testing with GoogleTest, CMake/CTest (NEW)
 |   |-- django-patterns/            # Django patterns, models, views (NEW)
 |   |-- django-security/            # Django security best practices (NEW)
 |   |-- django-tdd/                 # Django TDD workflow (NEW)
@@ -229,6 +230,7 @@ everything-claude-code/
 |   |-- springboot-tdd/             # Spring Boot TDD (NEW)
 |   |-- springboot-verification/    # Spring Boot verification (NEW)
 |   |-- configure-ecc/              # Interactive installation wizard (NEW)
+|   |-- security-scan/              # AgentShield security auditor integration (NEW)
 |
 |-- commands/         # Slash commands for quick execution
 |   |-- tdd.md              # /tdd - Test-driven development
@@ -344,6 +346,30 @@ Both options create:
 - **SKILL.md files** - Ready-to-use skills for Claude Code
 - **Instinct collections** - For continuous-learning-v2
 - **Pattern extraction** - Learns from your commit history
+
+### AgentShield — Security Auditor
+
+Scan your Claude Code configuration for vulnerabilities, misconfigurations, and injection risks.
+
+```bash
+# Quick scan (no install needed)
+npx ecc-agentshield scan
+
+# Auto-fix safe issues
+npx ecc-agentshield scan --fix
+
+# Deep analysis with Opus 4.6
+npx ecc-agentshield scan --opus --stream
+
+# Generate secure config from scratch
+npx ecc-agentshield init
+```
+
+Checks CLAUDE.md, settings.json, MCP servers, hooks, and agent definitions. Produces a security grade (A-F) with actionable findings.
+
+Use `/security-scan` in Claude Code to run it, or add to CI with the [GitHub Action](https://github.com/affaan-m/agentshield).
+
+[GitHub](https://github.com/affaan-m/agentshield) | [npm](https://www.npmjs.com/package/ecc-agentshield)
 
 ### 🧠 Continuous Learning v2
 
@@ -576,6 +602,36 @@ Please contribute! See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ---
 
+## Cursor IDE Support
+
+ecc-universal includes pre-translated configurations for [Cursor IDE](https://cursor.com). The `.cursor/` directory contains rules, agents, skills, commands, and MCP configs adapted for Cursor's format.
+
+### Quick Start (Cursor)
+
+```bash
+# Install the package
+npm install ecc-universal
+
+# Install for your language(s)
+./install.sh --target cursor typescript
+./install.sh --target cursor python golang
+```
+
+### What's Translated
+
+| Component | Claude Code → Cursor | Parity |
+|-----------|---------------------|--------|
+| Rules | YAML frontmatter added, paths flattened | Full |
+| Agents | Model IDs expanded, tools → readonly flag | Full |
+| Skills | No changes needed (identical standard) | Identical |
+| Commands | Path references updated, multi-* stubbed | Partial |
+| MCP Config | Env interpolation syntax updated | Full |
+| Hooks | No equivalent in Cursor | See alternatives |
+
+See [.cursor/README.md](.cursor/README.md) for details and [.cursor/MIGRATION.md](.cursor/MIGRATION.md) for the full migration guide.
+
+---
+
 ## 🔌 OpenCode Support
 
 ECC provides **full OpenCode support** including plugins and hooks.
@@ -657,13 +713,13 @@ opencode
 
 **Option 2: Install as npm package**
 ```bash
-npm install opencode-ecc
+npm install ecc-universal
 ```
 
 Then add to your `opencode.json`:
 ```json
 {
-  "plugin": ["opencode-ecc"]
+  "plugin": ["ecc-universal"]
 }
 ```
 
@@ -719,6 +775,7 @@ These configs work for my workflow. You should:
 - **Longform Guide (Advanced):** [The Longform Guide to Everything Claude Code](https://x.com/affaanmustafa/status/2014040193557471352)
 - **Follow:** [@affaanmustafa](https://x.com/affaanmustafa)
 - **zenith.chat:** [zenith.chat](https://zenith.chat)
+- **Skills Directory:** [awesome-agent-skills](https://github.com/JackyST0/awesome-agent-skills)
 
 ---
 
