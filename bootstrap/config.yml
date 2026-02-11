@@ -10,11 +10,63 @@ providers:
 features:
     agents:
         - external/everything-claude-code/agents/planner.md
+        - external/everything-claude-code/agents/architect.md
+        - external/everything-claude-code/agents/code-reviewer.md
+        - external/everything-claude-code/agents/python-reviewer.md
+        - external/everything-claude-code/agents/tdd-guide.md
+        - external/everything-claude-code/agents/refactor-cleaner.md
+        - external/everything-claude-code/agents/doc-updater.md
+        - external/everything-claude-code/agents/build-error-resolver.md
 
     skills:
         - external/superpowers/skills/brainstorming
         - external/everything-claude-code/skills/continuous-learning-v2
         - external/everything-claude-code/skills/iterative-retrieval
+        - external/everything-claude-code/skills/tdd-workflow
+        - external/everything-claude-code/skills/verification-loop
+        - external/everything-claude-code/skills/eval-harness
+        - external/everything-claude-code/skills/coding-standards
+        - external/everything-claude-code/skills/python-patterns
+        - external/everything-claude-code/skills/python-testing
+        - external/everything-claude-code/skills/strategic-compact
+        - external/everything-claude-code/skills/backend-patterns
 
     commands:
         - external/superpowers/commands/brainstorm.md
+        - external/everything-claude-code/commands/plan.md
+        - external/everything-claude-code/commands/tdd.md
+        - external/everything-claude-code/commands/verify.md
+        - external/everything-claude-code/commands/code-review.md
+        - external/everything-claude-code/commands/python-review.md
+        - external/everything-claude-code/commands/done.md
+        - external/everything-claude-code/commands/checkpoint.md
+        - external/everything-claude-code/commands/learn.md
+        - external/everything-claude-code/commands/evolve.md
+        - external/everything-claude-code/commands/eval.md
+        - external/everything-claude-code/commands/instinct-status.md
+        - external/everything-claude-code/commands/instinct-import.md
+        - external/everything-claude-code/commands/instinct-export.md
+        - external/everything-claude-code/commands/skill-create.md
+        - external/everything-claude-code/commands/refactor-clean.md
+        - external/everything-claude-code/commands/test-coverage.md
+
+    # rules:
+    #    - external/everything-claude-code/rules/coding-style.md
+    #    - external/everything-claude-code/rules/git-workflow.md
+    #    - external/everything-claude-code/rules/testing.md
+    #    - external/everything-claude-code/rules/performance.md
+    #    - external/everything-claude-code/rules/patterns.md
+    #    - external/everything-claude-code/rules/agents.md
+    #    - external/everything-claude-code/rules/python-coding-style.md
+    #    - external/everything-claude-code/rules/python-testing.md
+    #    - external/everything-claude-code/rules/python-patterns.md
+
+    # hooks:
+    #    - session-start: external/everything-claude-code/hooks/session-start.js
+    #    - session-end: external/everything-claude-code/hooks/session-end.js
+    #    - evaluate-session: external/everything-claude-code/hooks/evaluate-session.js
+    #    - pre-compact: external/everything-claude-code/hooks/pre-compact.js
+    #    - pre-tool-use: external/everything-claude-code/hooks/observe-pre.sh
+    #    - post-tool-use: external/everything-claude-code/hooks/observe-post.sh
+    #    - pre-tool-use:Edit/Write: external/everything-claude-code/hooks/suggest-compact.sh
+    #    - post-tool-use:Bash: external/everything-claude-code/hooks/remind-git-push.js
