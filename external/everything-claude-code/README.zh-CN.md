@@ -13,7 +13,7 @@
 
 **🌐 Language / 语言 / 語言**
 
-[**English**](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md)
+[**English**](README.md) | [简体中文](README.zh-CN.md) | [繁體中文](docs/zh-TW/README.md) | [日本語](docs/ja-JP/README.md)
 
 </div>
 
@@ -95,7 +95,7 @@ cp -r everything-claude-code/rules/* ~/.claude/rules/
 /plugin list everything-claude-code@everything-claude-code
 ```
 
-✨ **完成！** 你现在可以使用 15+ 代理、30+ 技能和 20+ 命令。
+✨ **完成！** 你现在可以使用 13 个代理、43 个技能和 31 个命令。
 
 ---
 
@@ -512,6 +512,7 @@ node tests/hooks/hooks.test.js
 - **详细指南（高级）：** [The Longform Guide to Everything Claude Code](https://x.com/affaanmustafa/status/2014040193557471352)
 - **关注：** [@affaanmustafa](https://x.com/affaanmustafa)
 - **zenith.chat:** [zenith.chat](https://zenith.chat)
+- **技能目录：** [awesome-agent-skills](https://github.com/JackyST0/awesome-agent-skills)
 
 ---
 
