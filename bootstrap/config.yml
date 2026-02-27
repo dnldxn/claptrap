@@ -7,6 +7,10 @@ providers:
         cli: claude
         root: "~/.claude"
 
+    cursor:
+        cli: agent
+        root: "~/.cursor"
+
 features:
     agents:
         - external/everything-claude-code/agents/planner.md

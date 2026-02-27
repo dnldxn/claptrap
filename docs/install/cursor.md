@@ -1,5 +1,15 @@
 # Cursor Config
 
+## Setup
+
+```bash
+cd ~/projects/claptrap
+git clone https://github.com/affaan-m/everything-claude-code.git
+
+cd [PROJECT DIR]
+~/projects/claptrap/everything-claude-code/install.sh --target cursor typescript python golang
+```
+
 ## Models
 
 Get current list of available models: `agent models`
@@ -16,7 +26,7 @@ Key models below.  Not the full list.
 
 ## Agents
 
-https://opencode.ai/docs/agents/#markdown
+https://cursor.com/docs/context/subagents#custom-subagents
 
 Example agent definition:
 ```markdown
