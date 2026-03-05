@@ -19,6 +19,8 @@ Load and adhere to the appropriate code style/conventions file for the language 
 
 Determine the primary coding language for the current task.  When writing or reviewing code, load the corresponding conventions using the mapping below.  These conventions do not need to be loaded when simply reading files.  Do NOT load all files, only the one(s) relevant to the language(s) being used.
 
+**Announce at start:** "I'm using the [Language] conventions for this task, which can be found in [File]."
+
 | Language | File |
 |---|---|
 | Python  | `references/python.md` |
