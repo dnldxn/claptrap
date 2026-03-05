@@ -1,0 +1,4 @@
+interface:
+  display_name: "Jupyter Notebook"
+  short_description: "Read, search, and edit .ipynb notebooks efficiently"
+  default_prompt: "Use $jupyter-notebook to work with this .ipynb file."
