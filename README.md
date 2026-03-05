@@ -1,47 +1,26 @@
-# claptrap
+# Claptrap
 
-Custom AI agents to use with Github Copilot, Claude, Codex, Gemini, etc.
-
-This repository contains a set of custom AI agents designed to work with various large language models (LLMs). These agents assist with software development tasks by following structured workflows and principles.
-
-See the **[Workflow Guide](docs/workflow.md)** for complete documentation.
-
-## Installation
-
-Run the bootstrap installer from your target project directory:
+## Setup
 
 ```bash
-python3 ~/projects/claptrap/bootstrap/install.py
-python3 ~/projects/claptrap/bootstrap/install.py mcp --env opencode # cursor, codex, claude, gemini, github-copilot
-python3 ~/projects/claptrap/bootstrap/install.py verify
-```
+npx skills list -g      # List global skills
+npx skills update       # Update skills
+skills remove --global  # Interactive skill removal
 
-See [bootstrap/README.md](bootstrap/README.md) for detailed installation options.
+# General skills
+npx skills add https://github.com/obra/superpowers --skill using-superpowers
+npx skills add https://github.com/obra/superpowers --skill brainstorming
 
-## MCP Servers
+# Domain-specific skills (as needed)
+npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/wshobson/agents --skill dbt-transformation-patterns
+npx skills add https://github.com/personamanagmentlayer/pcl --skill snowflake-expert
+``
 
-```bash
-claude --model sonnet --allow-dangerously-skip-permissions -p "Install Serena and context7 MCP servers for Github CoPilot using the instructions here: @~/projects/claptrap/bootstrap/mcp_setup.md"
+## External Tools
 
-codex --model gpt-5.1-codex-mini --dangerously-bypass-approvals-and-sandbox exec "Install Serena and context7 MCP servers for Claude using the instructions here: @~/projects/claptrap/bootstrap/mcp_setup.md"
-```
+### Everything Claude Code
+- https://github.com/affaan-m/everything-claude-code
 
-See [bootstrap/mcp_setup.md](bootstrap/mcp_setup.md) for for more information.
-
-## Zed IDE
-
-Click the "+ Add Agent" -> "Add Custom Agent", then add this to the "agent_servers" section:
-```json
-    "Cursor": {
-      "type": "custom",
-      "command": "npx",
-      "args": ["@blowmage/cursor-agent-acp"],
-      "env": {},
-    },
-    "Copilot": {
-      "type": "custom",
-      "command": "copilot",
-      "args": ["--acp"],
-      "env": {},
-    },
-```
+### Opencode Cursor
+- https://github.com/Nomadcxx/opencode-cursor
