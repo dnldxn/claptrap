@@ -35,6 +35,24 @@ def run_command(cmd):
     return subprocess.run(cmd, capture_output=True, text=True, check=False)
 
 
+def install_claptrap_agents_instructions():
+    # Insert templates/agents_md.txt inside each provider's AGENTS.md file, replacing the placeholder <!-- CLAPTRAP_AGENTS -->
+    template = (PROJECT_ROOT / "bootstrap" / "templates" / "agents_md.txt").read_text()
+    for provider_name, provider in CONFIG["providers"].items():
+        provider_root = Path(provider["root"]).expanduser()
+        agents_md = provider_root / "AGENTS.md"
+        if not agents_md.exists():
+            warning(f"AGENTS.md not found for {provider_name} at {agents_md}")
+            continue
+        content = agents_md.read_text()
+        if "<!-- CLAPTRAP_AGENTS -->" not in content:
+            warning(f"Placeholder not found in {agents_md}")
+            continue
+        new_content = content.replace("<!-- CLAPTRAP_AGENTS -->", template)
+        agents_md.write_text(new_content)
+        success(f"Updated AGENTS.md for {provider_name}")
+
+
 def uninstall_features(dest_dir: Path):
     removed = 0
     for link in dest_dir.iterdir():
@@ -76,4 +94,5 @@ for provider_name, provider in CONFIG["providers"].items():
         dest_dir.mkdir(parents=True, exist_ok=True)
         uninstall_features(dest_dir)
         install_feature(rel_paths, dest_dir)
+
 success("Done.")
