@@ -9,6 +9,9 @@ skills remove --global  # Interactive skill removal
 
 # General skills
 npx skills add https://github.com/forrestchang/andrej-karpathy-skills --skill karpathy-guidelines
+npx skills add https://github.com/anthropics/skills --skill skill-creator
+
+# Workflow-specific skills
 npx skills add https://github.com/obra/superpowers --skill using-superpowers
 npx skills add https://github.com/obra/superpowers --skill brainstorming
 

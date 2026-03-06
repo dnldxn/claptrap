@@ -11,21 +11,22 @@ description: 'Snowflake SQL coding conventions and guidelines'
 - Indentation: Use 4 spaces for indentation; align clauses for better readability.
 - Line Length: Keep lines ≤ 125 characters; break long lines at logical points (e.g., after commas, before `AND`/`OR`).
 - Commas: Place commas at the end of lines in lists (e.g., in `SELECT`, `FROM`, `WHERE` clauses).
+- Trailing Commas: A trailing comma at the end of a `SELECT` list (e.g., `SELECT col1, col2, col3,`) is valid Snowflake syntax. This makes adding or removing columns easier and produces cleaner diffs.
 - SELECT Clause: List each column on a new line, indented one level, except for very short lists (≤75 characters).
 - Joins: Use explicit `JOIN` syntax instead of commas in the `FROM` clause; prefer `INNER JOIN`, `LEFT JOIN`, etc.
-- WHERE and ON Clauses: Each condition should be on its own line, indented for clarity.  The first condition should be on the next line as the `WHERE` or `ON` keyword, unless there is only one condition.  AND/OR should be at the beginning of the line.
-- CTEs: Use Common Table Expressions (CTEs) for complex queries to improve readability.
-- Aliases: Single-letter or short table aliases are OK
+- WHERE and ON Clauses: Each condition should be on its own line, indented for clarity.  The first condition should be on the line after the WHERE or ON keyword, unless there is only one condition.  AND/OR should be at the beginning of the line.
+- CTEs: Use Common Table Expressions (CTEs) to break down complex queries to improve readability.
+- Aliases: Single-letter or short table aliases are OK.
 - Comments: Use comments to explain complex logic or decisions; prefer inline comments for short notes and block comments for longer explanations.
 - Use `GROUP BY ALL` instead of `GROUP BY a, b, c`
 
 ## Query Structure
-- Use CTEs for intermediate steps to break down complex queries.
 - Avoid subqueries in the `SELECT` clause; use CTEs or joins instead.
 - ON clause conditions should focus on join logic; filtering conditions should go in the WHERE clause.
+- Column Alias Reuse: Snowflake allows column aliases to be referenced later in the same `SELECT`, `WHERE`, `GROUP BY`, `HAVING`, and `ORDER BY` clauses (e.g., `SELECT col1 + col2 AS total, total * 0.1 AS tax FROM t WHERE total > 100`). Leverage this to reduce duplicated expressions within a query.
 
 ## Performance
-- Use appropriate indexing and clustering keys to optimize query performance.
+- Use appropriate clustering keys to optimize query performance.
 - Avoid `SELECT *`; specify only the columns needed.
 - Use filters in the `WHERE` clause to limit data early in the query.
 - Analyze query execution plans to identify and address performance bottlenecks.
@@ -33,14 +34,18 @@ description: 'Snowflake SQL coding conventions and guidelines'
 ## Comments
 - Comments explain **why**, not what. Prefer readable SQL over comments.
 - Use inline comments sparingly; prefer self-explanatory SQL.
-- Separate primary sections with `#### (x120)\nSection Name\n#### (x120)` headers.
+- Separate primary/major sections with section headers, for example:
+```sql
+-----------------------------------------------------------------------------------------------------------------------
+-- Section Name
+-----------------------------------------------------------------------------------------------------------------------
+```
 
 ## Snowflake Queries in Python
 - When writing Snowflake SQL queries within Python code, use triple quotes (`"""`) for multi-line SQL strings.
-- Use f-string formatting to insert variables
+- Use f-string formatting to insert variables.
 - Follow Python coding conventions for the surrounding code, while adhering to Snowflake SQL conventions within the SQL strings.
 - Indent SQL code within the triple quotes for readability.
-- Example:
 
 ## Examples
 ```sql
