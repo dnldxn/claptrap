@@ -18,8 +18,14 @@ applyTo: '**/*.py'
     - Keyed function arguments and default values should have a space before and after the equal sign (e.g. `arg = value`)
 
 ## Flow
-- Use single-line `if`/`for`/`while`/`else`/`elif`/`try`/`except`/`finally`/`with` when the body is one statement that is less than 75 total characters (e.g., `if not x: return None`, `try: x()`, `except: print('xyz')`, `if code == 0: return True\nelse: return False`).  Otherwise multi-line blocks for longer bodies.
 - Use comprehensions where they improve clarity.
+
+### Conditional Expressions
+- Use single-line `if`/`for`/`while`/`else`/`elif`/`try`/`except`/`finally`/`with` when:
+  - The body is exactly one statement, and 
+  - The full line is under 100 characters (e.g., `if not x: return None`, `try: x()`, `except: print('xyz')`, `if code == 0: return True\nelse: return False`)
+- Otherwise multi-line blocks for longer bodies.
+- Apply this rule per statement, even inside a group of similar checks.
 
 ## Strings & I/O
 - Prefer f-strings; avoid concatenation

@@ -1,5 +1,5 @@
 ---
-name: jupyter-notebook
+name: jupyter-notebooks
 description: "Token-efficient operations on Jupyter notebooks (.ipynb files). Use whenever the user references a .ipynb file or asks to read, edit, search, analyze, or create notebook cells. Also use when asked to clear outputs, inspect execution order, or prepare notebooks for git. Triggers: any mention of 'notebook', '.ipynb', 'jupyter', 'cell', or requests involving code that lives in notebook format. NEVER read .ipynb files directly — always use the bundled scripts to avoid consuming tokens on raw JSON, base64 outputs, and metadata."
 ---
 
