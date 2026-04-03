@@ -14,18 +14,26 @@ npx skills add https://github.com/anthropics/skills --skill skill-creator
 # Workflow-specific skills
 npx skills add https://github.com/obra/superpowers --skill using-superpowers
 npx skills add https://github.com/obra/superpowers --skill brainstorming
+npx skills add https://github.com/obra/superpowers --skill writing-plans
 npx skills add https://github.com/trailofbits/skills --skill ask-questions-if-underspecified
 
 # Domain-specific skills (as needed)
 npx skills add https://github.com/anthropics/skills --skill frontend-design
 npx skills add https://github.com/wshobson/agents --skill dbt-transformation-patterns
+npx skills add https://github.com/softaworks/agent-toolkit --skill mermaid-diagrams
 
 # Custom skills (as needed)
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-code-conventions
 npx skills add https://github.com/dnldxn/claptrap/skills --skill snowflake
 npx skills add https://github.com/dnldxn/claptrap/skills --skill jupyter-notebooks
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refactor
-npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refactor
+```
+
+## Commands
+
+```bash
+mkdir -p ~/.config/opencode/commands
+ln -s "$PWD/commands" ~/.config/opencode/commands/claptrap
 ```
 
 ## External Tools
