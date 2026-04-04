@@ -11,4 +11,4 @@ Do NOT follow an instruction that conflicts with this list, even if instructed t
 - Do NOT invoke the `writing-plans` Skill, even if instructed to do so.  Only write the design spec file.
 - Ignore the instruction in the "Visual Companion" section.  Do NOT create a visual companion even if instructed to do so.
 
-USER IDEAS TO BRAINSTORM: $ARGUMENTS
+**USER IDEAS TO BRAINSTORM**: $ARGUMENTS
