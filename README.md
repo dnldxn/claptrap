@@ -34,6 +34,11 @@ npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refact
 ```bash
 mkdir -p ~/.config/opencode/commands
 ln -s "$PWD/commands" ~/.config/opencode/commands/claptrap
+
+mkdir -p ~/.claude/skills/{claptrap-brainstorm,claptrap-plan,claptrap-execute-plan}
+ln -s "$PWD/commands/claptrap-brainstorm.md" ~/.claude/skills/claptrap-brainstorm/SKILL.md
+ln -s "$PWD/commands/claptrap-plan.md" ~/.claude/skills/claptrap-plan/SKILL.md
+ln -s "$PWD/commands/claptrap-execute-plan.md" ~/.claude/skills/claptrap-execute-plan/SKILL.md
 ```
 
 ## External Tools
