@@ -19,6 +19,7 @@ npx skills add https://github.com/trailofbits/skills --skill ask-questions-if-un
 
 # Domain-specific skills (as needed)
 npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/github/awesome-copilot --skill create-agentsmd
 npx skills add https://github.com/wshobson/agents --skill dbt-transformation-patterns
 npx skills add https://github.com/softaworks/agent-toolkit --skill mermaid-diagrams
 
@@ -39,6 +40,12 @@ mkdir -p ~/.claude/skills/{claptrap-brainstorm,claptrap-plan,claptrap-execute-pl
 ln -s "$PWD/commands/claptrap-brainstorm.md" ~/.claude/skills/claptrap-brainstorm/SKILL.md
 ln -s "$PWD/commands/claptrap-plan.md" ~/.claude/skills/claptrap-plan/SKILL.md
 ln -s "$PWD/commands/claptrap-execute-plan.md" ~/.claude/skills/claptrap-execute-plan/SKILL.md
+```
+
+Manually add the following to `~/.claude/CLAUDE.md` and `~/.agents/AGENTS.md`, under any existing text:
+
+```
+Always invoke the `karpathy-guidelines` and `ask-questions-if-underspecified` Skills before doing any work.  If the plan or implementation work involves creating or modifying any UI elements, also invoke the `frontend-design` skill.  If you cannot find a Skill, stop and ask for help instead of guessing.
 ```
 
 ## External Tools

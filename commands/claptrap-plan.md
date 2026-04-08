@@ -1,5 +1,5 @@
 ---
-name: claptrap-execute-plan
+name: claptrap-plan
 description: Run superpowers writing-plans Skill with my overrides
 ---
 
