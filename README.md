@@ -10,15 +10,19 @@ skills remove --global  # Interactive skill removal
 # General skills
 npx skills add https://github.com/forrestchang/andrej-karpathy-skills --skill karpathy-guidelines  # General AI agent guidelines from Andrej Karpathy
 npx skills add https://github.com/anthropics/skills --skill skill-creator
+npx skills add https://github.com/obra/episodic-memory --skill remembering-conversations
 
 # Workflow-specific skills
 npx skills add https://github.com/obra/superpowers --skill using-superpowers
 npx skills add https://github.com/obra/superpowers --skill brainstorming
 npx skills add https://github.com/obra/superpowers --skill writing-plans
+npx skills add https://github.com/obra/superpowers --skill subagent-driven-development
+npx skills add https://github.com/obra/superpowers --skill using-git-worktrees
 npx skills add https://github.com/trailofbits/skills --skill ask-questions-if-underspecified
 
 # Domain-specific skills (as needed)
 npx skills add https://github.com/anthropics/skills --skill frontend-design
+npx skills add https://github.com/vercel-labs/agent-skills --skill web-design-guidelines
 npx skills add https://github.com/github/awesome-copilot --skill create-agentsmd
 npx skills add https://github.com/wshobson/agents --skill dbt-transformation-patterns
 npx skills add https://github.com/softaworks/agent-toolkit --skill mermaid-diagrams
@@ -36,17 +40,32 @@ npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refact
 mkdir -p ~/.config/opencode/commands
 ln -s "$PWD/commands" ~/.config/opencode/commands/claptrap
 
-mkdir -p ~/.claude/skills/{claptrap-brainstorm,claptrap-plan,claptrap-execute-plan}
+mkdir -p ~/.claude/skills/claptrap-workflow
+ln -s "$PWD/skills/claptrap-workflow/SKILL.md" ~/.claude/skills/claptrap-workflow/SKILL.md
+
+mkdir -p ~/.claude/skills/{claptrap-brainstorm,claptrap-plan,claptrap-execute-plan,claptrap-complete-phase,claptrap-complete-milestone}
 ln -s "$PWD/commands/claptrap-brainstorm.md" ~/.claude/skills/claptrap-brainstorm/SKILL.md
 ln -s "$PWD/commands/claptrap-plan.md" ~/.claude/skills/claptrap-plan/SKILL.md
 ln -s "$PWD/commands/claptrap-execute-plan.md" ~/.claude/skills/claptrap-execute-plan/SKILL.md
+ln -s "$PWD/commands/claptrap-complete-phase.md" ~/.claude/skills/claptrap-complete-phase/SKILL.md
+ln -s "$PWD/commands/claptrap-complete-milestone.md" ~/.claude/skills/claptrap-complete-milestone/SKILL.md
 ```
 
 Manually add the following to `~/.claude/CLAUDE.md` and `~/.agents/AGENTS.md`, under any existing text:
 
+```markdown
+# Skill Instructions
+
+Follow these guidelines for using Skills for any project work:
+- Always invoke the `karpathy-guidelines` and `ask-questions-if-underspecified` Skills before doing any work
+- If the plan or implementation work involves creating or modifying any UI elements, also invoke the `frontend-design` skill
+- If the plan or implementation work involves creating or modifying any web elements, also invoke the `web-design-guidelines` skill
+- If you cannot find a Skill, stop and ask for help instead of guessing.
 ```
-Always invoke the `karpathy-guidelines` and `ask-questions-if-underspecified` Skills before doing any work.  If the plan or implementation work involves creating or modifying any UI elements, also invoke the `frontend-design` skill.  If you cannot find a Skill, stop and ask for help instead of guessing.
-```
+
+## Plugins
+
+- https://github.com/ephraimduncan/opencode-cursor
 
 ## External Tools
 
@@ -67,6 +86,3 @@ python ~/apps/agentchattr-orig/wrapper.py codex --no-restart
 
 ### Everything Claude Code
 - https://github.com/affaan-m/everything-claude-code
-
-### Opencode Cursor
-- https://github.com/Nomadcxx/opencode-cursor
