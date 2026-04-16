@@ -5,7 +5,7 @@ This operation is standalone. Do not invoke additional Superpowers workflow skil
 ## Steps
 
 1. Parse arguments into `M##-slug`.
-2. Read `.planning/milestones/M##-slug/SUMMARY.md` and inspect all phase statuses.
+2. Read `.planning/milestones/M##-slug/MILESTONE_SUMMARY.md` and inspect all phase statuses.
 3. If any phase is not `complete`, list the incomplete phases and ask the user whether to archive anyway. Stop if they decline.
 4. Update the milestone summary status to `complete` and add the completion date.
 5. Update `.planning/ROADMAP.md` to move the milestone to Completed.

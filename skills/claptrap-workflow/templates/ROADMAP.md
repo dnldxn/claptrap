@@ -3,9 +3,11 @@
 ## Current Position
 
 - Milestone: `TBD`
-- Phase: `TBD`
+- Phase: `[X] of [Y] ([Phase name])`
 - Status: `Not Started`
 - Last Activity: `YYYY-MM-DD`
+
+Progress: [░░░░░░░░░░] 0%
 
 ## Active Milestones
 

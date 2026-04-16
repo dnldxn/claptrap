@@ -44,8 +44,8 @@ Only load a template when creating a new document of that type.
 | Doc Type | Template |
 |----------|----------|
 | `ROADMAP.md` | [ROADMAP template](./templates/ROADMAP.md) |
-| Milestone `SUMMARY.md` | [MILESTONE-SUMMARY template](./templates/MILESTONE-SUMMARY.md) |
-| Phase `SUMMARY.md` | [PHASE-SUMMARY template](./templates/PHASE-SUMMARY.md) |
+| Milestone `MILESTONE_SUMMARY.md` | [MILESTONE-SUMMARY template](./templates/MILESTONE-SUMMARY.md) |
+| Phase `PHASE_SUMMARY.md` | [PHASE-SUMMARY template](./templates/PHASE-SUMMARY.md) |
 | `RESEARCH.md` | [RESEARCH template](./templates/RESEARCH.md) |
 
 ## First-Run Init
@@ -60,12 +60,13 @@ Then create `.planning/ROADMAP.md` from the [ROADMAP template](./templates/ROADM
 
 ## ROADMAP Update Rules
 
-Every operation updates `.planning/ROADMAP.md` before finishing.
+**Every operation MUST update `.planning/ROADMAP.md` whenever the status changes.**
 
 | After | What To Update |
 |-------|----------------|
-| brainstorm | Add milestone to Active Milestones and set Current Position |
-| plan | Set Current Position status to `Planning` |
-| execute | Set Current Position status to `In Progress` |
-| complete-phase | Mark the phase complete and advance Current Position |
-| complete-milestone | Move the milestone to Completed and add archive date plus tag |
+| brainstorm | Add milestone to Active Milestones; set Current Position Phase to `1 of Y (first-phase-slug)`, Status to `Ready to plan`; reset Progress to `[░░░░░░░░░░] 0%`; update Last Activity |
+| plan (start) | Set Current Position Status to `Planning`; update Last Activity |
+| plan (complete) | Set Current Position Status to `Ready to execute`; update Last Activity |
+| execute | Set Current Position Status to `In progress`; update Last Activity |
+| complete-phase | Set Status to `Phase complete`; if more phases remain: advance Current Position to next phase (Phase `X+1 of Y (next-phase-slug)`, Status `Ready to plan`), recalculate Progress bar (filled blocks = floor(completed_phases / total_phases × 10), use `█` for filled and `░` for empty, append percent); if last phase: set Status to `Milestone Complete`, set Progress to `[██████████] 100%`; update Last Activity |
+| complete-milestone | Move the milestone to Completed; add archive date and tag; set Progress to `[██████████] 100%`; update Last Activity |
