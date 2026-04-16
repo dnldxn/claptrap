@@ -11,11 +11,11 @@ Use this skill as the shared entrypoint for claptrap workflow commands. Identify
 
 | Operation | Load |
 |-----------|------|
-| ct-brainstorm | [ct-brainstorm](./operations/ct-brainstorm.md) |
-| ct-plan | [ct-plan](./operations/ct-plan.md) |
-| ct-execute | [ct-execute](./operations/ct-execute.md) |
-| ct-complete-phase | [ct-complete-phase](./operations/ct-complete-phase.md) |
-| ct-complete-milestone | [ct-complete-milestone](./operations/ct-complete-milestone.md) |
+| ct-brainstorm | [ct-brainstorm](./references/ct-brainstorm.md) |
+| ct-plan | [ct-plan](./references/ct-plan.md) |
+| ct-execute | [ct-execute](./references/ct-execute.md) |
+| ct-complete-phase | [ct-complete-phase](./references/ct-complete-phase.md) |
+| ct-complete-milestone | [ct-complete-milestone](./references/ct-complete-milestone.md) |
 
 ## Naming Conventions
 
@@ -43,10 +43,10 @@ Only load a template when creating a new document of that type.
 
 | Doc Type | Template |
 |----------|----------|
-| `ROADMAP.md` | [ROADMAP template](./templates/ROADMAP.md) |
-| Milestone `MILESTONE_SUMMARY.md` | [MILESTONE-SUMMARY template](./templates/MILESTONE-SUMMARY.md) |
-| Phase `PHASE_SUMMARY.md` | [PHASE-SUMMARY template](./templates/PHASE-SUMMARY.md) |
-| `RESEARCH.md` | [RESEARCH template](./templates/RESEARCH.md) |
+| `ROADMAP.md` | [ROADMAP template](./assets/ROADMAP.md) |
+| Milestone `MILESTONE_SUMMARY.md` | [MILESTONE-SUMMARY template](./assets/MILESTONE-SUMMARY.md) |
+| Phase `PHASE_SUMMARY.md` | [PHASE-SUMMARY template](./assets/PHASE-SUMMARY.md) |
+| `RESEARCH.md` | [RESEARCH template](./assets/RESEARCH.md) |
 
 ## First-Run Init
 
@@ -56,7 +56,7 @@ If `.planning/` does not exist:
 mkdir -p .planning/milestones .planning/_archive
 ```
 
-Then create `.planning/ROADMAP.md` from the [ROADMAP template](./templates/ROADMAP.md).
+Then create `.planning/ROADMAP.md` from the [ROADMAP template](./assets/ROADMAP.md).
 
 ## ROADMAP Update Rules
 

@@ -21,8 +21,8 @@ Manual setup steps (not handled by the installer) are documented in `README.md`,
 - `bootstrap/` — installer (`install.py`) and `config.yml` mapping features to provider directories
 - `commands/` — slash command stubs that delegate to skills via the `claptrap-workflow` skill
 - `skills/claptrap-workflow/` — the core workflow skill; all commands dispatch through here
-- `skills/claptrap-workflow/operations/` — one file per workflow step (`ct-brainstorm`, `ct-plan`, `ct-execute`, `ct-complete-phase`, `ct-complete-milestone`)
-- `skills/claptrap-workflow/templates/` — Markdown templates for planning documents (`ROADMAP.md`, `MILESTONE_SUMMARY.md`, `PHASE_SUMMARY.md`, etc.)
+- `skills/claptrap-workflow/references/` — one file per workflow step (`ct-brainstorm`, `ct-plan`, `ct-execute`, `ct-complete-phase`, `ct-complete-milestone`)
+- `skills/claptrap-workflow/assets/` — Markdown templates for planning documents (`ROADMAP.md`, `MILESTONE_SUMMARY.md`, `PHASE_SUMMARY.md`, etc.)
 - `skills/claptrap-code-conventions/` — language-specific style guidelines (`python.md`, `snowflake.md`)
 - `skills/snowflake/` — Snowflake SQL skill with reference docs
 - `skills/jupyter-notebooks/` — Jupyter notebook skill with helper scripts
