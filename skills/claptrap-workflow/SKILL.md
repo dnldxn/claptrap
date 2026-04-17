@@ -55,7 +55,7 @@ Only load a template when creating a new document of that type.
 |----------|----------|
 | `ROADMAP.md` | [ROADMAP template](./assets/ROADMAP.md) |
 | Milestone `MILESTONE_SUMMARY.md` | [MILESTONE-SUMMARY template](./assets/MILESTONE-SUMMARY.md) |
-| Phase `PHASE_SUMMARY.md` | [PHASE-SUMMARY template](./assets/PHASE-SUMMARY.md) |
+| Phase `M##-P##-slug-PLAN.md` | [PHASE-PLAN template](./assets/PHASE-PLAN.md) |
 | `RESEARCH.md` | [RESEARCH template](./assets/RESEARCH.md) |
 
 ## First-Run Init

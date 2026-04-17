@@ -59,6 +59,20 @@ It:
 
 **Pitfalls the skill guards against:** re-read the ROADMAP after `complete-phase` (the phase pointer moves automatically); never pass stale slugs; keep using the milestone workspace selected during brainstorming; always inspect the active workspace before offering “complete phase” while status is **In progress**.
 
+### Git Workspace Lifecycle
+
+Branches, worktrees, and commits are scoped to the **milestone**, never to individual phases. Here is what happens in git at each workflow step:
+
+| Step | Branch / Worktree Action | Commit Offered |
+| --- | --- | --- |
+| `ct-brainstorm` | Asks whether to create a dedicated workspace. If yes: create branch `feature/M##-slug` off the default branch and worktree `.worktrees/M##-slug/`. If no: stay in the current checkout. | `brainstorm: M##-slug` |
+| `ct-plan` | No new branch or worktree. Planning happens in the resolved milestone workspace. | `plan: P##-slug` |
+| `ct-execute` | No new per-phase branch. Code and doc changes happen in the milestone workspace. Execution commits are made by the `subagent-driven-development` skill as the plan progresses. | (per plan task) |
+| `ct-complete-phase` | No merging. Branch and worktree stay open until the milestone completes. | `docs: P##-slug complete` |
+| `ct-complete-milestone` | 1. Offer to commit any uncommitted changes in the milestone workspace. 2. If a dedicated worktree is in use, offer a **squash merge** of `feature/M##-slug` into the default branch, then tag the result `milestone/M##-slug`, then offer to remove `.worktrees/M##-slug/` and delete `feature/M##-slug`. 3. If no dedicated worktree, tag the current commit `milestone/M##-slug` in place. | milestone completion commit + squash merge commit |
+
+**Workspace resolution:** Before any read/write during plan, execute, complete-phase, or complete-milestone, the milestone workspace root is resolved: if `.worktrees/M##-slug/.planning/milestones/M##-slug/` exists, that worktree is used; otherwise the current repo root is used. All work for a milestone stays in that single workspace until the milestone is complete.
+
 ## Commands
 
 ```bash

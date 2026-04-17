@@ -1,4 +1,4 @@
-# P##-slug Summary
+# P##-slug
 
 ## Context
 
@@ -22,3 +22,7 @@ Summarize the phase in one or two sentences.
 
 - [ ] Implementation committed in the milestone workspace or otherwise completed.
 - [ ] Documentation and follow-up state updated.
+
+---
+
+<!-- Plan content is added below this line during ct-plan -->

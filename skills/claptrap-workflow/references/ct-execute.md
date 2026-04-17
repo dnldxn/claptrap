@@ -8,7 +8,7 @@ Invoke `using-superpowers` and `subagent-driven-development` after loading this 
 
 - Parse `M##-slug P##-slug` from the command arguments.
 - Resolve the milestone workspace root using the shared rules in `../SKILL.md` before loading any files or making code changes.
-- Load `<workspace-root>/.planning/milestones/M##-slug/phases/P##-slug/PLAN.md` and `<workspace-root>/.planning/milestones/M##-slug/RESEARCH.md`.
+- Load `<workspace-root>/.planning/milestones/M##-slug/M##-P##-slug-PLAN.md` and `<workspace-root>/.planning/milestones/M##-slug/RESEARCH.md`.
 - Execute the phase inside the resolved milestone workspace. If `.worktrees/M##-slug/` exists for the milestone, all code and document changes happen there.
 - Do not create a per-phase branch or worktree during execution.
-- Update the phase summary status to `in-progress` and update `<workspace-root>/.planning/ROADMAP.md` Current Position Status to `In progress`.
+- Update the phase plan file's Context status to `in-progress` and update `<workspace-root>/.planning/ROADMAP.md` Current Position Status to `In progress`.

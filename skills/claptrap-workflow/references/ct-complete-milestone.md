@@ -6,7 +6,7 @@ This operation is standalone. Do not invoke additional Superpowers workflow skil
 
 1. Parse arguments into `M##-slug`.
 2. Resolve the milestone workspace root using the shared rules in `../SKILL.md`.
-3. Read `<workspace-root>/.planning/milestones/M##-slug/MILESTONE_SUMMARY.md` and inspect all phase statuses.
+3. Read `<workspace-root>/.planning/milestones/M##-slug/MILESTONE_SUMMARY.md` and inspect all phase plan files (`M##-P##-slug-PLAN.md`) in the milestone directory for their Context status.
 4. Determine whether the milestone is running in a dedicated worktree by checking whether `<workspace-root>` is `.worktrees/M##-slug/`.
 5. Detect the default branch using the shared rules in `../SKILL.md`.
 6. If any phase is not `complete`, list the incomplete phases and ask the user whether to archive anyway. Stop if they decline.
