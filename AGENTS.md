@@ -52,6 +52,29 @@ Planning state lives under `.planning/` in the *target project* (not this repo):
 
 Milestone/phase IDs use zero-padded numbers (`M01`, `P02`) with a kebab-case slug derived from the title. Branches are named `feature/M##-slug-P##-slug`; worktrees go to `.worktrees/M##-slug/P##-slug/`.
 
+### `claptrap-next` skill
+
+The **`claptrap-next`** skill is a router for target projects that use `.planning/ROADMAP.md`. Invoke it when you need to **determine the next claptrap step** from the current ROADMAP (including after idle time or handoff), instead of guessing which of brainstorm / plan / execute / complete-phase / complete-milestone applies.
+
+**Behavior (summary):**
+
+1. Read `.planning/ROADMAP.md` if it exists; if the file is missing, treat the workflow as **not started**.
+2. Parse **Current Position**: `Milestone:` (`M##-slug`), `Phase:` (`P##-slug`, phase “X of Y”), `Status:`.
+3. If `Status` is **In progress**, run `git status` in `.worktrees/M##-slug/P##-slug/` to distinguish **dirty** (keep executing) vs **clean** (ready to complete the phase).
+4. Offer **1–3** next actions ordered by recommendation; after selection, load the matching sub-skill with **fresh** slugs from the ROADMAP.
+
+**Sub-skill dispatch:**
+
+| Situation | Load |
+| --- | --- |
+| New milestone / early completion paths | `claptrap-brainstorm` |
+| Plan or resume planning a phase | `claptrap-plan` (pass `M##-slug` and `P##-slug`) |
+| Execute or resume execution | `claptrap-execute` (pass `M##-slug` and `P##-slug`) |
+| Complete current phase (including forcing completion when worktree is dirty) | `claptrap-complete-phase` (pass `M##-slug` and `P##-slug`) |
+| Complete milestone or archive | `claptrap-complete-milestone` (pass `M##-slug`) |
+
+**Important:** After `ct-complete-phase`, re-read the ROADMAP—the **Phase** field advances automatically. Do not assume the next `P##-slug` without reading it.
+
 ## Skills vs Commands
 
 - A **skill** (`skills/*/SKILL.md`) is loaded by the AI on demand via the `Skill` tool. It contains behavioral instructions.

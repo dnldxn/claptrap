@@ -30,11 +30,34 @@ npx skills add https://github.com/softaworks/agent-toolkit --skill mermaid-diagr
 
 # Custom skills (as needed)
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-workflow
+npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-next
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-code-conventions
 npx skills add https://github.com/dnldxn/claptrap/skills --skill snowflake
 npx skills add https://github.com/dnldxn/claptrap/skills --skill jupyter-notebooks
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refactor
 ```
+
+### `claptrap-next` (workflow router)
+
+Use this skill when you want to **advance a claptrap workflow** in a *target* project and need to know **what to do next** from the current `.planning/ROADMAP.md` state.
+
+It:
+
+1. Reads `.planning/ROADMAP.md` (or treats the workflow as not started if the file is missing).
+2. Parses the **Current Position** block: milestone (`M##-slug`), phase (`P##-slug` and “X of Y”), and **Status**.
+3. If status is **In progress**, checks the phase worktree at `.worktrees/M##-slug/P##-slug/` with `git status` to see if it is **dirty** or **clean** (unfinished execution vs ready to complete the phase).
+4. Maps status (and worktree state) to **1–3 recommended next actions** (for example: plan, execute, resume execution, complete phase, complete milestone, brainstorm a new milestone).
+5. After you choose an action, loads the matching **sub-skill** and passes fresh `M##-slug` / `P##-slug` from the ROADMAP:
+
+| Action | Sub-skill |
+| --- | --- |
+| Brainstorm new milestone | `claptrap-brainstorm` |
+| Plan / resume planning | `claptrap-plan` |
+| Execute / resume execution | `claptrap-execute` |
+| Complete phase (including “complete anyway” when dirty) | `claptrap-complete-phase` |
+| Complete milestone / archive | `claptrap-complete-milestone` |
+
+**Pitfalls the skill guards against:** re-read the ROADMAP after `complete-phase` (the phase pointer moves automatically); never pass stale slugs; always inspect the worktree before offering “complete phase” while status is **In progress**.
 
 ## Commands
 
@@ -50,6 +73,7 @@ Manually add the following to `~/.claude/CLAUDE.md` and `~/.agents/AGENTS.md`, u
 
 Follow these guidelines for using Skills for any project work:
 - Always invoke the `karpathy-guidelines` and `ask-questions-if-underspecified` Skills before doing any work
+- For a project that uses claptrap planning (`.planning/ROADMAP.md`), invoke the `claptrap-next` skill when you need to decide the next workflow step or which claptrap sub-skill to run
 - If the plan or implementation work involves creating or modifying any UI elements, also invoke the `frontend-design` skill
 - If the plan or implementation work involves creating or modifying any web elements, also invoke the `web-design-guidelines` skill
 - If you cannot find a Skill, stop and ask for help instead of guessing.
