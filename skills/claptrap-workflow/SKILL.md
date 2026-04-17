@@ -23,8 +23,8 @@ Use this skill as the shared entrypoint for claptrap workflow commands. Identify
 |------|--------|
 | Milestone | `M##-slug` |
 | Phase | `P##-slug` |
-| Branch | `feature/M##-slug-P##-slug` |
-| Worktree | `.worktrees/M##-slug/P##-slug/` |
+| Branch | `feature/M##-slug` |
+| Worktree | `.worktrees/M##-slug/` |
 | Tag | `milestone/M##-slug` |
 
 ### Slug Rules
@@ -36,6 +36,16 @@ Use this skill as the shared entrypoint for claptrap workflow commands. Identify
 - If a sibling milestone or phase would get the same slug, append a short numeric suffix such as `-2`.
 
 Examples: `Build Search UI` -> `build-search-ui`, `Auth & Roles` -> `auth-roles`.
+
+## Git Workspace Conventions
+
+- During `ct-brainstorm`, offer the user a dedicated milestone branch and worktree before writing milestone documents.
+- If accepted, create branch `feature/M##-slug` from the default branch and create worktree `.worktrees/M##-slug/`.
+- When a dedicated worktree exists, all planning, execution, and completion work for that milestone happens inside that worktree until the milestone is complete.
+- Resolve the milestone workspace root before reading or writing milestone files:
+  - If `.worktrees/M##-slug/.planning/milestones/M##-slug/` exists, use `.worktrees/M##-slug/`.
+  - Otherwise use the current repository root.
+- Detect the default branch from `refs/remotes/origin/HEAD` when available. If that is unavailable, prefer `main`, then `master`.
 
 ## Template Loading
 

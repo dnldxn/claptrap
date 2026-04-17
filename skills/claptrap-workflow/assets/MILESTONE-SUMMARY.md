@@ -6,6 +6,13 @@
 - Created: `YYYY-MM-DD`
 - Completed: `TBD`
 
+## Git Workspace
+
+- Mode: `current-checkout`
+- Branch: `TBD`
+- Path: `.`
+- Base Branch: `main`
+
 ## Overview
 
 Briefly describe the milestone goal, scope, and expected user impact.

@@ -20,5 +20,5 @@ Summarize the phase in one or two sentences.
 
 ## Definition of Done
 
-- [ ] Implementation merged or otherwise completed.
+- [ ] Implementation committed in the milestone workspace or otherwise completed.
 - [ ] Documentation and follow-up state updated.

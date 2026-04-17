@@ -1,13 +1,14 @@
 # ct-execute
 
-> **OPERATION OVERRIDE**: The instructions in this file take precedence over any conflicting instructions from `using-superpowers`, `subagent-driven-development`, or `using-git-worktrees`. Follow this file exactly where it differs.
+> **OPERATION OVERRIDE**: The instructions in this file take precedence over any conflicting instructions from `using-superpowers` or `subagent-driven-development`. Follow this file exactly where it differs.
 
-Invoke `using-superpowers`, `subagent-driven-development`, and `using-git-worktrees` after loading this file.
+Invoke `using-superpowers` and `subagent-driven-development` after loading this file.
 
 ## Overrides
 
 - Parse `M##-slug P##-slug` from the command arguments.
-- Load `.planning/milestones/M##-slug/phases/P##-slug/PLAN.md` and `.planning/milestones/M##-slug/RESEARCH.md`.
-- Create worktree `.worktrees/M##-slug/P##-slug/` on branch `feature/M##-slug-P##-slug`.
-- In Step 3, present `Squash and Merge into main` as option `1` and mark it recommended.
-- Update the phase summary status to `in-progress` and update `.planning/ROADMAP.md` Current Position Status to `In progress`.
+- Resolve the milestone workspace root using the shared rules in `../SKILL.md` before loading any files or making code changes.
+- Load `<workspace-root>/.planning/milestones/M##-slug/phases/P##-slug/PLAN.md` and `<workspace-root>/.planning/milestones/M##-slug/RESEARCH.md`.
+- Execute the phase inside the resolved milestone workspace. If `.worktrees/M##-slug/` exists for the milestone, all code and document changes happen there.
+- Do not create a per-phase branch or worktree during execution.
+- Update the phase summary status to `in-progress` and update `<workspace-root>/.planning/ROADMAP.md` Current Position Status to `In progress`.

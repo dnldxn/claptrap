@@ -45,8 +45,8 @@ It:
 
 1. Reads `.planning/ROADMAP.md` (or treats the workflow as not started if the file is missing).
 2. Parses the **Current Position** block: milestone (`M##-slug`), phase (`P##-slug` and “X of Y”), and **Status**.
-3. If status is **In progress**, checks the phase worktree at `.worktrees/M##-slug/P##-slug/` with `git status` to see if it is **dirty** or **clean** (unfinished execution vs ready to complete the phase).
-4. Maps status (and worktree state) to **1–3 recommended next actions** (for example: plan, execute, resume execution, complete phase, complete milestone, brainstorm a new milestone).
+3. If status is **In progress**, checks the active milestone workspace with `git status` to see if it is **dirty** or **clean** (unfinished execution vs ready to complete the phase). The workspace may be the current checkout or `.worktrees/M##-slug/`.
+4. Maps status (and workspace state) to **1–3 recommended next actions** (for example: plan, execute, resume execution, complete phase, complete milestone, brainstorm a new milestone).
 5. After you choose an action, loads the matching **sub-skill** and passes fresh `M##-slug` / `P##-slug` from the ROADMAP:
 
 | Action | Sub-skill |
@@ -57,7 +57,7 @@ It:
 | Complete phase (including “complete anyway” when dirty) | `claptrap-complete-phase` |
 | Complete milestone / archive | `claptrap-complete-milestone` |
 
-**Pitfalls the skill guards against:** re-read the ROADMAP after `complete-phase` (the phase pointer moves automatically); never pass stale slugs; always inspect the worktree before offering “complete phase” while status is **In progress**.
+**Pitfalls the skill guards against:** re-read the ROADMAP after `complete-phase` (the phase pointer moves automatically); never pass stale slugs; keep using the milestone workspace selected during brainstorming; always inspect the active workspace before offering “complete phase” while status is **In progress**.
 
 ## Commands
 

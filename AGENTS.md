@@ -50,7 +50,7 @@ Planning state lives under `.planning/` in the *target project* (not this repo):
   _archive/
 ```
 
-Milestone/phase IDs use zero-padded numbers (`M01`, `P02`) with a kebab-case slug derived from the title. Branches are named `feature/M##-slug-P##-slug`; worktrees go to `.worktrees/M##-slug/P##-slug/`.
+Milestone/phase IDs use zero-padded numbers (`M01`, `P02`) with a kebab-case slug derived from the title. When a dedicated git workspace is created during brainstorming, branches are named `feature/M##-slug` and worktrees go to `.worktrees/M##-slug/`.
 
 ### `claptrap-next` skill
 
@@ -60,7 +60,7 @@ The **`claptrap-next`** skill is a router for target projects that use `.plannin
 
 1. Read `.planning/ROADMAP.md` if it exists; if the file is missing, treat the workflow as **not started**.
 2. Parse **Current Position**: `Milestone:` (`M##-slug`), `Phase:` (`P##-slug`, phase “X of Y”), `Status:`.
-3. If `Status` is **In progress**, run `git status` in `.worktrees/M##-slug/P##-slug/` to distinguish **dirty** (keep executing) vs **clean** (ready to complete the phase).
+3. If `Status` is **In progress**, run `git status` in the active milestone workspace to distinguish **dirty** (keep executing) vs **clean** (ready to complete the phase). The workspace may be the current checkout or `.worktrees/M##-slug/`.
 4. Offer **1–3** next actions ordered by recommendation; after selection, load the matching sub-skill with **fresh** slugs from the ROADMAP.
 
 **Sub-skill dispatch:**
@@ -70,7 +70,7 @@ The **`claptrap-next`** skill is a router for target projects that use `.plannin
 | New milestone / early completion paths | `claptrap-brainstorm` |
 | Plan or resume planning a phase | `claptrap-plan` (pass `M##-slug` and `P##-slug`) |
 | Execute or resume execution | `claptrap-execute` (pass `M##-slug` and `P##-slug`) |
-| Complete current phase (including forcing completion when worktree is dirty) | `claptrap-complete-phase` (pass `M##-slug` and `P##-slug`) |
+| Complete current phase (including forcing completion when the milestone workspace is dirty) | `claptrap-complete-phase` (pass `M##-slug` and `P##-slug`) |
 | Complete milestone or archive | `claptrap-complete-milestone` (pass `M##-slug`) |
 
 **Important:** After `ct-complete-phase`, re-read the ROADMAP—the **Phase** field advances automatically. Do not assume the next `P##-slug` without reading it.
