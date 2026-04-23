@@ -5,24 +5,17 @@ This operation is standalone. Do not invoke additional Superpowers workflow skil
 ## Steps
 
 1. Parse arguments into `M##-slug`.
-2. Resolve the milestone workspace root using the shared rules in `../SKILL.md`.
-3. Read `<workspace-root>/.planning/milestones/M##-slug/MILESTONE_SUMMARY.md` and inspect all phase plan files (`M##-P##-slug-PLAN.md`) in the milestone directory for their Context status.
-4. Determine whether the milestone is running in a dedicated worktree by checking whether `<workspace-root>` is `.worktrees/M##-slug/`.
-5. Detect the default branch using the shared rules in `../SKILL.md`.
-6. If any phase is not `complete`, list the incomplete phases and ask the user whether to archive anyway. Stop if they decline.
-7. Update the milestone summary status to `complete` and add the completion date.
-8. Run `git mv <workspace-root>/.planning/milestones/M##-slug <workspace-root>/.planning/_archive/YYYY-MM-DD-M##-slug`.
-9. Update `<workspace-root>/.planning/ROADMAP.md` to move the milestone to Completed and include the archive date. Leave the git tag field ready to fill once the final tagged commit is known.
-10. If the workspace has uncommitted changes, offer to commit all changes in the milestone workspace before any merge step. Recommend `Commit all milestone changes` first.
-11. If the user accepts, run `git add .` in the milestone workspace and commit with a milestone completion message.
-12. If the milestone uses a dedicated worktree, offer to squash merge branch `feature/M##-slug` back into the default branch (`main` or `master`). Recommend this option.
-13. If the user accepts the squash merge:
-    - Switch to the default branch outside the milestone worktree.
-    - Run a non-interactive squash merge of `feature/M##-slug`.
-    - Create the merge commit on the default branch.
-    - Tag the merged result `milestone/M##-slug`.
-    - Update the ROADMAP completed-milestone entry with git tag `milestone/M##-slug`.
-    - Offer to remove `.worktrees/M##-slug/` and delete branch `feature/M##-slug` after the merge succeeds.
-14. If the user declines the squash merge, tag the current completion commit `milestone/M##-slug`, update the ROADMAP completed-milestone entry with that git tag, and report that the milestone is complete in the milestone workspace while the branch remains open.
-15. If the milestone does not use a dedicated worktree, tag the current completion commit `milestone/M##-slug` and update the ROADMAP completed-milestone entry with that git tag.
-16. Report the final archive path and, if applicable, the merge branch, default branch, retained worktree, and git tag.
+2. Read `.planning/milestones/M##-slug/MILESTONE_SUMMARY.md` and inspect all phase plan files (`M##-P##-slug-PLAN.md`) in the milestone directory for their Context status.
+3. Detect the default branch using the shared rules in `../SKILL.md`.
+4. If any phase is not `complete`, list the incomplete phases and ask the user whether to finalize anyway. Stop if they decline.
+5. Ask the user whether to complete this milestone. If they decline, stop.
+6. If the current checkout has uncommitted milestone work outside the completion-doc updates, offer to commit those milestone changes first. Default to milestone-related changes only. Include unrelated changes only if the user explicitly asks. If the user declines, stop.
+7. If the current branch is `feature/M##-slug`, ask whether to squash merge now. If the user declines, stop and leave the milestone ready to complete later. If unrelated changes would keep the working tree dirty after any milestone-work commit, stop and ask the user to clean or stash them before finalizing.
+8. Update the milestone summary status to `complete` and add the completion date.
+9. Run `git mv .planning/milestones/M##-slug .planning/_archive/YYYY-MM-DD-M##-slug`.
+10. Update `.planning/ROADMAP.md` to move the milestone to Completed, include the archive date, and record the planned git tag name `milestone/M##-slug`. If another active milestone remains, set Current Position from the most recently updated remaining active-milestone row; otherwise keep the completed milestone in Current Position, set Phase to `-`, and set Current Position Status to `Milestone complete`.
+11. Stage only the workflow completion changes (`.planning/ROADMAP.md` and `.planning/_archive/YYYY-MM-DD-M##-slug/`) and commit `docs: M##-slug complete`.
+12. Determine if the current branch is a feature branch (`feature/M##-slug`):
+    - **If on a feature branch**: switch to the default branch, run a non-interactive squash merge, create the merge commit, tag the result `milestone/M##-slug`, then offer to delete branch `feature/M##-slug`.
+    - **If on the default branch**: tag the current milestone completion commit `milestone/M##-slug`.
+13. Report the final archive path, the git tag, and (if applicable) the merge details.

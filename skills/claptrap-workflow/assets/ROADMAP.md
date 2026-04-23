@@ -3,7 +3,7 @@
 ## Current Position
 
 - Milestone: `TBD`
-- Phase: `[X] of [Y] ([Phase name])`
+- Phase: `P##-slug ([X] of [Y])`
 - Status: `Not Started`
 - Last Activity: `YYYY-MM-DD`
 

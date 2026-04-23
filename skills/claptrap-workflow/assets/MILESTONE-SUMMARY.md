@@ -6,11 +6,9 @@
 - Created: `YYYY-MM-DD`
 - Completed: `TBD`
 
-## Git Workspace
+## Git Branch
 
-- Mode: `current-checkout`
 - Branch: `TBD`
-- Path: `.`
 - Base Branch: `main`
 
 ## Overview
