@@ -28,50 +28,36 @@ npx skills add https://github.com/github/awesome-copilot --skill create-agentsmd
 npx skills add https://github.com/wshobson/agents --skill dbt-transformation-patterns
 npx skills add https://github.com/softaworks/agent-toolkit --skill mermaid-diagrams
 
-# Custom skills (as needed)
-npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-workflow
-npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-next
+# Custom workflow skills
+npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-grill-me
+npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-writing-plans
+npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-implement
+npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-close-branch
+
+# Custom domain skills (as needed)
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-code-conventions
 npx skills add https://github.com/dnldxn/claptrap/skills --skill snowflake
 npx skills add https://github.com/dnldxn/claptrap/skills --skill jupyter-notebooks
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refactor
 ```
 
-### `claptrap-next` (workflow router)
+### Claptrap Workflow
 
-Use this skill when you want to **advance a claptrap workflow** in a *target* project and need to know **what to do next** from the current `.planning/ROADMAP.md` state.
+`claptrap-workflow` and `claptrap-next` are deprecated and archived under `skills/_archive/`. New work uses direct `ct-*` skills.
 
-It:
-
-1. Reads `.planning/ROADMAP.md` (or treats the workflow as not started if the file is missing).
-2. Parses the **Current Position** block: milestone (`M##-slug`), phase (`P##-slug` and “X of Y”), and **Status**.
-3. If status is **In progress**, checks the active milestone workspace with `git status` to see if it is **dirty** or **clean** (unfinished execution vs ready to complete the phase). The workspace may be the current checkout or `.worktrees/M##-slug/`.
-4. Maps status (and workspace state) to **1–3 recommended next actions** (for example: plan, execute, resume execution, complete phase, complete milestone, brainstorm a new milestone).
-5. After you choose an action, loads the matching **sub-skill** and passes fresh `M##-slug` / `P##-slug` from the ROADMAP:
-
-| Action | Sub-skill |
-| --- | --- |
-| Brainstorm new milestone | `claptrap-brainstorm` |
-| Plan / resume planning | `claptrap-plan` |
-| Execute / resume execution | `claptrap-execute` |
-| Complete phase (including “complete anyway” when dirty) | `claptrap-complete-phase` |
-| Complete milestone / archive | `claptrap-complete-milestone` |
-
-**Pitfalls the skill guards against:** re-read the ROADMAP after `complete-phase` (the phase pointer moves automatically); never pass stale slugs; keep using the milestone workspace selected during brainstorming; always inspect the active workspace before offering “complete phase” while status is **In progress**.
-
-### Git Workspace Lifecycle
-
-Branches, worktrees, and commits are scoped to the **milestone**, never to individual phases. Here is what happens in git at each workflow step:
-
-| Step | Branch / Worktree Action | Commit Offered |
+| Step | Skill | Output |
 | --- | --- | --- |
-| `ct-brainstorm` | Asks whether to create a dedicated workspace. If yes: create branch `feature/M##-slug` off the default branch and worktree `.worktrees/M##-slug/`. If no: stay in the current checkout. | `brainstorm: M##-slug` |
-| `ct-plan` | No new branch or worktree. Planning happens in the resolved milestone workspace. | `plan: P##-slug` |
-| `ct-execute` | No new per-phase branch. Code and doc changes happen in the milestone workspace. Execution commits are made by the `subagent-driven-development` skill as the plan progresses. | (per plan task) |
-| `ct-complete-phase` | No merging. Branch and worktree stay open until the milestone completes. | `docs: P##-slug complete` |
-| `ct-complete-milestone` | 1. Offer to commit any uncommitted changes in the milestone workspace. 2. If a dedicated worktree is in use, offer a **squash merge** of `feature/M##-slug` into the default branch, then tag the result `milestone/M##-slug`, then offer to remove `.worktrees/M##-slug/` and delete `feature/M##-slug`. 3. If no dedicated worktree, tag the current commit `milestone/M##-slug` in place. | milestone completion commit + squash merge commit |
+| Design | `ct-grill-me` | `.planning/specs/YYYY-MM-DD-<topic>-design.md` |
+| Plan | `ct-writing-plans` | `.planning/plans/YYYY-MM-DD-<topic>-plan.md` |
+| Implement | `ct-implement` | Feature-branch work in the current workspace |
+| Close | `ct-close-branch` | Verified squash merge, optional tag/delete/push |
 
-**Workspace resolution:** Before any read/write during plan, execute, complete-phase, or complete-milestone, the milestone workspace root is resolved: if `.worktrees/M##-slug/.planning/milestones/M##-slug/` exists, that worktree is used; otherwise the current repo root is used. All work for a milestone stays in that single workspace until the milestone is complete.
+Branch rules:
+
+- `ct-implement` creates or reuses `feature/<topic>` in the current workspace. It does not create worktrees.
+- If the plan specifies `M##-slug`, the branch is `feature/M##-slug`.
+- `ct-close-branch` runs verification, asks before squash merge, asks before deleting the branch, and asks before pushing.
+- If the branch is `feature/M##-slug`, closeout creates tag `milestone/M##-slug` after approval.
 
 ## Commands
 
@@ -87,7 +73,8 @@ Manually add the following to `~/.claude/CLAUDE.md` and `~/.agents/AGENTS.md`, u
 
 Follow these guidelines for using Skills for any project work:
 - Always invoke the `karpathy-guidelines` and `ask-questions-if-underspecified` Skills before doing any work
-- For a project that uses claptrap planning (`.planning/ROADMAP.md`), invoke the `claptrap-next` skill when you need to decide the next workflow step or which claptrap sub-skill to run
+- For claptrap workflow work, use `ct-grill-me` -> `ct-writing-plans` -> `ct-implement` -> `ct-close-branch`
+- Do not use `claptrap-workflow` or `claptrap-next`; both are deprecated
 - If the plan or implementation work involves creating or modifying any UI elements, also invoke the `frontend-design` skill
 - If the plan or implementation work involves creating or modifying any web elements, also invoke the `web-design-guidelines` skill
 - If you cannot find a Skill, stop and ask for help instead of guessing.
@@ -96,23 +83,3 @@ Follow these guidelines for using Skills for any project work:
 ## Plugins
 
 - https://github.com/ephraimduncan/opencode-cursor
-
-## External Tools
-
-### agentchattr
-https://github.com/bcurts/agentchattr
-
-```bash
-cd ~/apps
-git clone https://github.com/bcurts/agentchattr.git
-cd <PROJECT_ROOT>
-~/projects/claptrap/scripts/start_agentchattr.sh
-
-~/apps/agentchattr-orig/macos-linux/start.sh
-
-python ~/apps/agentchattr-orig/wrapper.py claude --no-restart
-python ~/apps/agentchattr-orig/wrapper.py codex --no-restart
-```
-
-### Everything Claude Code
-- https://github.com/affaan-m/everything-claude-code
