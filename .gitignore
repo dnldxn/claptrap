@@ -19,3 +19,7 @@ secrets.toml
 .claptrap/
 .serena/
 .worktrees/
+
+# AI assistant artifacts
+context-snapshot.json
+session-log.md
