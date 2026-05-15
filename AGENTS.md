@@ -35,17 +35,10 @@ Current workflow:
 
 | Step | Skill | Writes |
 | --- | --- | --- |
-| Design | `ct-grill-me` | `.planning/specs/YYYY-MM-DD-<topic>-design.md` |
-| Plan | `ct-writing-plans` | `.planning/plans/YYYY-MM-DD-<topic>-plan.md` |
+| Design | `ct-grill-me` | `.planning/specs/YYYY-MM-DD-<topic>-spec.md` |
+| Plan | `ct-writing-plans` | `.planning/plans/YYYY-MM-DD-<spec-slug>-<order>-<plan-slug>.md` |
 | Implement | `ct-implement` | Code/docs on a feature branch in the current workspace |
 | Close | `ct-close-branch` | Verified squash merge, optional tag/delete/push |
-
-Branch rules:
-
-- `ct-implement` creates or reuses `feature/<topic>` in the current workspace. It does not create worktrees.
-- If the plan specifies `M##-slug`, the branch is `feature/M##-slug`.
-- `ct-close-branch` runs verification, asks before squash merge, asks before deleting the branch, and asks before pushing.
-- If the branch is `feature/M##-slug`, closeout creates tag `milestone/M##-slug` after approval.
 
 ## Skills vs Commands
 

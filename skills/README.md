@@ -10,4 +10,8 @@ install_skill ct-writing-plans
 install_skill ct-implement
 install_skill ct-close-branch
 install_skill jupyter-notebooks
+
+# Shared skill
+ln -sf ~/projects/claptrap/skills/ct-manage-state-file ~/.claude/skills/
+ln -sf ~/projects/claptrap/skills/ct-manage-state-file ~/.agents/skills/
 ```
