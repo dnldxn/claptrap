@@ -7,7 +7,7 @@ description: Use when implementation is complete on a Git branch and you need to
 
 Close the current feature branch by squash-merging it back to main, preserving unrelated work, deleting the branch, and run any session close/cleanup operations. Do not stage unrelated changes into the squash commit; stash or carry them onto main instead.
 
-Before the squash-merge, identify the current plan and spec from `.planning/state.md` or workflow context. Prompt independently:
+Before the squash-merge, identify the current plan and spec from `.planning/state.html` or workflow context. Prompt independently:
 - `Archive current plan <filename>?`
 - `Archive current spec <filename>?`
 
