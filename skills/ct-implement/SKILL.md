@@ -11,7 +11,7 @@ description: Use when you have a written plan and are ready to execute it in the
 - After creating the branch, invoke `ct-manage-state-file` to record that the workflow is now in the implementation state and note the branch name.
 - When implementation is complete and ready for review, invoke `ct-manage-state-file` to record that the workflow plan is now implemented and note which plan was finished.
 
-Use the following Skills to implement the plan below. Announce newly loaded skills before starting. Then implement the plan step by step using `subagent-driven-development`. Invoke other skills (frontend-design, systematic-debugging, etc.) as needed.
+Use the following Skills to implement the plan below. Announce newly loaded skills before starting. Then implement the plan step by step using `subagent-driven-development`. Invoke other skills (frontend-design, systematic-debugging, etc.) as needed. Continue until the plan is fully implemented.
 
 **REQUIRED SUB-SKILLS:** Use `using-superpowers`, `context-management`, `token-efficiency`, `subagent-driven-development`, and `ct-manage-state-file`.
 
