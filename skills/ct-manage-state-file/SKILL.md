@@ -23,7 +23,7 @@ Update `.planning/state.html` through the bundled script. Never read or write it
    ```
 
 3. Build a JSON patch combining workflow context and disk file lists (apply grouping rules below).
-   Only open a spec or plan file if `state.html` has no existing summary for it yet.
+   Only open a spec or plan file to synthesize a summary when the current state JSON has none for it.
 
 4. Write the patch:
    ```bash
@@ -32,24 +32,41 @@ Update `.planning/state.html` through the bundled script. Never read or write it
 
 The script handles HTML parsing, schema validation, and rendering.
 
-## Fields
+## JSON structure
 
-- `meta.state`: workflow phase (`design`, `planning`, `implementation`, `code review`, `done`, etc.)
-- `meta.last_action`: 3-8 words; include plan/spec filename or branch when relevant
-- `meta.last_updated`: `YYYY-mm-dd H:M:S`
-- `meta.branch`: current git branch
-- `summary`: 1-2 sentence status summary
-- `open` / `archived`: grouped spec rows with ordered plan lists
+```json
+{
+  "meta": {
+    "state": "design | planning | implementation | code review | done | ...",
+    "last_action": "3-8 words; include plan/spec filename or branch",
+    "last_updated": "YYYY-mm-dd H:M:S",
+    "branch": "current git branch"
+  },
+  "summary": "1-2 sentence status summary",
+  "open": [
+    {
+      "spec": "spec-filename.md",
+      "summary": "1-2 sentence spec summary",
+      "plans": [
+        { "file": "plan-filename.md", "summary": "one sentence", "note": "optional" }
+      ]
+    }
+  ],
+  "archived": []
+}
+```
+
+`archived` uses the same structure as `open`. Partial patches supported — only include fields that changed.
 
 ## Grouping rules
 
-- `.planning/state.html` is authoritative for spec → plan linkage.
-- Resolve plan's parent spec: explicit workflow event → existing state mapping → inferred from filename slug.
-- When link is inferred, mark it in the plan's `note` field (e.g. `"inferred link"`).
+- The `state_io.py read` output is authoritative for existing spec → plan linkage. Preserve these mappings unless a workflow event provides an explicit override.
+- Resolve plan's parent spec: explicit workflow event → existing mapping from `state_io.py read` output → inferred from filename slug.
+- When link is inferred, set `"note": "inferred link"` on that plan entry in the JSON patch.
 - Missing parent → group under `Unmapped / Missing Spec`.
 - Sort plans by filename order (`01`, `02`, …) then lexicographically.
-- Reuse existing summaries; only open a file to synthesize a summary when `state.html` has none for it.
+- Reuse existing summaries from `state_io.py read` output; only open a spec or plan file to synthesize a summary when the current state has none for it.
 
 ## If invoked with no context
 
-Only resync file lists, branch, and timestamp. Leave `meta.state`, `meta.last_action`, and `summary` unchanged.
+Only resync file lists, branch, and timestamp. Preserve any existing plan or spec file summaries. Leave `meta.state`, `meta.last_action`, and `summary` unchanged.
