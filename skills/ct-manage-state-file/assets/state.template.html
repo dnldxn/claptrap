@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Workflow State</title>
+  <style>
+    body { margin: 0; font-family: system-ui, sans-serif; line-height: 1.45; background: #f6f7f9; color: #1f2937; }
+    main { max-width: 960px; margin: 2rem auto; padding: 1.25rem; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; }
+    dl { display: grid; grid-template-columns: 11rem 1fr; gap: 0.35rem 0.75rem; margin: 0 0 1rem; }
+    dt { font-weight: 600; } dd { margin: 0; } p { margin: 0 0 1.25rem; }
+    .accordion { margin: 0 0 1.25rem; }
+    .item { border: 1px solid #d1d5db; border-radius: 6px; background: #f9fafb; margin: 0 0 0.6rem; }
+    .item summary { cursor: pointer; list-style: none; padding: 0.55rem 0.7rem; background: #eef2f7; font-weight: 600; }
+    .item summary::-webkit-details-marker { display: none; }
+    .item-body { padding: 0.55rem 0.7rem; background: #fff; border-top: 1px solid #d1d5db; }
+    .group-summary { margin: 0 0 0.6rem; }
+    .plans-list { margin: 0; padding-left: 1.1rem; } .plans-list li { margin: 0 0 0.35rem; }
+    .empty { border: 1px dashed #d1d5db; border-radius: 6px; padding: 0.55rem 0.7rem; background: #f9fafb; }
+    .muted { color: #6b7280; font-size: 0.9em; } code { font-family: ui-monospace, monospace; font-size: 0.9em; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Workflow State</h1>
+    <dl>
+      <dt>State</dt><dd>{{STATE}}</dd>
+      <dt>Last action</dt><dd>{{LAST_ACTION}}</dd>
+      <dt>Last updated</dt><dd>{{LAST_UPDATED}}</dd>
+      <dt>Branch</dt><dd>{{BRANCH}}</dd>
+    </dl>
+    <h2>Summary</h2>
+    <p>{{SUMMARY}}</p>
+    <h2>Open</h2>
+    <section class="accordion">{{OPEN_ACCORDION}}</section>
+    <h2>Archived</h2>
+    <section class="accordion">{{ARCHIVED_ACCORDION}}</section>
+  </main>
+  <script id="state-data" type="application/json">{{STATE_JSON}}</script>
+</body>
+</html>
