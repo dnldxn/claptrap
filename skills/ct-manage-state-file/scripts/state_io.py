@@ -61,8 +61,13 @@ def render_accordion(groups):
     out = []
     for g in groups:
         plans = g.get("plans", [])
-        plist = "".join(f'<li><code>{esc(p.get("file",""))}</code> - {esc(p.get("summary",""))}' + (f' <span class="muted">{esc(p["note"])}</span>' if p.get("note") else "") + "</li>" for p in plans) or '<li class="muted">No plans</li>'
-        out.append(f'<details class="item"><summary><code>{esc(g.get("spec",""))}</code></summary><div class="item-body"><p class="group-summary">{esc(g.get("summary",""))}</p><ol class="plans-list">{plist}</ol></div></details>')
+        rows = "".join(
+            f"<tr><td>{i}</td><td><code>{esc(p.get('file',''))}</code></td><td>{esc(p.get('summary',''))}"
+            + (f' <span class="muted">{esc(p["note"])}</span>' if p.get("note") else "")
+            + "</td></tr>"
+            for i, p in enumerate(plans, start=1)
+        ) or '<tr><td colspan="3" class="muted">No plans</td></tr>'
+        out.append(f'<details class="item"><summary><code>{esc(g.get("spec",""))}</code></summary><div class="item-body"><p class="group-summary">{esc(g.get("summary",""))}</p><table class="plans-table"><tbody>{rows}</tbody></table></div></details>')
     return "".join(out)
 
 def render_html(data):
