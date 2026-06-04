@@ -21,5 +21,5 @@ description: Design/spec workflow — start from an idea or existing GitHub Issu
 
 Run from the target repo root. Use absolute path to `gh_spec_create.py`.
 
-Proposal or Github Issue number/URL:
+**Input Value:**
 $ARGUMENTS

@@ -1,6 +1,6 @@
 # [Title]
 
-> **Parent Spec:** #<spec-issue-number>
+> **Spec:** <spec-reference>
 
 ## Objective
 <!-- One sentence describing what this plan delivers -->
