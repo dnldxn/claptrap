@@ -7,7 +7,7 @@ description: Use when you have a written plan and are ready to execute it in the
 
 ## Overrides
 
-- Create a new Git Branch to complete this work, but do **NOT** create a Git Worktree.  All work stays in the current workspace.
+- Create a new Git Branch to complete this work, but do **NOT** create a Git Worktree. All work stays in the current workspace.
 - After creating the branch, invoke `ct-manage-state-file` to record that the workflow is now in the implementation state and note the branch name.
 - When implementation is complete and ready for review, invoke `ct-manage-state-file` to record that the workflow plan is now implemented and note which plan was finished.
 
