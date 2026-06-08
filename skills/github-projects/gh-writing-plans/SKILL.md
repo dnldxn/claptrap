@@ -18,7 +18,7 @@ description: Break a spec into one or more implementation plan files. Input can 
 
 Use a zero-padded order prefix (`01`, `02`, …) for multiple plans; omit it for a single plan. Create `.planning/plans/` if it doesn't exist.
 
-**Log:** Only when you write a file or create/update a GitHub Issue, append one simple line to `.planning/log.md` (create if missing): `- <timestamp> — <action> — <file path or issue URL>`. Get the timestamp with `date '+%Y-%m-%d %H:%M'`. Example action: `Plan written`.
+**Log:** Only when you write a design, spec, or plan file (in the `.planning/` directory) or create/update a GitHub Issue, append one simple line to `.planning/log.md` (create if missing): `- <timestamp> — <action> — <file path or issue URL>`. Get the timestamp with `date '+%Y-%m-%d %H:%M'`. Example action: `Spec written`, `Spec issue created`, `Spec issue updated`.
 
 **Input Value:**
 $ARGUMENTS

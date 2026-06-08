@@ -9,7 +9,7 @@ Do **NOT** create a new Git Branch or Git Worktree to complete this work. All wo
 
 Implement the plan step by step using `subagent-driven-development`. Invoke other skills (frontend-design, systematic-debugging, etc.) as needed. Continue until the plan is fully implemented.
 
-**Log:** Only when you write a file or create/update a GitHub Issue, append one simple line to `.planning/log.md` (create if missing): `- <timestamp> — <action> — <file path or issue URL>`. Get the timestamp with `date '+%Y-%m-%d %H:%M'`. Example action: `File written`, `Issue updated`.
+**Log:** Only when you write a design, spec, or plan file (in the `.planning/` directory) or create/update a GitHub Issue, append one simple line to `.planning/log.md` (create if missing): `- <timestamp> — <action> — <file path or issue URL>`. Get the timestamp with `date '+%Y-%m-%d %H:%M'`. Example action: `Spec written`, `Spec issue created`, `Spec issue updated`.
 
 Plan:
 $ARGUMENTS
