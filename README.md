@@ -36,6 +36,8 @@ npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-close-branch
 
 npx skills add https://github.com/dnldxn/claptrap/skills/githhub-projects --skill gh-grill-me
 npx skills add https://github.com/dnldxn/claptrap/skills/githhub-projects --skill gh-writing-plans
+npx skills add https://github.com/dnldxn/claptrap/skills/githhub-projects --skill gh-implement
+
 
 # Custom domain skills (as needed)
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-code-conventions
