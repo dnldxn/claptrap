@@ -25,6 +25,7 @@ Manual setup steps (not handled by the installer) are documented in `README.md`,
 - `skills/ct-close-branch/` — branch verification, merge, and cleanup workflow wrapper
 - `skills/claptrap-code-conventions/` — language-specific style guidelines (`python.md`, `snowflake.md`)
 - `skills/snowflake/` — Snowflake SQL skill with reference docs
+- `skills/dagu/` — Dagu workflow orchestration, DAG YAML, REST API, MCP, and run-debugging reference
 - `skills/jupyter-notebooks/` — Jupyter notebook skill with helper scripts
 - `skills/_archive/` — deprecated/retired skills kept for reference
 - `docs/install/` — provider-specific installation notes (Cursor, Zed, OpenCode)

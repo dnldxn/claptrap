@@ -42,6 +42,7 @@ npx skills add https://github.com/dnldxn/claptrap/skills/githhub-projects --skil
 # Custom domain skills (as needed)
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-code-conventions
 npx skills add https://github.com/dnldxn/claptrap/skills --skill snowflake
+npx skills add https://github.com/dnldxn/claptrap/skills --skill dagu
 npx skills add https://github.com/dnldxn/claptrap/skills --skill jupyter-notebooks
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refactor
 ```

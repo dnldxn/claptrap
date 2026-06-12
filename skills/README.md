@@ -23,9 +23,18 @@ ln -sf ~/projects/claptrap/skills/ct-manage-state-file ~/.claude/skills/
 ln -sf ~/projects/claptrap/skills/ct-manage-state-file ~/.agents/skills/
 ln -sf ~/projects/claptrap/skills/ct-manage-state-file ~/.hermes/skills/claptrap/
 
+# Domain skills
+ln -sf ~/projects/claptrap/skills/dagu ~/.claude/skills/
+ln -sf ~/projects/claptrap/skills/dagu ~/.agents/skills/
+ln -sf ~/projects/claptrap/skills/dagu ~/.hermes/skills/claptrap/
+
 rm -f ~/.claude/skills/ct-manage-state-file
 rm -f ~/.agents/skills/ct-manage-state-file
 rm -f ~/.hermes/skills/claptrap/ct-manage-state-file
+
+rm -f ~/.claude/skills/dagu
+rm -f ~/.agents/skills/dagu
+rm -f ~/.hermes/skills/claptrap/dagu
 
 
 mkdir -p ~/.config/opencode/commands/
