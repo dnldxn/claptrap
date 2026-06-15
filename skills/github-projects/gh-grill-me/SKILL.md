@@ -20,7 +20,6 @@ description: Design/spec workflow — start from an idea or existing GitHub Issu
 
 Run from the target repo root. Use absolute path to `gh_spec_create.py`.
 
-**Log:** Only when you write a design, spec, or plan file (in the `.planning/` directory) or create/update a GitHub Issue, append one simple line to `.planning/log.md` (create if missing): `- <timestamp> — <action> — <file path or issue URL>`. Get the timestamp with `date '+%Y-%m-%d %H:%M'`. Example action: `Spec written`, `Spec issue created`, `Spec issue updated`.
 
 **Input Value:**
 $ARGUMENTS

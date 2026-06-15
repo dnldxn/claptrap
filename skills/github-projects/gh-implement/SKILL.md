@@ -9,7 +9,18 @@ Do **NOT** create a new Git Branch or Git Worktree to complete this work. All wo
 
 Implement the plan step by step using `subagent-driven-development`. Invoke other skills (frontend-design, systematic-debugging, etc.) as needed. Continue until the plan is fully implemented.
 
-**Log:** Only when you write a design, spec, or plan file (in the `.planning/` directory) or create/update a GitHub Issue, append one simple line to `.planning/log.md` (create if missing): `- <timestamp> — <action> — <file path or issue URL>`. Get the timestamp with `date '+%Y-%m-%d %H:%M'`. Example action: `Spec written`, `Spec issue created`, `Spec issue updated`.
 
-Plan:
-$ARGUMENTS
+**Input:** Resolve `$ARGUMENTS` into plan text:
+- **Issue number or GitHub URL** — fetch: `gh issue view <number> --json title,body --jq '"# " + .title + "\n\n" + .body'`. Note the issue number for the completion step.
+- **File path** — read the file directly.
+- **Anything else** — use as-is.
+
+**Plan:**
+_(resolved from input above)_
+
+---
+
+**Completion:** After the plan is fully implemented:
+
+1. If the input was a GitHub Issue, use `AskUserQuestion` to ask: _"Close issue #N as complete?"_ — if yes, run `gh issue close <number>`.
+2. Use `AskUserQuestion` to ask: _"Commit all changes and push?"_ — if yes, run `git add -A && git commit -m "<inferred or confirmed message>"` then `git push`.

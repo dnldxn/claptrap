@@ -30,7 +30,6 @@ Run scripts from the target repo root so they detect the correct GitHub repo. Us
 
 If a GitHub command reports missing project scopes, run `gh auth refresh -s project,read:project` and retry.
 
-**Log:** Only when you write a plan file (in the `.planning/` directory) or create/update a GitHub Issue, append one simple line to `.planning/log.md` (create if missing): `- <timestamp> — <action> — <file path or issue URL>`. Get the timestamp with `date '+%Y-%m-%d %H:%M'`. Example actions: `Plan written`, `Plan issue created`, `Spec issue updated`.
 
 **Input Value:**
 $ARGUMENTS
