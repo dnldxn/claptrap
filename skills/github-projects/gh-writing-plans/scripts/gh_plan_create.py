@@ -121,6 +121,30 @@ def graphql(query: str, variables: dict[str, str]) -> dict[str, Any]:
     return payload
 
 
+PLAN_LABEL_COLOR = "1d76db"
+PLAN_LABEL_DESC = "Implementation plan"
+
+
+def ensure_plan_label(owner: str, repo: str) -> None:
+    """Create or update the 'plan' label matching the gitdash format."""
+    result = subprocess.run(
+        ["gh", "label", "create", "plan",
+         "--color", PLAN_LABEL_COLOR,
+         "--description", PLAN_LABEL_DESC,
+         "--repo", f"{owner}/{repo}"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        # Label likely already exists — edit it to match the desired format
+        subprocess.run(
+            ["gh", "label", "edit", "plan",
+             "--color", PLAN_LABEL_COLOR,
+             "--description", PLAN_LABEL_DESC,
+             "--repo", f"{owner}/{repo}"],
+            capture_output=True, text=True, check=True,
+        )
+
+
 def preflight_project_access() -> None:
     payload = graphql(
         """
@@ -286,6 +310,7 @@ def create_plan(title: str | None, body: str | None, parent: str, existing_issue
     parent_number = parse_parent(parent, owner, repo)
     print(f"Repo: {owner}/{repo}", file=sys.stderr)
     print(f"Parent spec: #{parent_number}", file=sys.stderr)
+    ensure_plan_label(owner, repo)
     preflight_project_access()
     ensure_parent_issue_exists(parent_number)
 

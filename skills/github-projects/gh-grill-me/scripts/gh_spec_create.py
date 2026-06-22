@@ -100,6 +100,30 @@ def graphql(query: str, variables: dict[str, str]) -> dict[str, Any]:
     return payload
 
 
+SPEC_LABEL_COLOR = "5319e7"
+SPEC_LABEL_DESC = "Spec / design document"
+
+
+def ensure_spec_label(owner: str, repo: str) -> None:
+    """Create or update the 'spec' label matching the gitdash format."""
+    result = subprocess.run(
+        ["gh", "label", "create", "spec",
+         "--color", SPEC_LABEL_COLOR,
+         "--description", SPEC_LABEL_DESC,
+         "--repo", f"{owner}/{repo}"],
+        capture_output=True, text=True,
+    )
+    if result.returncode != 0:
+        # Label likely already exists — edit it to match the desired format
+        subprocess.run(
+            ["gh", "label", "edit", "spec",
+             "--color", SPEC_LABEL_COLOR,
+             "--description", SPEC_LABEL_DESC,
+             "--repo", f"{owner}/{repo}"],
+            capture_output=True, text=True, check=True,
+        )
+
+
 def preflight_project_access() -> None:
     payload = graphql(
         """
@@ -222,6 +246,7 @@ def set_project_status(item_id: str) -> None:
 def create_spec(title: str | None, body: str | None, existing_issue: int | None) -> tuple[int, str]:
     owner, repo = detect_repo()
     print(f"Repo: {owner}/{repo}", file=sys.stderr)
+    ensure_spec_label(owner, repo)
     preflight_project_access()
 
     if existing_issue is not None:

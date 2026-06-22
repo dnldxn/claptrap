@@ -22,5 +22,6 @@ _(resolved from input above)_
 
 **Completion:** After the plan is fully implemented:
 
-1. If the input was a GitHub Issue, use `AskUserQuestion` to ask: _"Close issue #N as complete?"_ — if yes, run `gh issue close <number>`.
-2. Use `AskUserQuestion` to ask: _"Commit all changes and push?"_ — if yes, run `git add -A && git commit -m "<inferred or confirmed message>"` then `git push`.
+1. Use `AskUserQuestion` to ask: _"Commit all changes and push?"_ — if yes, run `git add -A && git commit -m "<inferred or confirmed message>"` then `git push`.
+
+2. If the input was a GitHub Issue, use `AskUserQuestion` to ask: _"Close issue #N as complete?"_ — if yes, run `gh issue close <number>`. Then check for a parent via `gh issue view <number> --json parent`. If the issue has a parent, list the parent's sub-issue states with `gh issue view <parent_number> --json subIssuesSummary --jq '.subIssuesSummary'` — if all sub-issues are closed (percent == 100), use `AskUserQuestion` to ask: _"All sub-issues of #{parent} are closed. Close parent #{parent} too?"_ — if yes, run `gh issue close <parent_number>`.  If the user answered no to closing, check for a parent anyway (skip the close, still offer to close the parent if all its sub-issues are closed).
