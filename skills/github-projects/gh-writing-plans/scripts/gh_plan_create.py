@@ -2,25 +2,17 @@
 # /// script
 # dependencies = []
 # ///
-"""Create a plan issue, link it under a spec, and add it to Project #2."""
+"""Create a plan issue and link it under a spec as a sub-issue."""
 
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import re
 import subprocess
 import sys
 import tempfile
 from pathlib import Path
-from typing import Any
-
-
-PROJECT_ID = "PVT_kwHOABcST84BUpee"
-STATUS_FIELD_ID = "PVTSSF_lAHOABcST84BUpeezhCFeD8"
-BACKLOG_OPTION_ID = "f75ad846"
-AUTH_SCOPE_HINT = "gh auth refresh -s project,read:project"
 
 
 def die(message: str) -> None:
@@ -28,17 +20,10 @@ def die(message: str) -> None:
     raise SystemExit(1)
 
 
-def needs_scope_hint(message: str) -> bool:
-    text = message.lower()
-    return "project" in text or "resource not accessible" in text or "scope" in text
-
-
 def run(cmd: list[str]) -> str:
     result = subprocess.run(cmd, capture_output=True, text=True, check=False)
     if result.returncode != 0:
         stderr = result.stderr.strip() or result.stdout.strip()
-        if needs_scope_hint(stderr):
-            die(f"{' '.join(cmd)} failed: {stderr}\nRun: {AUTH_SCOPE_HINT}")
         die(f"{' '.join(cmd)} failed: {stderr}")
     return result.stdout.strip()
 
@@ -101,26 +86,6 @@ def issue_url_for(issue_number: int) -> str:
     return url
 
 
-def graphql(query: str, variables: dict[str, str]) -> dict[str, Any]:
-    args = ["api", "graphql", "-f", f"query={query}"]
-    for key, value in variables.items():
-        args.extend(["-F", f"{key}={value}"])
-    raw = gh(args)
-    try:
-        payload = json.loads(raw)
-    except json.JSONDecodeError as exc:
-        die(f"gh api graphql returned invalid JSON: {exc}")
-    if not isinstance(payload, dict):
-        die("gh api graphql returned unexpected JSON shape")
-    errors = payload.get("errors")
-    if errors:
-        rendered = json.dumps(errors)
-        if needs_scope_hint(rendered):
-            die(f"gh api graphql returned errors: {rendered}\nRun: {AUTH_SCOPE_HINT}")
-        die(f"gh api graphql returned errors: {rendered}")
-    return payload
-
-
 PLAN_LABEL_COLOR = "1d76db"
 PLAN_LABEL_DESC = "Implementation plan"
 
@@ -145,31 +110,8 @@ def ensure_plan_label(owner: str, repo: str) -> None:
         )
 
 
-def preflight_project_access() -> None:
-    payload = graphql(
-        """
-        query($projectId: ID!) {
-          node(id: $projectId) {
-            ... on ProjectV2 { id }
-          }
-        }
-        """,
-        {"projectId": PROJECT_ID},
-    )
-    node = payload.get("data", {}).get("node")
-    if not isinstance(node, dict) or node.get("id") != PROJECT_ID:
-        die(f"cannot access Project #2 before creating issue. Run: {AUTH_SCOPE_HINT}")
-
-
-def get_issue_node_id(issue_number: int) -> str:
-    issue_id = gh(["issue", "view", str(issue_number), "--json", "id", "--jq", ".id"])
-    if not issue_id:
-        die(f"cannot determine node id for issue #{issue_number}")
-    return issue_id
-
-
 def ensure_parent_issue_exists(parent_number: int) -> None:
-    get_issue_node_id(parent_number)
+    gh(["issue", "view", str(parent_number), "--json", "number", "--jq", ".number"])
 
 
 def get_issue_database_id(owner: str, repo: str, issue_number: int) -> str:
@@ -177,97 +119,6 @@ def get_issue_database_id(owner: str, repo: str, issue_number: int) -> str:
     if not database_id:
         die(f"cannot determine REST database id for issue #{issue_number}")
     return database_id
-
-
-def add_to_project(issue_node_id: str) -> None:
-    item_id = ensure_project_item(issue_node_id)
-    set_project_status(item_id)
-
-
-def find_project_item_id(issue_node_id: str) -> str | None:
-    cursor: str | None = None
-    query = """
-    query($projectId: ID!, $cursor: String) {
-      node(id: $projectId) {
-        ... on ProjectV2 {
-          items(first: 50, after: $cursor) {
-            nodes {
-              id
-              content { ... on Issue { id } }
-            }
-            pageInfo { hasNextPage endCursor }
-          }
-        }
-      }
-    }
-    """
-    while True:
-        variables = {"projectId": PROJECT_ID}
-        if cursor:
-            variables["cursor"] = cursor
-        payload = graphql(query, variables)
-        items = payload.get("data", {}).get("node", {}).get("items", {})
-        for item in items.get("nodes", []) or []:
-            content = item.get("content") if isinstance(item, dict) else None
-            if isinstance(content, dict) and content.get("id") == issue_node_id:
-                item_id = item.get("id")
-                if isinstance(item_id, str) and item_id:
-                    return item_id
-        page_info = items.get("pageInfo", {}) if isinstance(items, dict) else {}
-        if not page_info.get("hasNextPage"):
-            return None
-        cursor = page_info.get("endCursor")
-        if not isinstance(cursor, str) or not cursor:
-            return None
-
-
-def ensure_project_item(issue_node_id: str) -> str:
-    existing_item_id = find_project_item_id(issue_node_id)
-    if existing_item_id:
-        return existing_item_id
-
-    add_payload = graphql(
-        """
-        mutation($projectId: ID!, $contentId: ID!) {
-          addProjectV2ItemById(input: {projectId: $projectId, contentId: $contentId}) {
-            item { id }
-          }
-        }
-        """,
-        {"projectId": PROJECT_ID, "contentId": issue_node_id},
-    )
-    item_id = (
-        add_payload.get("data", {})
-        .get("addProjectV2ItemById", {})
-        .get("item", {})
-        .get("id")
-    )
-    if not item_id:
-        die("cannot determine Project item id from addProjectV2ItemById response")
-    return item_id
-
-
-def set_project_status(item_id: str) -> None:
-    graphql(
-        """
-        mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
-          updateProjectV2ItemFieldValue(input: {
-            projectId: $projectId,
-            itemId: $itemId,
-            fieldId: $fieldId,
-            value: {singleSelectOptionId: $optionId}
-          }) {
-            projectV2Item { id }
-          }
-        }
-        """,
-        {
-            "projectId": PROJECT_ID,
-            "itemId": item_id,
-            "fieldId": STATUS_FIELD_ID,
-            "optionId": BACKLOG_OPTION_ID,
-        },
-    )
 
 
 def is_sub_issue(owner: str, repo: str, parent_number: int, issue_number: int) -> bool:
@@ -311,7 +162,6 @@ def create_plan(title: str | None, body: str | None, parent: str, existing_issue
     print(f"Repo: {owner}/{repo}", file=sys.stderr)
     print(f"Parent spec: #{parent_number}", file=sys.stderr)
     ensure_plan_label(owner, repo)
-    preflight_project_access()
     ensure_parent_issue_exists(parent_number)
 
     if existing_issue is not None:
@@ -330,12 +180,10 @@ def create_plan(title: str | None, body: str | None, parent: str, existing_issue
 
     try:
         gh(["issue", "edit", str(issue_number), "--add-label", "plan"])
-        issue_node_id = get_issue_node_id(issue_number)
         sub_issue_id = get_issue_database_id(owner, repo, issue_number)
         ensure_sub_issue(owner, repo, parent_number, issue_number, sub_issue_id)
-        add_to_project(issue_node_id)
     except SystemExit:
-        print(f"Recovery: retry with --issue {issue_number} --parent {parent_number} to finish linkage/project/status without creating a duplicate.", file=sys.stderr)
+        print(f"Recovery: retry with --issue {issue_number} --parent {parent_number} to finish labeling/linkage without creating a duplicate.", file=sys.stderr)
         raise
     return issue_number, issue_url
 

@@ -28,8 +28,5 @@ Run scripts from the target repo root so they detect the correct GitHub repo. Us
 
 3. **Implement directly** — invoke the `gh-implement` Skill with the plan or plans in the current workspace (no file or issue saved).
 
-If a GitHub command reports missing project scopes, run `gh auth refresh -s project,read:project` and retry.
-
-
 **Input Value:**
 $ARGUMENTS
