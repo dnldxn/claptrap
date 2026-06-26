@@ -1,10 +1,10 @@
 # OmniRoute CLI Commands
 
-> The `omniroute` binary (server lifecycle, setup, diagnostics, providers) **and** how to wire external coding CLIs (Claude Code, Codex, Cline, …) to route through OmniRoute on port **20128**.
+> The internal `omniroute` binary for server lifecycle, setup, diagnostics, provider management, keys, models, combos, tunnels, logs, cost, and usage.
 
-When you need this file: operating the local OmniRoute server from the shell, or pointing a third-party CLI/agent at OmniRoute as its OpenAI/Anthropic-compatible backend.
+**When you need this file:** operating the local OmniRoute server from the shell, diagnosing it with `omniroute doctor`, managing providers/API keys/models/combos/tunnels, or checking logs/cost/usage from the CLI.
 
-Related: **auth-and-api.md** (API-key issuance + endpoint detail), **config-and-env.md** (env vars in depth), **providers.md** (provider management), **debugging.md** (doctor/diagnostics + troubleshooting), **logs-costs-usage.md** (`omniroute cost`/`usage`/`logs`).
+Related: **cli-integrations.md** (wire external coding CLIs to OmniRoute), **auth-and-api.md** (API-key issuance + endpoint detail), **config-and-env.md** (env vars), **providers.md** (provider lifecycle), **debugging.md** (diagnostics), **logs-costs-usage.md** (`omniroute cost`/`usage`/`logs`).
 
 ---
 
@@ -46,7 +46,6 @@ Non-interactive env vars: `OMNIROUTE_API_KEY` (provider key, bound to `--api-key
 
 ```bash
 omniroute doctor                      # Full check
-omniroute doctor --json               # Machine-readable
 omniroute doctor --no-liveness        # Skip HTTP health probe
 omniroute doctor --host 0.0.0.0       # Override liveness host
 omniroute doctor --liveness-url <url> # Full health-endpoint override
@@ -114,7 +113,7 @@ omniroute completion                  # Shell completion
 | `--port <n>` | Override API port (default **20128**) |
 | `--mcp` | Run as MCP server over stdio (for IDEs) |
 | `--non-interactive` | CI mode (no prompts; reads env/flags) |
-| `--json` | Machine-readable output (doctor, providers, …) |
+| `--json` | Machine-readable output where supported (for example logs/models; not `doctor`) |
 | `--help`, `-h` | Command-specific help |
 | `--version`, `-v` | Print installed version |
 
@@ -152,123 +151,3 @@ Universal base: `http://localhost:20128/v1` (`§ Available API Endpoints (L699)`
 
 Tokenized VS Code fallback (token embedded in URL, no custom header needed):
 `http://localhost:20128/api/v1/vscode/<sk-token>/chat/completions` (and `/models`, `/responses`). Endpoint/auth detail → **auth-and-api.md**.
-
----
-
-## Wiring external CLI tools to OmniRoute
-
-Consumption flow: **Client → CLI → OmniRoute (`:20128/v1`) → Provider** (`§ How It Works (L23)`). Benefits: one API key for all tools, unified cost tracking, model switching without per-tool reconfig, works local or remote.
-
-### Step 1 — Get an OmniRoute API key
-
-1. Open `/dashboard/api-manager` → **Create API Key**
-2. Name it (e.g. `cli-tools`), select all permissions
-3. Copy the key (`sk-xxx…xxxx`) — needed by every CLI below
-
-(`§ Step 1 (L261)`. Issuance internals → **auth-and-api.md**.)
-
-### Step 2 — Install (npm tools need Node ≥20.20.2 / 22.22.2 / 24.x)
-
-```bash
-npm i -g @anthropic-ai/claude-code   # Claude Code
-npm i -g @openai/codex               # OpenAI Codex
-npm i -g opencode-ai                 # OpenCode
-npm i -g cline                       # Cline
-npm i -g kilocode                    # KiloCode
-npm i -g @qwen-code/qwen-code        # Qwen Code
-pip install aider-chat               # Aider
-cargo install smelt                  # Smelt (Rust)
-```
-
-(`§ Step 2 (L271)`)
-
-### Auto-configure with `setup-*`
-
-Each `setup-*` reads the **live** model catalog from a running OmniRoute and writes that tool's own config (`§ Auto-configure (L48)`):
-
-| Command | Command | Command |
-|---------|---------|---------|
-| `omniroute setup-codex` | `omniroute setup-claude` | `omniroute setup-opencode` |
-| `omniroute setup-cline` | `omniroute setup-kilo` | `omniroute setup-continue` |
-| `omniroute setup-cursor` | `omniroute setup-roo` | `omniroute setup-crush` |
-| `omniroute setup-goose` | `omniroute setup-qwen` | `omniroute setup-aider` |
-| `omniroute setup-gemini` | | |
-
-Common flags: `--remote <url> --api-key <key>` (local tool → remote OmniRoute), `--dry-run` (preview), `--port`. Tools lacking model auto-discovery (Cline, Kilo, Roo, Goose, Qwen, Aider, Gemini) also take `--model <id>` and `--yes`. Launchers `omniroute launch` (Claude Code) and `omniroute launch-codex` (Codex) spawn the CLI with env injected and **write no config**. Master flag/behaviour table lives in `docs/guides/CLI-INTEGRATIONS.md`.
-
-### Step 4 — Global env vars
-
-```bash
-export OPENAI_BASE_URL="http://localhost:20128/v1"
-export OPENAI_API_KEY="sk-…"
-export ANTHROPIC_BASE_URL="http://localhost:20128"   # no /v1 for Anthropic root
-export ANTHROPIC_AUTH_TOKEN="sk-…"
-export GEMINI_BASE_URL="http://localhost:20128/v1"
-export GEMINI_API_KEY="sk-…"
-```
-
-Remote server: replace `localhost:20128` with `http://<server-ip>:20128` (`§ Step 4 Set Global Env Vars (L319)`).
-
-### Per-tool config (manual)
-
-`§ Step 4 Configure Each Tool (L336)`. Or use the dashboard card → **Apply Config**.
-
-```bash
-# Claude Code → ~/.claude/settings.json (Anthropic root, NO /v1)
-{"env":{"ANTHROPIC_BASE_URL":"http://localhost:20128","ANTHROPIC_AUTH_TOKEN":"sk-…"}}
-
-# OpenAI Codex → ~/.codex/config.yaml
-model: auto
-apiKey: sk-…
-apiBaseUrl: http://localhost:20128/v1
-
-# Cline (CLI) → ~/.cline/data/globalState.json
-{"apiProvider":"openai","openAiBaseUrl":"http://localhost:20128/v1","openAiApiKey":"sk-…"}
-
-# KiloCode (CLI)
-kilocode --api-base http://localhost:20128/v1 --api-key sk-…
-
-# Qwen Code → ~/.qwen/.env
-OPENAI_API_KEY="sk-…"
-OPENAI_BASE_URL="http://localhost:20128/v1"
-OPENAI_MODEL="auto"
-```
-
-- **OpenCode**: `~/.config/opencode/opencode.json` → provider `omniroute` using npm `@ai-sdk/openai-compatible`, `baseURL: …/v1`. Thinking variants: `opencode run "…" --model omniroute/<model> --variant high`.
-- **Continue**: `~/.continue/config.yaml` → `provider: openai`, `apiBase: …/v1`; restart VS Code.
-- **VS Code Insiders**: `chatLanguageModels.json` with tokenized `url`/`modelsUrl` (`…/api/v1/vscode/<token>/…`) when custom headers aren't supported.
-- **Kiro CLI** (Amazon): uses its own AWS SSO auth — OmniRoute not used as its backend; Kiro IDE uses the MITM endpoint.
-
----
-
-## Catalogs: CLI Code's vs CLI Agents vs ACP
-
-Three dashboard pages, one source of truth (`src/shared/constants/cliTools.ts`):
-
-| Page | Route | Concept | Count |
-|------|-------|---------|-------|
-| **CLI Code's** | `/dashboard/cli-code` | Coding CLIs you point at OmniRoute | **19** |
-| **CLI Agents** | `/dashboard/cli-agents` | Autonomous agents, same flow, broader scope | **6** |
-| **ACP Agents** | `/dashboard/acp-agents` | CLIs OmniRoute **spawns** as backend via stdio/ACP (reverse flow) | registry |
-
-- **CLI Code's (19)** (`§ CLI Code's Catalog (L94)`): claude, codex, cline, kilo, roo, continue, qwen, aider, forge, jcode, deepseek-tui, opencode, droid, copilot, gemini-cli, cursor-cli, smelt, pi, custom. `baseUrlSupport: partial` (droid, gemini-cli, cursor-cli) shows "⚠ Base URL parcial".
-- **CLI Agents (6)** (`§ CLI Agents Catalog (L124)`): hermes-agent, openclaw, goose, interpreter, warp, agent-deck.
-- **ACP Agents** (`§ ACP Agents (L139)`): registry in `src/lib/acp/registry.ts` (≠ `CLI_TOOLS`). Spawnable: codex, claude, goose, gemini-cli, openclaw, aider, opencode, cline, qwen-code, forge, interpreter, cursor-cli, warp.
-- **MITM backlog** (`§ MITM Backlog (L147)`): no native custom base URL, hidden from dashboard — windsurf, amp, amazon-q/kiro-cli, cowork.
-
-Batch detection: `GET /api/cli-tools/all-statuses` (`§ Batch Detection API (L162)`). Legacy routes 308-redirect: `/dashboard/cli-tools` → `/dashboard/cli-code`, `/dashboard/agents` → `/dashboard/acp-agents`.
-
----
-
-## Troubleshooting
-
-| Error | Cause | Fix |
-|-------|-------|-----|
-| `Connection refused` | OmniRoute not running | `omniroute serve` |
-| `401 Unauthorized` | Wrong API key | Check `/dashboard/api-manager` |
-| `No combo configured` | No active routing combo | Set up in `/dashboard/combos` |
-| CLI "not installed" | Binary not in PATH | `which <command>` |
-| Dashboard "not detected" after install | Stale cache | Click "⟳ Refresh detection" |
-| Old `/dashboard/cli-tools` link | Pre-v3.8.6 bookmark | Auto-redirects (308) |
-
-(`§ Troubleshooting (L726)`.) Deeper diagnostics → **debugging.md**.

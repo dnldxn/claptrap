@@ -2,7 +2,7 @@
 
 > Every routing strategy OmniRoute can run on a combo — including Fusion, the one that fans a prompt out to MULTIPLE models and synthesizes one answer.
 
-**When you need this file:** choosing or explaining a routing strategy, understanding Fusion multi-model fan-out, the auto router sub-strategies, or picking the right strategy/combo for a goal (coding, cheap-bulk, reliability, latency, quality). For the 9-factor scorer and auto-routing internals, see routing-and-combos.md.
+**When you need this file:** choosing or explaining a routing strategy, understanding Fusion multi-model fan-out, the auto router sub-strategies, or picking the right strategy/combo for a goal (coding, cheap-bulk, reliability, latency, quality). For the 11-factor scorer and auto-routing internals, see routing-and-combos.md.
 
 ## All 17 routing strategies
 
@@ -23,7 +23,7 @@ Declared in `routingStrategies.ts` (`ROUTING_STRATEGY_VALUES`); set per combo as
 | `reset-window` | Prefer soonest-resetting quota window | Maximize throughput across resets |
 | `headroom` | Pick most remaining quota headroom | Avoid rate limits under load |
 | `strict-random` | Random without dedup of repeats | Stress / test randomization |
-| `auto` | 9-factor adaptive scoring (**recommended**) | Default smart routing |
+| `auto` | 11-factor adaptive scoring (**recommended**) | Default smart routing |
 | `lkgp` | Last-Known-Good Path (sticky to last success) | Session stickiness / caching continuity |
 | `context-optimized` | Best fit for current context size | Mixed short / long context requests |
 | `fusion` 🧬 | Fan out to a panel, judge synthesizes one answer | Highest quality on hard/ambiguous prompts |
@@ -108,18 +108,6 @@ More tips: for **forced tier/provider order** use `priority`; for **quota juggli
 
 `taskFit` (8% of the default scorer) ranks models per task type. 30+ models scored across 6 task types: `coding`, `review`, `planning`, `analysis`, `debugging`, `documentation`. Wildcard patterns supported (e.g. `*-coder` → high coding score). `quality-first` / `auto/coding` raise this weight to 0.37, making task fitness dominate selection. `docs/routing/AUTO-COMBO.md §Task Fitness (L529)`.
 
-## Auto Variants
+## Auto variants
 
-7 invokable IDs (6 `AutoVariant` values + bare `auto`): `auto`, `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`. Each maps to a mode pack / strategy (see routing-and-combos.md → Mode Packs). Composable with category × tier suffixes, e.g. `auto/reasoning:pro`, `auto/coding:cheap`. `docs/routing/AUTO-COMBO.md §Auto Variants Recap (L533)`.
-
-## Source map
-
-| Topic | Source |
-| --- | --- |
-| All strategies | `docs/routing/AUTO-COMBO.md §All Routing Strategies (L148)` |
-| Fusion | `§Fusion Strategy (L174)`, `§Configuration (L196)` |
-| Auto router strategies | `§Auto router strategies (L281)`, `§Router strategies in detail (L293)` |
-| Custom strategies | `§Custom router strategies (L464)` |
-| Selection guide | `§Router strategy selection guide (L504)` |
-| Task Fitness | `§Task Fitness (L529)` |
-| Auto Variants | `§Auto Variants Recap (L533)` |
+See **routing-and-combos.md** for the `auto`, `auto/coding`, `auto/fast`, `auto/cheap`, `auto/offline`, `auto/smart`, `auto/lkgp`, and `auto/<category>:<tier>` variant map.

@@ -1,6 +1,6 @@
 # OmniRoute Providers & Auth-Type Taxonomy
 
-> OmniRoute aggregates **231 providers** (50+ with free tiers) across nine auth categories. The single most important distinction is the **credential type**: OAuth vs API Key vs Web Cookie vs Local — the *same* underlying model (e.g. Claude) is reachable through different provider IDs that draw on *different quota pools*.
+> OmniRoute aggregates **~240 providers** (50+ with free tiers) across nine auth categories. The single most important distinction is the **credential type**: OAuth vs API Key vs Web Cookie vs Local — the *same* underlying model (e.g. Claude) is reachable through different provider IDs that draw on *different quota pools*.
 
 **When you need this file:** picking/adding a provider, understanding why `claude` ≠ `claude-web` ≠ `anthropic`, decoding a provider-id suffix (`-web`, `-cli`, `-cn`), answering "how many providers / how many free", citing the ~1.6B free-token budget, or checking ToS caution before relying on a free tier.
 
@@ -8,21 +8,21 @@
 
 ## The headline: auth-type taxonomy
 
-A provider's **category determines what credential you supply and which quota pool you spend.** Totals from `docs/reference/PROVIDER_REFERENCE.md §Categories (L15)`.
+A provider's **category determines what credential you supply and which quota pool you spend.** Exact totals drift by release; check `GET /api/monitoring/health` (`providerSummary.catalogCount`) or `omniroute providers available` for the live catalog. Category counts below are approximate (`docs/reference/PROVIDER_REFERENCE.md §Categories (L15)`).
 
 | Category | Count | Credential you supply | Cost model | Key tradeoffs |
 |---|---|---|---|---|
-| **OAuth** | 19 | Sign-in flow handled by OmniRoute (login popup / imported token). **No API key.** | A subscription you already pay (Claude/Copilot/Cursor plans) | Reuses existing sub quota; tokens **expire & must refresh**; several ToS prohibit third-party/proxy use |
-| **Web Cookie** | 22 | Session cookie(s) copied from the provider's web app via browser DevTools | **$0 marginal** — rides your web account (free or Plus/Pro) | Most **fragile**: cookies expire, anti-bot (Cloudflare Turnstile) challenges, TLS-fingerprint spoofing; **highest ToS risk**; manual re-paste |
-| **API Key** | 157 | An API key/token pasted into the dashboard | Pay-per-token (many ship **free credits / free tiers**) | Most **stable & official**; predictable; you spend real money or burn free credits |
-| **Local** | 11 | None, or optional key + a local base URL | **$0** — your own hardware | Private/offline/unlimited; you must run Ollama, LM Studio, vLLM, llama.cpp, etc.; quality bound by your GPU |
-| **Search** | 11 | API key (web-search APIs) | Free tier / paid | Web search, **not** chat — Brave, Exa, Tavily, Serper, You.com… |
-| **Audio-only** | 7 | API key | Pay-per-use | TTS/STT only — ElevenLabs, Deepgram, AssemblyAI, Cartesia… |
-| **Upstream Proxy** | 2 | Upstream config | Varies | Proxy to *other* provider stacks (`9router`, `cliproxyapi`) |
-| **Cloud Agent** | 3 | API key | Pay-per-task | Long-running coding agents — Codex Cloud, Devin, Jules |
+| **OAuth** | ~20 | Sign-in flow handled by OmniRoute (login popup / imported token). **No API key.** | A subscription you already pay (Claude/Copilot/Cursor plans) | Reuses existing sub quota; tokens **expire & must refresh**; several ToS prohibit third-party/proxy use |
+| **Web Cookie** | ~20+ | Session cookie(s) copied from the provider's web app via browser DevTools | **$0 marginal** — rides your web account (free or Plus/Pro) | Most **fragile**: cookies expire, anti-bot (Cloudflare Turnstile) challenges, TLS-fingerprint spoofing; **highest ToS risk**; manual re-paste |
+| **API Key** | ~160 | An API key/token pasted into the dashboard | Pay-per-token (many ship **free credits / free tiers**) | Most **stable & official**; predictable; you spend real money or burn free credits |
+| **Local** | ~10+ | None, or optional key + a local base URL | **$0** — your own hardware | Private/offline/unlimited; you must run Ollama, LM Studio, vLLM, llama.cpp, etc.; quality bound by your GPU |
+| **Search** | ~10+ | API key (web-search APIs) | Free tier / paid | Web search, **not** chat — Brave, Exa, Tavily, Serper, You.com… |
+| **Audio-only** | ~7 | API key | Pay-per-use | TTS/STT only — ElevenLabs, Deepgram, AssemblyAI, Cartesia… |
+| **Upstream Proxy** | ~2 | Upstream config | Varies | Proxy to *other* provider stacks (`9router`, `cliproxyapi`) |
+| **Cloud Agent** | ~3 | API key | Pay-per-task | Long-running coding agents — Codex Cloud, Devin, Jules |
 | **System** | 1 | None | — | OmniRoute-internal `auto` zero-config router |
 
-> Counts sum to 233, but the **total is 231** — `huggingchat` and `phind` are listed in *two* categories each (a web-cookie flavor and an API-key flavor). That overlap is the taxonomy itself in miniature: one brand, multiple auth flavors. See `docs/reference/PROVIDER_REFERENCE.md` (full per-ID tables at L34/L58/L85/L247…).
+> Provider counts are a moving catalog snapshot, and some brands appear in multiple auth flavors. Treat the credential type as the reliable taxonomy; use the live catalog for exact counts. See `docs/reference/PROVIDER_REFERENCE.md` (full per-ID tables at L34/L58/L85/L247…).
 
 Enable, configure, and test every provider from the dashboard at **`/dashboard/providers`**.
 
@@ -82,7 +82,7 @@ Worked examples of one brand × three credentials:
 
 ## How many providers? How many free?
 
-- **231 total** providers (`docs/reference/PROVIDER_REFERENCE.md` header). The bundled getting-started guide still says "226" — treat the reference as canonical.
+- **~240 total** providers in current builds. Live check: `GET /api/monitoring/health` → `providerSummary.catalogCount`, or `omniroute providers available`.
 - **50+ have free tiers**; `docs/reference/FREE_TIERS.md` counts **40+ documented free-tier pools** plus a long tail of keyless/uncapped ones.
 
 **"Free forever" (no-credit-card, recurring) standouts** — best starting set (from `PROVIDERS-GUIDE.md` + FREE_TIERS):

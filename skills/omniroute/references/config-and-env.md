@@ -4,7 +4,7 @@
 
 **When you need this file:** setting up a fresh instance, generating required secrets, choosing ports, hardening for production, tuning timeouts / circuit breakers / memory, or toggling runtime feature flags. For OAuth auth-type concepts see `providers.md`; for circuit-breaker *behavior* and resilience tuning see `debugging.md`; for how the CLI applies config see `cli-commands.md`; for pricing/usage see `logs-costs-usage.md`.
 
-Source of truth: `docs/reference/ENVIRONMENT.md` (1105 lines) and `docs/reference/FEATURE_FLAGS.md`. Every documented var must also appear in `.env.example` (`npm run check:env-doc-sync` enforces this).
+Source of truth: `docs/reference/ENVIRONMENT.md`, `docs/reference/FEATURE_FLAGS.md`, and the live flag definitions in `src/shared/constants/featureFlagDefinitions.ts`. Every documented var must also appear in `.env.example` (`npm run check:env-doc-sync` enforces this).
 
 ## The Config Model
 
@@ -136,14 +136,14 @@ Built-in client IDs work for **localhost dev**; for remote deployments register 
 
 ## 10. Feature Flags
 
-Named runtime toggles (boolean/enum) persisted in the DB **without redeploy**. Single source of truth: `src/shared/constants/featureFlagDefinitions.ts`. **33 flags across 6 categories.**
+Named runtime toggles (boolean/enum) persisted in the DB **without redeploy**. Single source of truth: `src/shared/constants/featureFlagDefinitions.ts`. **~37 flags across 6 categories** (Security, Network, Policies, Runtime, CLI, Health). Live list + exact count: `GET /api/settings/feature-flags` or `src/shared/constants/featureFlagDefinitions.ts`.
 
 **Catalog by category** (⟳ = `requiresRestart`; default in parens):
 
-- **Security (7):** `REQUIRE_API_KEY` (`false`), `INPUT_SANITIZER_ENABLED` (`true`), `INJECTION_GUARD_MODE` enum `off`/`warn`/`block`/`redact` (`off`), `PII_REDACTION_ENABLED` (`false`), `PII_RESPONSE_SANITIZATION` + `_MODE` (`false`/`redact`), `OUTBOUND_SSRF_GUARD_ENABLED` (`true`).
+- **Security (~8):** `REQUIRE_API_KEY` (`false`), `INPUT_SANITIZER_ENABLED` (`true`), `INJECTION_GUARD_MODE` enum `off`/`warn`/`block`/`redact` (`off`), `PII_REDACTION_ENABLED` (`false`), `PII_RESPONSE_SANITIZATION` + `_MODE` (`false`/`redact`), `OUTBOUND_SSRF_GUARD_ENABLED` (`true`), `ALLOW_API_KEY_REVEAL` (`false`, danger).
 - **Network (7):** `ENABLE_TLS_FINGERPRINT`⟳ (`false`), `ONEPROXY_ENABLED` (`true`), `PROXY_AUTO_SELECT_ENABLED` (`false`), `OMNIROUTE_CONTROL_PLANE_PROXY_DIRECT_FALLBACK` (`false`), `MITM_DISABLE_TLS_VERIFY`⟳ **(danger)** (`false`), `OMNIROUTE_ALLOW_PRIVATE_PROVIDER_URLS` (`false`), `ENABLE_CC_COMPATIBLE_PROVIDER`⟳ (`false`).
 - **Policies (3):** `TOOL_POLICY_MODE` enum `disabled`/`warn`/`block` (`disabled`), `RATE_LIMIT_AUTO_ENABLE` (`false`), `ALLOW_MULTI_CONNECTIONS_PER_COMPAT_NODE`⟳ (`false`).
-- **Runtime (10):** `OMNIROUTE_EMERGENCY_FALLBACK` (`true`, see below), `OMNIROUTE_MCP_ENFORCE_SCOPES` (`true`), `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS` (`false`), `OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS` (`false`), `OMNIROUTE_DISABLE_BACKGROUND_SERVICES`⟳ (`false`), `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS` (`false`), `OMNIROUTE_ENABLE_LIVE_WS`⟳ (`true`), `OMNIROUTE_CODEX_WS_ENABLED` (`true`), `MODEL_CATALOG_INCLUDE_NAMES` (`true`), `ARENA_ELO_SYNC_ENABLED` (`true`).
+- **Runtime (~13):** `OMNIROUTE_EMERGENCY_FALLBACK` (`true`, see below), `OMNIROUTE_MCP_ENFORCE_SCOPES` (`true`), `OMNIROUTE_MCP_COMPRESS_DESCRIPTIONS` (`false`), `OMNIROUTE_ENABLE_RUNTIME_BACKGROUND_TASKS` (`false`), `OMNIROUTE_DISABLE_BACKGROUND_SERVICES`⟳ (`false`), `OMNIROUTE_RTK_TRUST_PROJECT_FILTERS` (`false`), `OMNIROUTE_ENABLE_LIVE_WS`⟳ (`true`), `OMNIROUTE_CODEX_WS_ENABLED` (`true`), `MODEL_CATALOG_INCLUDE_NAMES` (`true`), `ARENA_ELO_SYNC_ENABLED` (`true`), plus release-added runtime toggles — verify live for the complete set.
 - **CLI (3):** `CLI_COMPAT_ALL`⟳ (`false`), `MODEL_ALIAS_COMPAT_ENABLED` (`false`), `PRICING_SYNC_ENABLED` (`false`).
 - **Health (3):** `OMNIROUTE_DISABLE_LOCAL_HEALTHCHECK` (`false`), `OMNIROUTE_DISABLE_TOKEN_HEALTHCHECK` (`false`), `SKILLS_SANDBOX_NETWORK_ENABLED` (`false`).
 
@@ -213,7 +213,7 @@ ENABLE_TLS_FINGERPRINT=true   CLI_COMPAT_ALL=1
 
 - `providers.md` — OAuth auth-type concept, per-provider connection setup.
 - `debugging.md` — circuit-breaker behavior, stream recovery, resilience tuning.
-- `cli-commands.md` — how the `omniroute` CLI applies this config (`serve`, `redis`).
+- `cli-commands.md` — how the internal `omniroute` CLI applies this config; `cli-integrations.md` — external tool env/config.
 - `auth-and-api.md` — API keys, dashboard auth, `/v1/*` request auth.
 - `logs-costs-usage.md` — pricing sync + usage/cost reporting overlaps.
 - Source: `docs/reference/ENVIRONMENT.md`, `docs/reference/FEATURE_FLAGS.md`.
