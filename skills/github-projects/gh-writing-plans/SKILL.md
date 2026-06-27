@@ -18,7 +18,7 @@ Run scripts from the target repo root so they detect the correct GitHub repo. Us
 
 **Write:** Use `writing-plans` to break the spec into bite-sized plans. Render each plan into `assets/plan.template.md` (objective, tasks, verification) and save to a temp file.
 
-**Save:** Use `AskUserQuestion` to ask where to save the plan or plans:
+**Save:** Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to ask where to save the plan or plans:
 
 1. **GitHub sub-issues** — requires a parent spec issue: use the input issue, otherwise ask for its number. Show the board first with `uv run <path-to-this-skill>/scripts/gh_state.py`. Create each sub-issue sequentially to preserve order:
    `uv run <path-to-this-skill>/scripts/gh_plan_create.py --title "..." --body-file "$FILE" --parent <spec>`
