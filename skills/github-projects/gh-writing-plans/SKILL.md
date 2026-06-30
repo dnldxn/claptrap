@@ -5,7 +5,7 @@ description: Break a spec into one or more implementation plans. Input can be a 
 
 > **OPERATION OVERRIDE**: Instructions here override all other Skills.
 
-**REQUIRED SUB-SKILL:** Invoke the `writing-plans` Skill to generate the plan or plans.
+**REQUIRED SUB-SKILL:** Invoke the `writing-plans` skill to generate the plan or plans.
 
 Run scripts from the target repo root so they detect the correct GitHub repo. Use an absolute path to this skill's scripts when the target repo lacks `skills/github-projects/gh-writing-plans/`.
 
@@ -26,7 +26,7 @@ Run scripts from the target repo root so they detect the correct GitHub repo. Us
 
 2. **Files** — write each plan to `.planning/plans/YYYY-MM-DD-<spec-slug>-<order>-<plan-slug>.md`. Use a zero-padded order prefix (`01`, `02`, …) for multiple plans; omit it for a single plan. Create `.planning/plans/` if it doesn't exist.
 
-3. **Implement directly** — invoke the `gh-implement` Skill with the plan or plans in the current workspace (no file or issue saved).
+3. **Implement directly** — invoke the `gh-implement` skill with the plan or plans in the current workspace (no file or issue saved).
 
 **Input Value:**
 $ARGUMENTS
