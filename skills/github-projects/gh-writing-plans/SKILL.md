@@ -5,8 +5,6 @@ description: Break a spec into one or more implementation plans. Input can be a 
 
 > **OPERATION OVERRIDE**: Instructions here override all other Skills.
 
-**REQUIRED SUB-SKILL:** Invoke the `writing-plans` skill to generate the plan or plans.
-
 Run scripts from the target repo root so they detect the correct GitHub repo. Use an absolute path to this skill's scripts when the target repo lacks `skills/github-projects/gh-writing-plans/`.
 
 **Input:** Determine input mode:
@@ -16,7 +14,7 @@ Run scripts from the target repo root so they detect the correct GitHub repo. Us
 
 **Scope:** Based on spec size and complexity, decide on one plan or multiple. Use multiple plans when work spans distinct subsystems or can be parallelized.
 
-**Write:** Use `writing-plans` to break the spec into bite-sized plans. Render each plan into `assets/plan.template.md` (objective, tasks, verification) and save to a temp file.
+**Write:** Spawn one sub-agent per plan, in parallel. Give each sub-agent the full spec, the overall design, and the slice of scope it owns — enough context that it can write its plan standalone, without needing to come back for clarification. Each sub-agent invokes the `writing-plans` skill, renders the result into `assets/plan.template.md` (objective, tasks, verification), and saves it to its own temp file. Wait for every sub-agent to finish, then read each plan file and check it's complete, correctly scoped, and consistent with the others — send any that fall short back for a fix before moving on.
 
 **Save:** Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to ask where to save the plan or plans:
 
