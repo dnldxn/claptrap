@@ -5,11 +5,9 @@ description: Design/spec workflow — start from an idea or existing GitHub Issu
 
 > **OPERATION OVERRIDE**: Instructions here override all other Skills.
 
-**REQUIRED SUB-SKILL:** Use `grill-me` (normal prose, no caveman).
-
 **Input:**: If the user provided an issue number/URL, fetch it as context: `gh issue view <number> --json title,body --jq '"# " + .title + "\n\n" + .body'`. Otherwise use the user's idea description.
 
-**Interview:**: Run `grill-me` seeded with the context below.  Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to interview the user, one question at a time (pause in between each question). After the `grill-me` reaches shared understanding, invoke the `brainstorming` Skill to finalize any remaining open questions.
+**Interview:**: Invoke the `grill-me` and `brainstorming` skills seeded with the context below.  Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to interview the user, one question at a time (pause in between each question). After the `grill-me` and `brainstorming` skills reach shared understanding and are satisfied the requirements are clear, proceed to generate the design/spec.
 
 **Render:**: Fill `assets/spec.template.md` into the final body (use `▼` between sections). Write to a temp file.
 

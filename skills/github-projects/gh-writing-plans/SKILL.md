@@ -1,6 +1,6 @@
 ---
 name: gh-writing-plans
-description: Break a spec into one or more implementation plans. Input can be a GitHub Issue ID/URL, a spec file path, or a text description. Offers to save plans as GitHub sub-issues, as files in .planning/plans/, or implement them directly. Use when planning implementation of a spec or feature.
+description: Break a spec into one or more implementation plans. Use when planning implementation of a spec or feature.
 ---
 
 > **OPERATION OVERRIDE**: Instructions here override all other Skills.
@@ -14,7 +14,7 @@ Run scripts from the target repo root so they detect the correct GitHub repo. Us
 
 **Scope:** Based on spec size and complexity, decide on one plan or multiple. Use multiple plans when work spans distinct subsystems or can be parallelized.
 
-**Write:** Spawn one sub-agent per plan, in parallel. Give each sub-agent the full spec, the overall design, and the slice of scope it owns — enough context that it can write its plan standalone, without needing to come back for clarification. Each sub-agent invokes the `writing-plans` skill, renders the result into `assets/plan.template.md` (objective, tasks, verification), and saves it to its own temp file. Wait for every sub-agent to finish, then read each plan file and check it's complete, correctly scoped, and consistent with the others — send any that fall short back for a fix before moving on.
+**Write:** Spawn one sub-agent per plan, in parallel. Give each sub-agent the full spec, the overall design, and the slice of scope it owns — enough context that it can write its plan standalone, without needing to come back for clarification. Each sub-agent invokes the `writing-plans` skill, renders the result into `assets/plan.template.md` (objective, tasks, verification), and saves it to its own temp file. Each sub-agent should ensure its plan is under 65,536 characters (it can be shorter if needed). Wait for every sub-agent to finish, then read each plan file and check it's complete, correctly scoped, and consistent with the others — send any that fall short back for a fix before moving on.
 
 **Save:** Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to ask where to save the plan or plans:
 
