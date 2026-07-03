@@ -1,17 +1,14 @@
 ---
-name: primer-design
+name: primer-ui-design
 description: >-
   Design and build product UI that conforms to GitHub's Primer Design System —
-  its principles, foundations (color, typography, spacing, layout tokens),
-  components, UI patterns, Octicons, accessibility, and content guidelines. Use
-  this skill whenever a task involves Primer, GitHub-style UI, `@primer/*`
-  packages (primer/react, primer/css, primer-view-components), Octicons, or when
-  the user wants an interface that follows Primer's look, tokens, and behavior —
-  even if they only say "make it look like GitHub", "match GitHub's UI", or name
-  a specific piece (a Primer Button, Banner, Dialog, Blankslate, form pattern,
-  etc.). Also use when reviewing or auditing existing UI for Primer compliance.
-  Do NOT use for a project whose own design system is not Primer (e.g. a repo
-  with its own token/CSS conventions) unless the user explicitly asks for Primer.
+  foundations, components, UI patterns, Octicons, accessibility, and content
+  guidelines. Use when building GitHub-style UI, using `@primer/*` packages
+  (primer/react, primer/css, primer-view-components), Octicons, or when the user
+  wants Primer's look — even if they only say "make it look like GitHub" or name
+  a Primer component (Button, Banner, Dialog, etc.). Also for auditing existing
+  UI against Primer. Skip for projects with their own design system unless
+  Primer is explicitly requested.
 ---
 
 # Primer Design System
