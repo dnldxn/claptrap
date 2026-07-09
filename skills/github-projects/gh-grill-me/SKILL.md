@@ -11,6 +11,8 @@ description: Design/spec workflow — start from an idea or existing GitHub Issu
 
 **Render:**: Fill `assets/spec.template.md` into the final body (use `▼` between sections). Write to a temp file.
 
+**Review:**: Spawn a sub-agent to quickly review the temp spec file, passing it the original user input, a summary of the interview questions and answers, and the temp file path. Weigh each recommendation it returns, then decide per item whether to revise the spec.
+
 **Save:** Use the same question tool discovered above to ask where to save:
 1. Create new GitHub issue → `uv run <path-to-this-skill>/scripts/gh_spec_create.py --title "..." --body-file "$FILE"`
 2. Overwrite existing issue *(only if input was an existing issue)* → `gh issue edit <number> --title "..." --body-file "$FILE"`

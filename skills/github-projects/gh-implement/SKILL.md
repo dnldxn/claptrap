@@ -7,6 +7,8 @@ description: Use when you have a written plan and are ready to execute it in the
 
 Do **NOT** create a new Git Branch or Git Worktree to complete this work. All work stays in the current branch and workspace.
 
+**Clarify first:** Before writing code, ask the user about any ambiguity, gap, or undecided detail in the plan — keep asking until everything is clear and well-defined. Guessing here compounds into wrong code.
+
 Implement the plan step by invoking the `subagent-driven-development` skill. Invoke other skills (frontend-design, systematic-debugging, etc.) as needed. Continue until the plan is fully implemented.
 
 
