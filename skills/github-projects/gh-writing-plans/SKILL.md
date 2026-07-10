@@ -20,9 +20,9 @@ Run scripts from the target repo root so they detect the correct GitHub repo. Us
 
 **Save:** Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to ask where to save the plan or plans:
 
-1. **GitHub sub-issues** — requires a parent spec issue: use the input issue, otherwise ask for its number. Show the board first with `uv run <path-to-this-skill>/scripts/gh_state.py`. Create each sub-issue sequentially to preserve order:
+1. **GitHub sub-issues** — requires a parent spec issue: use the input issue, otherwise ask for its number. Create each sub-issue sequentially to preserve order:
    `uv run <path-to-this-skill>/scripts/gh_plan_create.py --title "..." --body-file "$FILE" --parent <spec>`
-   Report each `issue_number=` and `issue_url=`. Only if meaningful new constraints or decisions belong in the spec, update its body with `uv run <path-to-this-skill>/scripts/gh_issue_body.py --issue <spec> --body-file "$FILE"`. Then show the board again with `gh_state.py`.
+   Report each `issue_number=` and `issue_url=`. Only if meaningful new constraints or decisions belong in the spec, update its body with `uv run <path-to-this-skill>/scripts/gh_issue_body.py --issue <spec> --body-file "$FILE"`.
 
 2. **Files** — write each plan to `.planning/plans/YYYY-MM-DD-<spec-slug>-<order>-<plan-slug>.md`. Use a zero-padded order prefix (`01`, `02`, …) for multiple plans; omit it for a single plan. Create `.planning/plans/` if it doesn't exist.
 
