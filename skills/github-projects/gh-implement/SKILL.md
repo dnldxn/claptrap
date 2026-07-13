@@ -3,30 +3,26 @@ name: gh-implement
 description: Use when you have a written plan and are ready to execute it in the current workspace.
 ---
 
-> **OPERATION OVERRIDE**: The instructions in this file take precedence over conflicting instructions in any other Skills.
+> **OPERATION OVERRIDE**: Instructions here override all other Skills.
 
-Do **NOT** create a new Git Branch or Git Worktree to complete this work. All work stays in the current branch and workspace.
-
-**Clarify first:** Before writing code, ask the user about any ambiguity, gap, or undecided detail in the plan — keep asking until everything is clear and well-defined. Guessing here compounds into wrong code.
-
-Implement the plan step by invoking the `subagent-driven-development` skill. Invoke other skills (frontend-design, systematic-debugging, etc.) as needed. Continue until the plan is fully implemented.
-
+Do **NOT** create a new Git branch or worktree. All work stays in the current branch and workspace.
 
 **Input:** Resolve `$ARGUMENTS` into plan text:
-- **Issue number or GitHub URL** — fetch: `gh issue view <number> --json title,body --jq '"# " + .title + "\n\n" + .body'`. Note the issue number for the completion step.
+- **Issue number or GitHub URL** — fetch: `gh issue view <number> --json title,body --jq '"# " + .title + "\n\n" + .body'`. Note the number for the completion step.
 - **File path** — read the file directly.
 - **Anything else** — use as-is.
 
-**Plan:**
-_(resolved from input above)_
+**Clarify:** Before writing code, resolve every ambiguity, gap, or undecided detail in the plan by asking the user — keep asking until the work is fully clear. Guessing here compounds into wrong code.
 
----
+**Implement:** Execute the plan by invoking the `subagent-driven-development` skill. Invoke other skills (frontend-design, systematic-debugging, etc.) as needed. Continue until the plan is fully implemented.
 
-**Completion:** After the plan is fully implemented:
+**Review:** Spawn a sub-agent to quickly review the implemented changes, passing it the plan text and the diff (`git diff` / `git status`). Its only goal: confirm the changes match the plan — the plan already contains the code snippets, so it just scans for missing, incomplete, or divergent work. Weigh each finding, then decide per item whether to fix.
 
-1. Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to ask: 
-- _"Commit all changes and push?"_ — if yes, run `git add -A && git commit -m "<inferred or confirmed message>"` then `git push`.
-- _"Commit all changes but do not push?"_ — if yes, run `git add -A && git commit -m "<inferred or confirmed message>"`.
-- _"Skip committing changes?"_ — if yes, do nothing.
+**Completion:** Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to ask:
 
-2. If the input was a GitHub Issue, use the question tool to ask: _"Close issue #N as complete?"_ — if yes, run `gh issue close <number>`.
+1. Commit and push? / Commit only? / Skip?
+   - Commit: `git add -A && git commit -m "<inferred or confirmed message>"` (then `git push` if pushing).
+2. If the input was a GitHub Issue: _"Close issue #N as complete?"_ — if yes, `gh issue close <number>`.
+
+**Input Value:**
+$ARGUMENTS

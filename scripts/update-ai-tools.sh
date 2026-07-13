@@ -14,9 +14,6 @@ paseo daemon restart
 
 hermes update --yes
 
-npm install -g omniroute
-omniroute repair
-omniroute setup-claude
-omniroute setup-codex
-omniroute stop
-omniroute serve --daemon --no-open --no-tray
+~/projects/low-power-server/manage-services.sh off 9router
+npm i -g 9router@latest --prefer-online
+~/projects/low-power-server/manage-services.sh on 9router
