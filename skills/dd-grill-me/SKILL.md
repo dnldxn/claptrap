@@ -1,5 +1,5 @@
 ---
-name: gh-grill-me
+name: dd-grill-me
 description: Design/spec workflow — start from an idea or existing GitHub Issue, run grill-me, then save as a new or updated GitHub Issue or local spec file.
 ---
 

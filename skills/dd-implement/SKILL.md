@@ -1,5 +1,5 @@
 ---
-name: gh-implement
+name: dd-implement
 description: Use when you have a written plan and are ready to execute it in the current workspace.
 ---
 

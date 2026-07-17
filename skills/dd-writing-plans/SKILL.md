@@ -1,5 +1,5 @@
 ---
-name: gh-writing-plans
+name: dd-writing-plans
 description: Break a spec into one or more implementation plans. Use when planning implementation of a spec or feature.
 ---
 

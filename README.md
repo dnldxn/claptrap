@@ -29,15 +29,9 @@ npx skills add https://github.com/wshobson/agents --skill dbt-transformation-pat
 npx skills add https://github.com/softaworks/agent-toolkit --skill mermaid-diagrams
 
 # Custom workflow skills
-npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-grill-me
-npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-writing-plans
-npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-implement
-npx skills add https://github.com/dnldxn/claptrap/skills --skill ct-close-branch
-
-npx skills add https://github.com/dnldxn/claptrap/skills/githhub-projects --skill gh-grill-me
-npx skills add https://github.com/dnldxn/claptrap/skills/githhub-projects --skill gh-writing-plans
-npx skills add https://github.com/dnldxn/claptrap/skills/githhub-projects --skill gh-implement
-
+npx skills add https://github.com/dnldxn/claptrap/skills --skill dd-grill-me
+npx skills add https://github.com/dnldxn/claptrap/skills --skill dd-writing-plans
+npx skills add https://github.com/dnldxn/claptrap/skills --skill dd-implement
 
 # Custom domain skills (as needed)
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-code-conventions
