@@ -1,0 +1,6 @@
+{
+  "name": "claptrap-opencode",
+  "private": true,
+  "type": "module",
+  "devDependencies": { "@opencode-ai/plugin": "1.4.7" }
+}

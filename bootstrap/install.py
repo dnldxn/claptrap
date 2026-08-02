@@ -1,14 +1,33 @@
-import subprocess
 from pathlib import Path
-
-import yaml
+import json
+import sys
 
 ###################################################################################################
 # Config
 ###################################################################################################
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-CONFIG = yaml.safe_load((PROJECT_ROOT / "bootstrap" / "config.yml").read_text())
+HOME = Path.home()
+OPENCODE_ROOT = HOME / ".config/opencode"
 
+LINKS = {
+    OPENCODE_ROOT / "claptrap/instructions.md": PROJECT_ROOT / "opencode/claptrap/instructions.md",
+    OPENCODE_ROOT / "claptrap/plugin.ts": PROJECT_ROOT / "opencode/claptrap/plugin.ts",
+    OPENCODE_ROOT / "agents/claptrap": PROJECT_ROOT / "opencode/agents/claptrap",
+    OPENCODE_ROOT / "commands/claptrap": PROJECT_ROOT / "opencode/commands/claptrap",
+}
+
+SWEEP_ROOTS = [
+    OPENCODE_ROOT / "agents",
+    OPENCODE_ROOT / "skills",
+    OPENCODE_ROOT / "commands",
+    OPENCODE_ROOT / "claptrap",
+    HOME / ".claude/agents",
+    HOME / ".claude/skills",
+    HOME / ".claude/commands",
+    HOME / ".cursor/agents",
+    HOME / ".cursor/skills",
+    HOME / ".cursor/commands",
+]
 
 ###################################################################################################
 # Output Formatting
@@ -17,82 +36,124 @@ GREEN = "\033[92m"
 YELLOW = "\033[93m"
 CYAN = "\033[96m"
 BOLD = "\033[1m"
-DIM = "\033[2m"
 RESET = "\033[0m"
 
 
-def success(msg): print(f"{GREEN}✓{RESET} {msg}")
-def warning(msg): print(f"{YELLOW}⚠{RESET} {msg}")
-def info(msg): print(f"{CYAN}→{RESET} {msg}")
-def header(msg): print(f"\n{BOLD}📦 {msg}{RESET}")
-def step(num, msg): print(f"\n{BOLD}[{num}]{RESET} {msg}")
+def success(msg):
+    print(f"{GREEN}✓{RESET} {msg}")
+
+
+def warning(msg):
+    print(f"{YELLOW}⚠{RESET} {msg}")
+
+
+def info(msg):
+    print(f"{CYAN}→{RESET} {msg}")
+
+
+def header(msg):
+    print(f"\n{BOLD}📦 {msg}{RESET}")
+
+
+def fail(msg):
+    print(f"{YELLOW}✗{RESET} {msg}", file=sys.stderr)
+    raise SystemExit(1)
 
 
 ###################################################################################################
-# Helper functions
+# Symlink helpers
 ###################################################################################################
-def run_command(cmd):
-    return subprocess.run(cmd, capture_output=True, text=True, check=False)
+def resolves_into_repo(path: Path) -> bool:
+    try:
+        target = path.resolve(strict=False)
+    except OSError:
+        return False
+    return target == PROJECT_ROOT or PROJECT_ROOT in target.parents
 
 
-def install_claptrap_agents_instructions():
-    # Insert templates/agents_md.txt inside each provider's AGENTS.md file, replacing the placeholder <!-- CLAPTRAP_AGENTS -->
-    template = (PROJECT_ROOT / "bootstrap" / "templates" / "agents_md.txt").read_text()
-    for provider_name, provider in CONFIG["providers"].items():
-        provider_root = Path(provider["root"]).expanduser()
-        agents_md = provider_root / "AGENTS.md"
-        if not agents_md.exists():
-            warning(f"AGENTS.md not found for {provider_name} at {agents_md}")
+def remove_repo_link(path: Path) -> bool:
+    if not path.is_symlink() or not resolves_into_repo(path):
+        return False
+    path.unlink()
+    print(f"Removed repo-owned symlink: {path}")
+    return True
+
+
+def prepare_claptrap_directory() -> None:
+    path = OPENCODE_ROOT / "claptrap"
+    if path.is_symlink():
+        known_conflict = (OPENCODE_ROOT / "commands").resolve(strict=False)
+        if not resolves_into_repo(path) and path.resolve(strict=False) != known_conflict:
+            fail(f"Refusing to replace non-repo claptrap symlink: {path}")
+        path.unlink()
+        info(f"Removed conflicting claptrap symlink: {path}")
+    elif path.exists() and not path.is_dir():
+        fail(f"Cannot create {path}: a non-directory already exists")
+    path.mkdir(parents=True, exist_ok=True)
+
+
+def sweep_repo_links() -> None:
+    for root in SWEEP_ROOTS:
+        if not root.exists() or not root.is_dir():
             continue
-        content = agents_md.read_text()
-        if "<!-- CLAPTRAP_AGENTS -->" not in content:
-            warning(f"Placeholder not found in {agents_md}")
-            continue
-        new_content = content.replace("<!-- CLAPTRAP_AGENTS -->", template)
-        agents_md.write_text(new_content)
-        success(f"Updated AGENTS.md for {provider_name}")
+        for entry in list(root.iterdir()):
+            remove_repo_link(entry)
 
 
-def uninstall_features(dest_dir: Path):
-    removed = 0
-    for link in dest_dir.iterdir():
-        if link.is_symlink():
-            target = link.resolve()
-            if target == PROJECT_ROOT or PROJECT_ROOT in target.parents:
-                link.unlink()
-                removed += 1
-    info(f"Cleaned {dest_dir} ({removed} removed)")
+def link(source: Path, target: Path) -> None:
+    source = source.resolve()
+    if not source.exists():
+        fail(f"Missing repo source: {source}")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if target.is_symlink():
+        if not resolves_into_repo(target):
+            fail(f"Refusing to replace non-repo symlink: {target}")
+        target.unlink()
+    elif target.exists():
+        fail(f"Refusing to replace non-repo file or directory: {target}")
+    target.symlink_to(source, target_is_directory=source.is_dir())
+    success(f"Linked {target} -> {source}")
 
 
-def install_feature(rel_paths: list[str], dest_dir: Path):
-    added = 0
-    for rel_path in rel_paths:
-        src = (PROJECT_ROOT / rel_path).resolve()
-        dest = dest_dir / src.name
-        if dest.exists() or dest.is_symlink():
-            dest.unlink()
-        dest.symlink_to(src)
-        added += 1
-    success(f"Installed {added} -> {dest_dir}")
+###################################################################################################
+# OpenCode configuration guidance
+###################################################################################################
+def config_contains(path: Path, key: str, value: str) -> bool:
+    if not path.exists():
+        return False
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return value in path.read_text(errors="replace")
+    return any(item == value or (isinstance(item, list) and item and item[0] == value) for item in data.get(key, []))
+
+
+def print_config_warnings() -> None:
+    config = OPENCODE_ROOT / "opencode.json"
+    missing_instructions = not config_contains(config, "instructions", "./claptrap/instructions.md")
+    missing_plugin = not config_contains(config, "plugin", "./claptrap/plugin.ts")
+    if missing_instructions or missing_plugin:
+        warning("Add these entries to ~/.config/opencode/opencode.json, merging with existing arrays:")
+        print('  "instructions": ["./claptrap/instructions.md"],')
+        print('  "plugin": ["./claptrap/plugin.ts"]')
+    else:
+        success("OpenCode instructions and plugin are registered")
+    warning("Add the skill-gardener model to provider.9router.models in opencode.json:")
+    print('  "skill-gardener": {"name": "Skill Gardener"}')
 
 
 ###################################################################################################
 # Main
 ###################################################################################################
-header("Installing symlinks")
-for provider_name, provider in CONFIG["providers"].items():
-    cli = provider["cli"]
-    provider_root = Path(provider["root"]).expanduser()
-    header(f"{provider_name}: {provider_root}")
-    result = run_command([cli, "--version"])
-    if result.returncode != 0:
-        warning(f"Skipping {provider_name}: {result.stderr.strip()}")
-        continue
-    info(f"{cli} version: {result.stdout.strip() or result.stderr.strip()}")
-    for feature_name, rel_paths in CONFIG["features"].items():
-        dest_dir = provider_root / feature_name
-        dest_dir.mkdir(parents=True, exist_ok=True)
-        uninstall_features(dest_dir)
-        install_feature(rel_paths, dest_dir)
+def main() -> None:
+    header("Installing Claptrap OpenCode continuous learning")
+    prepare_claptrap_directory()
+    sweep_repo_links()
+    for target, source in LINKS.items():
+        link(source, target)
+    print_config_warnings()
+    success("Done.")
 
-success("Done.")
+
+if __name__ == "__main__":
+    main()

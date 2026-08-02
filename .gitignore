@@ -6,6 +6,8 @@ package.json
 package-lock.json
 .env
 bun.lock
+!opencode/package.json
+!opencode/bun.lock
 
 secrets.toml
 
