@@ -8,7 +8,8 @@ import {
   classifyManagedSkillEdit,
   classifyToolCall,
   isGardenerDue,
-  isLockStale,
+  isGardenerLive,
+  needsFailureBackfill,
   type TrackedEvent,
   type EventRecord,
 } from "./logic"
@@ -20,6 +21,7 @@ const CHILD_ENV = "CLAPTRAP_GARDENER_CHILD"
 const EVENTS_FILE = join(STATE_DIR, "events.jsonl")
 const GARDENER_LOG = join(STATE_DIR, "gardener.log")
 const GARDENER_LOCK = join(STATE_DIR, "gardener.lock")
+const GARDENER_PID_FILE = join(GARDENER_LOCK, "pid")
 const SUMMARY_FILE = join(STATE_DIR, "last-gardener-summary.md")
 type PluginContext = PluginInput
 
@@ -109,20 +111,83 @@ function shellQuote(value: string) {
   return `'${value.replaceAll("'", "'\\''")}'`
 }
 
+function processAlive(pid: number) {
+  try {
+    // Signal 0 checks for existence without delivering anything.
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    // EPERM means the process exists but is owned by someone else.
+    return (error as NodeJS.ErrnoException)?.code === "EPERM"
+  }
+}
+
+function readLockState() {
+  if (!existsSync(GARDENER_LOCK)) return { present: false }
+  let mtimeMs: number | undefined
+  try {
+    mtimeMs = statSync(GARDENER_LOCK).mtimeMs
+  } catch {
+    mtimeMs = undefined
+  }
+  try {
+    const pid = Number.parseInt(readFileSync(GARDENER_PID_FILE, "utf8").trim(), 10)
+    if (Number.isFinite(pid) && pid > 0) return { present: true, mtimeMs, pidAlive: processAlive(pid) }
+  } catch {
+    // No pid recorded (pre-pid run, or the wrapper died before writing it).
+  }
+  return { present: true, mtimeMs }
+}
+
+function clearLock() {
+  rmSync(GARDENER_LOCK, { recursive: true, force: true })
+}
+
+/** A killed gardener never runs its cleanup, so a stale lock and a missing
+ *  terminal event survive it. Reconcile both instead of waiting out
+ *  STALE_LOCK_MS, which would otherwise report "Running: yes" for 12h. */
+function reconcileGardenerState(ctx: PluginContext) {
+  const lock = readLockState()
+  if (isGardenerLive(lock)) return
+  if (!needsFailureBackfill(readEvents(), false)) {
+    if (lock.present) clearLock()
+    return
+  }
+  if (lock.present) clearLock()
+  appendEvent({ event: "gardener_failed", reason: "process died without recording a result" })
+  gardenerToast(ctx, "gardener_failed")
+}
+
+function hasSystemdRun() {
+  if (process.platform !== "linux" || !process.env.XDG_RUNTIME_DIR) return false
+  return ["/usr/bin/systemd-run", "/bin/systemd-run"].some((path) => existsSync(path))
+}
+
+function spawnCommand(wrapper: string) {
+  if (!hasSystemdRun()) return ["/bin/sh", "-c", wrapper]
+  return [
+    "systemd-run",
+    "--user",
+    "--scope",
+    "--quiet",
+    "--collect",
+    `--unit=ct-gardener-${Date.now()}`,
+    "/bin/sh",
+    "-c",
+    wrapper,
+  ]
+}
+
 function appendResultFromShell(event: "gardener_completed" | "gardener_failed") {
   return `printf '{"ts":"%s","event":"${event}"}\\n' "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> ${shellQuote(EVENTS_FILE)}`
 }
 
 function startGardener(ctx: PluginContext, reason: "weekly" | "manual") {
   ensureStateDirectory()
-  if (existsSync(GARDENER_LOCK)) {
-    try {
-      const mtime = statSync(GARDENER_LOCK).mtimeMs
-      if (!isLockStale(mtime)) return "already running"
-      rmSync(GARDENER_LOCK, { recursive: true, force: true })
-    } catch {
-      return "already running"
-    }
+  const lock = readLockState()
+  if (lock.present) {
+    if (isGardenerLive(lock)) return "already running"
+    clearLock()
   }
 
   try {
@@ -135,6 +200,7 @@ function startGardener(ctx: PluginContext, reason: "weekly" | "manual") {
   gardenerToast(ctx, "gardener_started")
   const wrapper = `#!/bin/sh
 set +e
+echo $$ > ${shellQuote(GARDENER_PID_FILE)}
 CLAPTRAP_GARDENER_CHILD=1 opencode run \\
   --agent ${GARDENER_AGENT} --auto \\
   --dir "$HOME/.config/opencode" \\
@@ -150,8 +216,16 @@ rm -rf ${shellQuote(GARDENER_LOCK)}
 exit "$status"
 `
 
+  // A review outlives the session that triggers it. `detached` only breaks the
+  // process group, NOT cgroup membership — the child stays in the caller's
+  // systemd scope and is SIGKILLed when that scope goes away, mid-run, before
+  // it can record a result. A transient --user scope reparents it to the user
+  // manager so it survives. Fall back to a bare spawn where systemd-run is
+  // absent (non-systemd hosts); there the old race remains, but the pid file
+  // still lets us detect the death.
+  const command = spawnCommand(wrapper)
   try {
-    const child = spawn("/bin/sh", ["-c", wrapper], {
+    const child = spawn(command[0]!, command.slice(1), {
       cwd: join(homedir(), ".config/opencode"),
       detached: true,
       stdio: "ignore",
@@ -159,7 +233,7 @@ exit "$status"
     })
     child.unref()
   } catch (error) {
-    rmSync(GARDENER_LOCK, { recursive: true, force: true })
+    clearLock()
     appendEvent({ event: "gardener_failed", reason: String(error) })
     gardenerToast(ctx, "gardener_failed")
     return `failed to start gardener: ${error instanceof Error ? error.message : String(error)}`
@@ -220,6 +294,7 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
   appendEvent({ event: "project_seen", project: projectFor(ctx) })
 
   if (process.env[CHILD_ENV] !== "1") {
+    reconcileGardenerState(ctx)
     notifyGardenerResultIfNeeded(ctx)
     if (isGardenerDue(readEvents())) startGardener(ctx, "weekly")
   }
@@ -239,7 +314,7 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
         async execute() {
           const events = readEvents()
           const summary = existsSync(SUMMARY_FILE) ? readFileSync(SUMMARY_FILE, "utf8") : ""
-          return buildStatusReport(events, summary, existsSync(GARDENER_LOCK), skillCounts(ctx, events))
+          return buildStatusReport(events, summary, isGardenerLive(readLockState()), skillCounts(ctx, events))
         },
       }),
     },
@@ -260,6 +335,7 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
         if (tracked) await recordAndNotify(ctx, tracked)
       }
       if (event.type === "session.idle" && process.env[CHILD_ENV] !== "1") {
+        reconcileGardenerState(ctx)
         notifyGardenerResultIfNeeded(ctx)
         if (isGardenerDue(readEvents())) startGardener(ctx, "weekly")
       }

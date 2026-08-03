@@ -4,7 +4,9 @@ import {
   classifyManagedSkillEdit,
   classifyToolCall,
   isGardenerDue,
+  isGardenerLive,
   isLockStale,
+  needsFailureBackfill,
 } from "../claptrap/logic.ts"
 
 const day = 24 * 60 * 60 * 1000
@@ -56,6 +58,41 @@ test("marks locks stale only after twelve hours", () => {
   const now = Date.parse("2026-08-02T00:00:00.000Z")
   expect(isLockStale(now - 11 * 60 * 60 * 1000, now)).toBe(false)
   expect(isLockStale(now - 13 * 60 * 60 * 1000, now)).toBe(true)
+})
+
+test("treats a lock as running only while its process lives", () => {
+  const now = Date.parse("2026-08-02T00:00:00.000Z")
+  const fresh = now - 60 * 1000
+
+  expect(isGardenerLive({ present: false }, now)).toBe(false)
+  // The bug: a killed run leaves a fresh lock behind. pid wins over lock age.
+  expect(isGardenerLive({ present: true, mtimeMs: fresh, pidAlive: false }, now)).toBe(false)
+  expect(isGardenerLive({ present: true, mtimeMs: fresh, pidAlive: true }, now)).toBe(true)
+  // No pid recorded (pre-pid run) falls back to the 12h staleness window.
+  expect(isGardenerLive({ present: true, mtimeMs: fresh }, now)).toBe(true)
+  expect(isGardenerLive({ present: true, mtimeMs: now - 13 * 60 * 60 * 1000 }, now)).toBe(false)
+})
+
+test("backfills a failure only for a dead start with no recorded result", () => {
+  const now = Date.parse("2026-08-02T00:00:00.000Z")
+  const started = [event("gardener_started", now - 2 * day)]
+
+  expect(needsFailureBackfill(started, false)).toBe(true)
+  // Still running: leave it alone.
+  expect(needsFailureBackfill(started, true)).toBe(false)
+  // Already recorded its own outcome.
+  expect(
+    needsFailureBackfill([...started, event("gardener_completed", now - day)], false),
+  ).toBe(false)
+  expect(needsFailureBackfill([...started, event("gardener_failed", now - day)], false)).toBe(false)
+  // A result older than the newest start means that start went unrecorded.
+  expect(
+    needsFailureBackfill(
+      [event("gardener_completed", now - 3 * day), event("gardener_started", now - day)],
+      false,
+    ),
+  ).toBe(true)
+  expect(needsFailureBackfill([], false)).toBe(false)
 })
 
 test("builds a status report from event and skill fixtures", () => {

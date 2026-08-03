@@ -59,6 +59,33 @@ export function isLockStale(lockMtimeMs: number, now = Date.now()) {
   return now - lockMtimeMs > STALE_LOCK_MS
 }
 
+/** Lock-dir facts. `pidAlive` is undefined when the run recorded no pid (older
+ *  runs, or the lock dir was created but the wrapper never started). */
+export type LockState = {
+  present: boolean
+  mtimeMs?: number
+  pidAlive?: boolean
+}
+
+/** A gardener is running only if its process is. The lock file alone is not
+ *  proof: a SIGKILLed run never reaches its cleanup, so the lock outlives it.
+ *  Falls back to lock age only when no pid was recorded. */
+export function isGardenerLive(lock: LockState, now = Date.now()) {
+  if (!lock.present) return false
+  if (lock.pidAlive !== undefined) return lock.pidAlive
+  return !isLockStale(lock.mtimeMs ?? 0, now)
+}
+
+/** True when a start has no matching terminal event and its process is gone —
+ *  i.e. the run was killed before its shell could record the outcome. */
+export function needsFailureBackfill(events: EventRecord[], live: boolean) {
+  if (live) return false
+  const start = newest(events, ["gardener_started"])
+  if (!start) return false
+  const result = newest(events, ["gardener_completed", "gardener_failed"])
+  return !result || eventTime(result) < eventTime(start)
+}
+
 function formatTime(value: number | undefined) {
   return value === undefined ? "never" : new Date(value).toISOString().replace("T", " ").replace(".000Z", " UTC")
 }
@@ -79,7 +106,7 @@ function eventsSince(events: EventRecord[], now: number, age: number) {
 export function buildStatusReport(
   events: EventRecord[],
   summaryText: string,
-  lockPresent: boolean,
+  running: boolean,
   skillCounts: { active: number; archived: number },
   now = Date.now(),
 ) {
@@ -112,7 +139,7 @@ export function buildStatusReport(
 Gardener
 - Last successful run: ${formatTime(lastSuccess ? eventTime(lastSuccess) : undefined)}
 - Next due: ${formatTime(lastSuccess ? eventTime(lastSuccess) + WEEK_MS : now)}
-- Running: ${lockPresent ? "yes" : "no"}
+- Running: ${running ? "yes" : "no"}
 - Last result: ${lastResult?.event === "gardener_failed" ? "failed; check gardener.log" : resultText}
 
 Managed Skills

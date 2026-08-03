@@ -87,12 +87,13 @@ npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refact
 
 ## Claptrap workflow
 
-| Step | Skill | Output |
+All work is done on the `main` branch and does not use Git worktrees. The workflow is a three-step process:
+
+| Step | Skill | Description |
 | --- | --- | --- |
-| Design | `ct-grill-me` | `.planning/specs/YYYY-MM-DD-<topic>-spec.md` |
-| Plan | `ct-writing-plans` | `.planning/plans/YYYY-MM-DD-<topic>-plan.md` |
-| Implement | `ct-implement` | Changes in the current workspace |
-| Close | `ct-close-branch` | Verified squash merge, optional tag/delete/push |
+| Design | `dd-grill-me` | Interviews the user until a shared understanding is reached. Offers to save the spec to a Github Issue or local planning file |
+| Plan | `dd-writing-plans` | Generates one or more detailed implementation plans from the spec.  Offers to save the plan/s as Github sub-Issues of the spec Issue or to local planning file/s |
+| Implement | `dd-implement` | Implements a plan from a Github Issue or local planning file |
 
 `ct-implement` stays on the current branch when invoked through this workflow. The close skill handles verification and asks before any merge, deletion, or push.
 
@@ -101,5 +102,3 @@ npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-refact
 - `/ct-learn-skill` — preserve verified learning from the current work;
 - `/ct-run-gardener` — start the detached complete weekly review; and
 - `/ct-status` — show Skill, Mnemosyne, and gardener activity.
-
-No separate daily, shutdown, monthly, daemon, cron, database, registry, or proposal workflow is installed.

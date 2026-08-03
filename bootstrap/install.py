@@ -9,8 +9,10 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HOME = Path.home()
 OPENCODE_ROOT = HOME / ".config/opencode"
 
+INSTRUCTIONS_LINK = OPENCODE_ROOT / "claptrap/instructions.md"
+
 LINKS = {
-    OPENCODE_ROOT / "claptrap/instructions.md": PROJECT_ROOT / "opencode/claptrap/instructions.md",
+    INSTRUCTIONS_LINK: PROJECT_ROOT / "opencode/claptrap/instructions.md",
     OPENCODE_ROOT / "claptrap/plugin.ts": PROJECT_ROOT / "opencode/claptrap/plugin.ts",
     OPENCODE_ROOT / "agents/claptrap": PROJECT_ROOT / "opencode/agents/claptrap",
     OPENCODE_ROOT / "commands/claptrap": PROJECT_ROOT / "opencode/commands/claptrap",
@@ -39,20 +41,10 @@ BOLD = "\033[1m"
 RESET = "\033[0m"
 
 
-def success(msg):
-    print(f"{GREEN}✓{RESET} {msg}")
-
-
-def warning(msg):
-    print(f"{YELLOW}⚠{RESET} {msg}")
-
-
-def info(msg):
-    print(f"{CYAN}→{RESET} {msg}")
-
-
-def header(msg):
-    print(f"\n{BOLD}📦 {msg}{RESET}")
+def success(msg): print(f"{GREEN}✓{RESET} {msg}")
+def warning(msg): print(f"{YELLOW}⚠{RESET} {msg}")
+def info(msg): print(f"{CYAN}→{RESET} {msg}")
+def header(msg): print(f"\n{BOLD}📦 {msg}{RESET}")
 
 
 def fail(msg):
@@ -64,10 +56,8 @@ def fail(msg):
 # Symlink helpers
 ###################################################################################################
 def resolves_into_repo(path: Path) -> bool:
-    try:
-        target = path.resolve(strict=False)
-    except OSError:
-        return False
+    try: target = path.resolve(strict=False)
+    except OSError: return False
     return target == PROJECT_ROOT or PROJECT_ROOT in target.parents
 
 
@@ -102,8 +92,7 @@ def sweep_repo_links() -> None:
 
 def link(source: Path, target: Path) -> None:
     source = source.resolve()
-    if not source.exists():
-        fail(f"Missing repo source: {source}")
+    if not source.exists(): fail(f"Missing repo source: {source}")
     target.parent.mkdir(parents=True, exist_ok=True)
     if target.is_symlink():
         if not resolves_into_repo(target):
@@ -119,8 +108,7 @@ def link(source: Path, target: Path) -> None:
 # OpenCode configuration guidance
 ###################################################################################################
 def config_contains(path: Path, key: str, value: str) -> bool:
-    if not path.exists():
-        return False
+    if not path.exists(): return False
     try:
         data = json.loads(path.read_text())
     except (OSError, json.JSONDecodeError):
@@ -130,16 +118,23 @@ def config_contains(path: Path, key: str, value: str) -> bool:
 
 def print_config_warnings() -> None:
     config = OPENCODE_ROOT / "opencode.json"
-    missing_instructions = not config_contains(config, "instructions", "./claptrap/instructions.md")
+    # `instructions` entries resolve against the *project* cwd, not the config
+    # file, so a relative "./claptrap/instructions.md" silently loads nothing
+    # outside ~/.config/opencode. Only an absolute path works globally.
+    missing_instructions = not config_contains(config, "instructions", str(INSTRUCTIONS_LINK))
     missing_plugin = not config_contains(config, "plugin", "./claptrap/plugin.ts")
     if missing_instructions or missing_plugin:
         warning("Add these entries to ~/.config/opencode/opencode.json, merging with existing arrays:")
-        print('  "instructions": ["./claptrap/instructions.md"],')
+        print(f'  "instructions": ["{INSTRUCTIONS_LINK}"],')
         print('  "plugin": ["./claptrap/plugin.ts"]')
     else:
         success("OpenCode instructions and plugin are registered")
-    warning("Add the skill-gardener model to provider.9router.models in opencode.json:")
-    print('  "skill-gardener": {"name": "Skill Gardener"}')
+    has_gardener_model = config.exists() and "skill-gardener" in config.read_text(errors="replace")
+    if has_gardener_model:
+        success("skill-gardener model is registered")
+    else:
+        warning("Add the skill-gardener model to provider.9router.models in opencode.json:")
+        print('  "skill-gardener": {"name": "Skill Gardener"}')
 
 
 ###################################################################################################
