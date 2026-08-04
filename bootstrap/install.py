@@ -129,12 +129,13 @@ def print_config_warnings() -> None:
         print('  "plugin": ["./claptrap/plugin.ts"]')
     else:
         success("OpenCode instructions and plugin are registered")
-    has_gardener_model = config.exists() and "skill-gardener" in config.read_text(errors="replace")
-    if has_gardener_model:
-        success("skill-gardener model is registered")
-    else:
-        warning("Add the skill-gardener model to provider.9router.models in opencode.json:")
-        print('  "skill-gardener": {"name": "Skill Gardener"}')
+    config_text = config.read_text(errors="replace") if config.exists() else ""
+    for alias, label in (("skill-gardener", "Skill Gardener"), ("skill-harvester", "Skill Harvester")):
+        if alias in config_text:
+            success(f"{alias} model is registered")
+        else:
+            warning(f"Add the {alias} model to provider.9router.models in opencode.json:")
+            print(f'  "{alias}": {{"name": "{label}"}}')
 
 
 ###################################################################################################

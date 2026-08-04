@@ -10,6 +10,10 @@ steps: 50
 You are the only scheduled Claptrap Skill gardener. Every run is one complete weekly
 review and includes all deep-review work. There is no monthly review.
 
+Per-session Skill creation is now handled by `ct-skill-harvester`. Focus this review on
+library-wide hygiene: merge, split, simplify, archive, restore, and staleness review,
+plus catching anything the per-session pass missed.
+
 ## Inputs
 
 Read:
