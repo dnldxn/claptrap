@@ -1,8 +1,10 @@
 import { expect, test } from "bun:test"
 import {
   buildStatusReport,
+  classifyManagedSkillBashCommand,
   classifyManagedSkillEdit,
   classifyToolCall,
+  pruneEvents,
   HARVESTER_THRESHOLD,
   applyToolToGate,
   isMutatingTool,
@@ -51,6 +53,39 @@ test("detects only managed-skill path shapes", () => {
   expect(classifyManagedSkillEdit("/x/ct-foo/SKILL.md")).toBeUndefined()
   expect(classifyManagedSkillEdit("/x/skills/claptrap/not-ct-foo/SKILL.md")).toBeUndefined()
   expect(classifyManagedSkillEdit("/x/skills/claptrap/ct-foo/README.md")).toBeUndefined()
+})
+
+test("flags bash commands only when a write indicator precedes the managed path", () => {
+  const changed = { event: "managed_skill_changed", name: "ct-foo" }
+  expect(classifyManagedSkillBashCommand("echo hi >> ~/.agents/skills/claptrap/ct-foo/SKILL.md")).toEqual(changed)
+  expect(classifyManagedSkillBashCommand("tee /x/skills-archive/claptrap/ct-foo/SKILL.md < in")).toEqual(changed)
+  expect(classifyManagedSkillBashCommand("mkdir -p ~/.agents/skills/claptrap/ct-foo")).toEqual(changed)
+  expect(classifyManagedSkillBashCommand("sed -i 's/a/b/' /x/skills/claptrap/ct-foo/SKILL.md")).toEqual(changed)
+  // Reads must not count as changes.
+  expect(classifyManagedSkillBashCommand("cat ~/.agents/skills/claptrap/ct-foo/SKILL.md")).toBeUndefined()
+  expect(classifyManagedSkillBashCommand("grep managed skills/claptrap/ct-foo/SKILL.md 2>/dev/null")).toBeUndefined()
+  expect(classifyManagedSkillBashCommand("ls /x/skills/claptrap")).toBeUndefined()
+})
+
+test("prunes old events but keeps one project_seen per real project", () => {
+  const now = Date.parse("2026-08-02T00:00:00.000Z")
+  const pruned = pruneEvents(
+    [
+      event("skill_loaded", now - 40 * day, { name: "ct-old" }),
+      event("skill_loaded", now - day, { name: "ct-new" }),
+      event("project_seen", now - 100 * day, { project: "/repo" }),
+      event("project_seen", now - day, { project: "/repo" }),
+      event("project_seen", now - day, { project: "/" }),
+      event("project_seen", now - day, { project: "/other" }),
+    ],
+    now,
+  )
+
+  expect(pruned).toEqual([
+    event("skill_loaded", now - day, { name: "ct-new" }),
+    event("project_seen", now - 100 * day, { project: "/repo" }),
+    event("project_seen", now - day, { project: "/other" }),
+  ])
 })
 
 test("applies the seven-day gardener due rule", () => {

@@ -19,4 +19,4 @@ python3 ../../bootstrap/install.py   # relink after moving/renaming files here
 
 ## Runtime state (outside this repo)
 
-`~/.local/state/claptrap/` holds `events.jsonl`, `{gardener,harvester}.log`, `last-{gardener,harvester}-summary.md`, and `*.lock` directories.
+`~/.local/state/claptrap/` holds `events.jsonl`, `{gardener,harvester}.log`, `last-{gardener,harvester}-summary.md`, and `*.lock` directories. `events.jsonl` is pruned to 30 days at main-session startup (`project_seen` deduped, not aged out); `*.log` files are truncated at each background run and hold only the latest run's output.

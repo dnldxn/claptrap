@@ -17,9 +17,28 @@ export type TrackedEvent = {
   session_id?: string
 }
 
-function eventTime(event: EventRecord) {
+export function eventTime(event: EventRecord) {
   const value = typeof event.ts === "number" ? event.ts : Date.parse(String(event.ts))
   return Number.isFinite(value) ? value : 0
+}
+
+export const EVENT_RETENTION_MS = 30 * DAY_MS
+
+/** Trim event history. Everything the plugin reads looks back at most 30 days,
+ *  except the project set for skill counting — so keep the first `project_seen`
+ *  per project (dropping the useless root "/") and drop everything else older
+ *  than the retention window. */
+export function pruneEvents(events: EventRecord[], now = Date.now()): EventRecord[] {
+  const seenProjects = new Set<string>()
+  return events.filter((event) => {
+    if (event.event === "project_seen") {
+      const project = typeof event.project === "string" ? event.project : ""
+      if (!project || project === "/" || seenProjects.has(project)) return false
+      seenProjects.add(project)
+      return true
+    }
+    return now - eventTime(event) <= EVENT_RETENTION_MS
+  })
 }
 
 export function classifyToolCall(input: ToolInput): TrackedEvent | undefined {
@@ -97,6 +116,21 @@ export function shouldRunHarvester(counter: number, watermark: number, live: boo
   return !live && counter - watermark >= HARVESTER_THRESHOLD
 }
 
+// ponytail: heuristic, not a shell parser. A write indicator (redirect or
+// mutating command word) must appear BEFORE the managed-skill path, which
+// distinguishes `echo x >> .../SKILL.md` from `grep x .../SKILL.md 2>/dev/null`.
+const BASH_WRITE_BEFORE_RE = /(?:>|\b(?:tee|mv|cp|rm|mkdir|touch|ln)\b|\bsed\b[^|;&]*\s-i\b)/
+const MANAGED_SKILL_PATH_RE = /(?:^|[\s/'"])(?:[^\s'"]*\/)?skills(?:-archive)?\/claptrap\/(ct-[^/\s'"]+)/
+
+export function classifyManagedSkillBashCommand(command: string):
+  | { event: "managed_skill_changed"; name: string }
+  | undefined {
+  const match = command.match(MANAGED_SKILL_PATH_RE)
+  if (!match || match.index === undefined) return undefined
+  if (!BASH_WRITE_BEFORE_RE.test(command.slice(0, match.index + 1))) return undefined
+  return { event: "managed_skill_changed", name: match[1]! }
+}
+
 export function classifyManagedSkillEdit(filePath: string):
   | { event: "managed_skill_changed"; name: string }
   | undefined {
@@ -148,7 +182,7 @@ function formatTime(value: number | undefined) {
   return value === undefined ? "never" : new Date(value).toISOString().replace("T", " ").replace(".000Z", " UTC")
 }
 
-function newest(events: EventRecord[], names: string[]) {
+export function newest(events: EventRecord[], names: string[]) {
   return events
     .filter((event) => names.includes(event.event))
     .sort((a, b) => eventTime(b) - eventTime(a))[0]

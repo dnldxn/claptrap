@@ -48,6 +48,22 @@ Generated skills are written outside this directory: repo-specific ones to `<pro
 
 Both agents only touch skills carrying all three markers — a `skills/claptrap/` root, a `ct-` directory prefix, and `managed-by: ct-gardener` in frontmatter. Everything else is read-only, and archiving moves a skill to `skills-archive/claptrap/` rather than deleting it.
 
+## Toasts
+
+Every toast is also written to the OpenCode log. All stay visible for 5 seconds (`TOAST_MS` in `plugin.ts`).
+
+| Trigger | Message | Variant |
+| --- | --- | --- |
+| `skill` tool call | `CT: loaded Skill <name>` | info |
+| Managed Skill edited — via `file.edited`, or a bash command with a write indicator before a `skills/claptrap/ct-*` path | `CT: changed managed Skill <name>` | info |
+| Background agent started | `CT: <agent> started in background` | info |
+| Background agent result seen at next startup or idle | `CT: <agent> completed; run /ct-status` | success |
+| Background agent failed, or a dead run reconciled | `CT: <agent> failed; check <agent>.log` | warning |
+| Recall gate — first mutating tool with no `mnemosyne_recall` yet this session | `CT: mutating files without a Mnemosyne recall this session` | warning |
+| Store gate — session idles after mutating without a `mnemosyne_remember` | `CT: session mutated files without storing a Mnemosyne memory` | warning |
+
+Both gates fire at most once per session and never inside gardener or harvester runs. Routine Mnemosyne calls are recorded to `events.jsonl` and counted by `/ct-status`, but deliberately do not toast — they fire on every recall and store.
+
 ## Commands
 
 - `/ct-status` — recent skill, memory, and background-run activity

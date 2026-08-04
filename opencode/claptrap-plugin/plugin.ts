@@ -1,17 +1,21 @@
 import { type Plugin, type PluginInput, tool } from "@opencode-ai/plugin"
-import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from "node:fs"
+import { appendFileSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from "node:fs"
 import { spawn } from "node:child_process"
 import { homedir } from "node:os"
 import { join } from "node:path"
 import {
   applyToolToGate,
   buildStatusReport,
+  classifyManagedSkillBashCommand,
   classifyManagedSkillEdit,
   classifyToolCall,
+  eventTime,
   isGardenerDue,
   isGardenerLive,
+  newest,
   newGateState,
   needsFailureBackfill,
+  pruneEvents,
   RECALL_REMINDER,
   shouldRunHarvester,
   shouldWarnStore,
@@ -53,7 +57,6 @@ function agentRun(agent: string, prefix: AgentRun["prefix"], label: string): Age
 
 const GARDENER = agentRun("ct-gardener", "gardener", "weekly gardener")
 const HARVESTER = agentRun("ct-skill-harvester", "harvester", "skill-harvester")
-type PluginContext = PluginInput
 
 function timestamp() {
   return new Date().toISOString()
@@ -63,10 +66,12 @@ function ensureStateDirectory() {
   mkdirSync(STATE_DIR, { recursive: true })
 }
 
-function appendEvent(event: Omit<EventRecord, "ts">) {
+function appendEvent(event: Omit<EventRecord, "ts">): EventRecord {
   ensureStateDirectory()
   const agent = process.env[CHILD_ENV]
-  appendFileSync(EVENTS_FILE, `${JSON.stringify({ ts: timestamp(), ...(agent ? { agent } : {}), ...event })}\n`)
+  const record = { ts: timestamp(), ...(agent ? { agent } : {}), ...event } as EventRecord
+  appendFileSync(EVENTS_FILE, `${JSON.stringify(record)}\n`)
+  return record
 }
 
 function readEvents(): EventRecord[] {
@@ -84,62 +89,52 @@ function readEvents(): EventRecord[] {
     })
 }
 
-function eventTime(event: EventRecord) {
-  const value = typeof event.ts === "number" ? event.ts : Date.parse(String(event.ts))
-  return Number.isFinite(value) ? value : 0
+/** Rewrite events.jsonl without old history. Read-then-write can drop an event
+ *  appended concurrently by another OpenCode instance; acceptable for
+ *  metadata-only telemetry, and only main sessions prune, once at startup. */
+function pruneEventsFile() {
+  const events = readEvents()
+  const pruned = pruneEvents(events)
+  if (pruned.length === events.length) return
+  writeFileSync(EVENTS_FILE, pruned.map((event) => JSON.stringify(event)).join("\n") + (pruned.length ? "\n" : ""))
 }
 
-function newest(events: EventRecord[], names: string[]) {
-  return events
-    .filter((event) => names.includes(event.event))
-    .sort((a, b) => eventTime(b) - eventTime(a))[0]
-}
-
-function projectFor(ctx: PluginContext) {
+function projectFor(ctx: PluginInput) {
   return ctx.worktree || ctx.directory
 }
 
+/** Only for toasted events; `memory_*` is recorded silently, see recordAndNotify. */
 function toastMessage(tracked: TrackedEvent) {
   if (tracked.event === "skill_loaded") return `CT: loaded Skill ${tracked.name ?? "(unnamed)"}`
-  if (tracked.event === "memory_recalled") return "CT: recalled Mnemosyne memory"
-  if (tracked.event === "memory_stored") return "CT: stored Mnemosyne memory"
-  if (tracked.event === "memory_other") return `CT: used Mnemosyne tool ${tracked.tool ?? "(unknown)"}`
   return `CT: changed managed Skill ${tracked.name ?? "(unknown)"}`
 }
 
-async function recordAndNotify(ctx: PluginContext, tracked: TrackedEvent) {
-  const event: Record<string, unknown> = {
+type ToastVariant = "info" | "warning" | "success"
+const TOAST_MS = 5000
+
+function notify(ctx: PluginInput, message: string, event: string, variant: ToastVariant = "info") {
+  void ctx.client.app.log({ body: { service: "claptrap", level: "info", message, extra: { event } } })
+  void ctx.client.tui.showToast({ body: { message, variant, duration: TOAST_MS } }).catch(() => {
+    // Detached `opencode run` processes do not always have a TUI.
+  })
+}
+
+function recordAndNotify(ctx: PluginInput, tracked: TrackedEvent) {
+  appendEvent({
     event: tracked.event,
     project: projectFor(ctx),
     ...(tracked.name ? { name: tracked.name } : {}),
     ...(tracked.tool ? { tool: tracked.tool } : {}),
     ...(tracked.session_id ? { session_id: tracked.session_id } : {}),
-  }
-  appendEvent(event as Omit<EventRecord, "ts">)
-  await ctx.client.app.log({
-    body: { service: "claptrap", level: "info", message: toastMessage(tracked), extra: { event: tracked.event } },
   })
-  try {
-    await ctx.client.tui.showToast({ body: { message: toastMessage(tracked), variant: "info", duration: 3000 } })
-  } catch {
-    // Detached `opencode run` processes do not always have a TUI.
-  }
+  // Routine Mnemosyne traffic is recorded but not announced — it fires on every
+  // recall/store and drowns out the rest. The recall/store gates still toast.
+  if (tracked.event.startsWith("memory_")) return
+  notify(ctx, toastMessage(tracked), tracked.event)
 }
 
-function agentToast(ctx: PluginContext, run: AgentRun, kind: "started" | "completed" | "failed") {
-  const event = `${run.prefix}_${kind}`
-  const message = run.toasts[kind]
-  void ctx.client.app.log({ body: { service: "claptrap", level: "info", message, extra: { event } } })
-  void ctx.client.tui.showToast({ body: { message, variant: "info", duration: 3000 } }).catch(() => {
-    // A detached run may not have a TUI.
-  })
-}
-
-function gateToast(ctx: PluginContext, message: string) {
-  void ctx.client.app.log({ body: { service: "claptrap", level: "info", message, extra: { event: "gate" } } })
-  void ctx.client.tui.showToast({ body: { message, variant: "warning", duration: 3000 } }).catch(() => {
-    // A detached run may not have a TUI.
-  })
+function agentToast(ctx: PluginInput, run: AgentRun, kind: "started" | "completed" | "failed") {
+  notify(ctx, run.toasts[kind], `${run.prefix}_${kind}`, kind === "failed" ? "warning" : "info")
 }
 
 function shellQuote(value: string) {
@@ -180,17 +175,19 @@ function clearLock(run: AgentRun) {
 
 /** A killed background agent never runs its cleanup, so a stale lock and a missing
  *  terminal event survive it. Reconcile both instead of waiting out
- *  STALE_LOCK_MS, which would otherwise report "Running: yes" for 12h. */
-function reconcileAgentState(ctx: PluginContext, run: AgentRun) {
+ *  STALE_LOCK_MS, which would otherwise report "Running: yes" for 12h.
+ *  Returns the backfilled event, if any, so callers can extend their event
+ *  snapshot without re-reading the file. */
+function reconcileAgentState(ctx: PluginInput, run: AgentRun, events: EventRecord[]): EventRecord | undefined {
   const lock = readLockState(run)
-  if (isGardenerLive(lock)) return
-  if (!needsFailureBackfill(readEvents(), false, run.prefix)) {
+  if (isGardenerLive(lock)) return undefined
+  if (!needsFailureBackfill(events, false, run.prefix)) {
     if (lock.present) clearLock(run)
-    return
+    return undefined
   }
   if (lock.present) clearLock(run)
-  appendEvent({ event: `${run.prefix}_failed`, reason: "process died without recording a result" })
   agentToast(ctx, run, "failed")
+  return appendEvent({ event: `${run.prefix}_failed`, reason: "process died without recording a result" })
 }
 
 function hasSystemdRun() {
@@ -214,11 +211,14 @@ function spawnCommand(run: AgentRun, wrapper: string) {
 }
 
 function appendResultFromShell(event: string) {
+  // %3N is GNU date only. On BSD/macOS this writes a malformed ts that parses
+  // to 0, making every result look older than its start and triggering a
+  // spurious failure backfill. Fine on this Linux host; port before reuse.
   return `printf '{"ts":"%s","event":"${event}"}\\n' "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> ${shellQuote(EVENTS_FILE)}`
 }
 
 function runBackgroundAgent(
-  ctx: PluginContext,
+  ctx: PluginInput,
   run: AgentRun,
   options: { dir: string; title: string; prompt: string; reason: string },
 ) {
@@ -244,7 +244,7 @@ ${CHILD_ENV}=${run.agent} opencode run \\
   --agent ${run.agent} --auto \\
   --dir ${shellQuote(options.dir)} \\
   --title ${shellQuote(options.title)} \\
-  ${shellQuote(options.prompt)} >> ${shellQuote(run.logFile)} 2>&1
+  ${shellQuote(options.prompt)} > ${shellQuote(run.logFile)} 2>&1
 status=$?
 if [ "$status" -eq 0 ]; then
   ${appendResultFromShell(`${run.prefix}_completed`)}
@@ -280,7 +280,7 @@ exit "$status"
   return "started"
 }
 
-function startGardener(ctx: PluginContext, reason: "weekly" | "manual") {
+function startGardener(ctx: PluginInput, reason: "weekly" | "manual") {
   return runBackgroundAgent(ctx, GARDENER, {
     dir: join(homedir(), ".config/opencode"),
     title: "[ct-gardener] weekly review",
@@ -289,7 +289,7 @@ function startGardener(ctx: PluginContext, reason: "weekly" | "manual") {
   })
 }
 
-function startHarvester(ctx: PluginContext, sessionID: string) {
+function startHarvester(ctx: PluginInput, sessionID: string) {
   const project = projectFor(ctx)
   return runBackgroundAgent(ctx, HARVESTER, {
     // Unlike the gardener: session storage, project-scoped skills, and the
@@ -307,18 +307,26 @@ function startHarvester(ctx: PluginContext, sessionID: string) {
   })
 }
 
-function notifyResultIfNeeded(ctx: PluginContext, run: AgentRun) {
-  const events = readEvents()
+function notifyResultIfNeeded(ctx: PluginInput, run: AgentRun, events: EventRecord[]): EventRecord | undefined {
   const result = newest(events, [`${run.prefix}_completed`, `${run.prefix}_failed`])
   const notified = newest(events, [`${run.prefix}_result_notified`])
-  if (!result || (notified && eventTime(notified) >= eventTime(result))) return
+  if (!result || (notified && eventTime(notified) >= eventTime(result))) return undefined
   const failed = result.event === `${run.prefix}_failed`
-  const message = failed ? run.toasts.failed : run.toasts.completed
-  appendEvent({ event: `${run.prefix}_result_notified` })
-  void ctx.client.app.log({ body: { service: "claptrap", level: "info", message, extra: { event: result.event } } })
-  void ctx.client.tui.showToast({ body: { message, variant: failed ? "warning" : "success", duration: 3000 } }).catch(() => {
-    // Startup in a detached run may not have a TUI.
-  })
+  notify(ctx, failed ? run.toasts.failed : run.toasts.completed, String(result.event), failed ? "warning" : "success")
+  return appendEvent({ event: `${run.prefix}_result_notified` })
+}
+
+/** Startup and idle share this: reconcile dead runs, surface unseen results,
+ *  and kick the weekly gardener — with one events read for everything. */
+function reconcileAndSchedule(ctx: PluginInput) {
+  const events = readEvents()
+  for (const run of [GARDENER, HARVESTER]) {
+    const backfilled = reconcileAgentState(ctx, run, events)
+    if (backfilled) events.push(backfilled)
+    const notified = notifyResultIfNeeded(ctx, run, events)
+    if (notified) events.push(notified)
+  }
+  if (isGardenerDue(events)) startGardener(ctx, "weekly")
 }
 
 function skillFileIsManaged(path: string) {
@@ -342,7 +350,7 @@ function scanSkillRoot(root: string) {
   return count
 }
 
-function skillCounts(ctx: PluginContext, events: EventRecord[]) {
+function skillCounts(ctx: PluginInput, events: EventRecord[]) {
   const projects = new Set<string>([ctx.worktree, ctx.directory])
   for (const event of events) if (event.event === "project_seen" && typeof event.project === "string") projects.add(event.project)
   let active = scanSkillRoot(join(homedir(), ".agents/skills/claptrap"))
@@ -365,11 +373,8 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
   const gates = new Map<string, GateState>()
 
   if (!process.env[CHILD_ENV]) {
-    for (const run of [GARDENER, HARVESTER]) {
-      reconcileAgentState(ctx, run)
-      notifyResultIfNeeded(ctx, run)
-    }
-    if (isGardenerDue(readEvents())) startGardener(ctx, "weekly")
+    pruneEventsFile()
+    reconcileAndSchedule(ctx)
   }
 
   return {
@@ -401,12 +406,14 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
     },
     "tool.execute.after": async (input, output) => {
       const tracked = classifyToolCall(input)
-      if (tracked) await recordAndNotify(ctx, { ...tracked, ...(input.sessionID ? { session_id: input.sessionID } : {}) })
+      if (tracked) recordAndNotify(ctx, { ...tracked, ...(input.sessionID ? { session_id: input.sessionID } : {}) })
       if (input.tool === "bash" && typeof input.args?.command === "string") {
-        const command = input.args.command
-        const match = command.match(/(?:^|[\s/'"])(?:[^\s/'"]+\/)?skills(?:-archive)?\/claptrap\/(ct-[^/\s/'"]+)/)
-        if (match) await recordAndNotify(ctx, { event: "managed_skill_changed", name: match[1] })
+        const changed = classifyManagedSkillBashCommand(input.args.command)
+        if (changed) recordAndNotify(ctx, changed)
       }
+      // Child agents (gardener/harvester) have their own instructions; the
+      // recall/store gates and harvester counters are for main sessions only.
+      if (process.env[CHILD_ENV]) return
       const sessionID = input.sessionID
       if (!sessionID) return
       const { state, warnRecall } = applyToolToGate(gates.get(sessionID) ?? newGateState(), input.tool)
@@ -415,20 +422,16 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
       // Verified to reach the model: mutating output.output propagates.
       output.output = `${output.output}\n\n${RECALL_REMINDER}`
       appendEvent({ event: "gate_recall_warned", project: projectFor(ctx), session_id: sessionID })
-      gateToast(ctx, "CT: mutating files without a Mnemosyne recall this session")
+      notify(ctx, "CT: mutating files without a Mnemosyne recall this session", "gate", "warning")
     },
     event: async ({ event }) => {
       if (event.type === "file.edited") {
         const file = (event.properties as { file?: string } | undefined)?.file
         const tracked = file ? classifyManagedSkillEdit(file) : undefined
-        if (tracked) await recordAndNotify(ctx, tracked)
+        if (tracked) recordAndNotify(ctx, tracked)
       }
       if (event.type === "session.idle" && !process.env[CHILD_ENV]) {
-        for (const run of [GARDENER, HARVESTER]) {
-          reconcileAgentState(ctx, run)
-          notifyResultIfNeeded(ctx, run)
-        }
-        if (isGardenerDue(readEvents())) startGardener(ctx, "weekly")
+        reconcileAndSchedule(ctx)
 
         const sessionID = (event.properties as { sessionID?: string } | undefined)?.sessionID
         const state = sessionID ? gates.get(sessionID) : undefined
@@ -437,7 +440,7 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
         if (shouldWarnStore(state)) {
           gates.set(sessionID, { ...state, warnedStore: true })
           appendEvent({ event: "gate_store_warned", project: projectFor(ctx), session_id: sessionID })
-          gateToast(ctx, "CT: session mutated files without storing a Mnemosyne memory")
+          notify(ctx, "CT: session mutated files without storing a Mnemosyne memory", "gate", "warning")
         }
 
         // idle fires after every completed turn; the watermark is the only
