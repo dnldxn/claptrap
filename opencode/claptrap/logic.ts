@@ -39,6 +39,64 @@ export function classifyToolCall(input: ToolInput): TrackedEvent | undefined {
   return { event: "memory_other", tool: input.tool }
 }
 
+export const HARVESTER_THRESHOLD = 5
+export const MUTATING_TOOLS = ["edit", "write", "patch", "bash"]
+export const RECALL_REMINDER = "<system-reminder>No mnemosyne_recall yet this session — recall relevant memories before continuing, or state why this task needs no prior context.</system-reminder>"
+export function isMutatingTool(tool: string) {
+  return MUTATING_TOOLS.includes(tool.toLowerCase())
+}
+
+export type GateState = {
+  recalled: boolean
+  mutated: boolean
+  warnedRecall: boolean
+  storedMemory: boolean
+  warnedStore: boolean
+  counter: number
+  watermark: number
+}
+
+export function newGateState(): GateState {
+  return {
+    recalled: false,
+    mutated: false,
+    warnedRecall: false,
+    storedMemory: false,
+    warnedStore: false,
+    counter: 0,
+    watermark: 0,
+  }
+}
+
+export function applyToolToGate(
+  state: GateState,
+  tool: string,
+): { state: GateState; warnRecall: boolean } {
+  const tracked = classifyToolCall({ tool })
+  const mutating = isMutatingTool(tool)
+  const warnRecall = mutating && !state.recalled && !state.warnedRecall
+
+  return {
+    warnRecall,
+    state: {
+      ...state,
+      recalled: state.recalled || tracked?.event === "memory_recalled",
+      storedMemory: state.storedMemory || tracked?.event === "memory_stored",
+      mutated: state.mutated || mutating,
+      warnedRecall: state.warnedRecall || warnRecall,
+      counter: state.counter + (mutating || tracked ? 1 : 0),
+    },
+  }
+}
+
+export function shouldWarnStore(state: GateState) {
+  return state.mutated && !state.storedMemory && !state.warnedStore
+}
+
+export function shouldRunHarvester(counter: number, watermark: number, live: boolean) {
+  return !live && counter - watermark >= HARVESTER_THRESHOLD
+}
+
 export function classifyManagedSkillEdit(filePath: string):
   | { event: "managed_skill_changed"; name: string }
   | undefined {
@@ -78,11 +136,11 @@ export function isGardenerLive(lock: LockState, now = Date.now()) {
 
 /** True when a start has no matching terminal event and its process is gone —
  *  i.e. the run was killed before its shell could record the outcome. */
-export function needsFailureBackfill(events: EventRecord[], live: boolean) {
+export function needsFailureBackfill(events: EventRecord[], live: boolean, prefix = "gardener") {
   if (live) return false
-  const start = newest(events, ["gardener_started"])
+  const start = newest(events, [`${prefix}_started`])
   if (!start) return false
-  const result = newest(events, ["gardener_completed", "gardener_failed"])
+  const result = newest(events, [`${prefix}_completed`, `${prefix}_failed`])
   return !result || eventTime(result) < eventTime(start)
 }
 
@@ -103,15 +161,29 @@ function eventsSince(events: EventRecord[], now: number, age: number) {
   })
 }
 
-export function buildStatusReport(
-  events: EventRecord[],
-  summaryText: string,
-  running: boolean,
-  skillCounts: { active: number; archived: number },
-  now = Date.now(),
-) {
+export type StatusInput = {
+  events: EventRecord[]
+  summaryText: string
+  harvesterSummaryText: string
+  running: boolean
+  harvesterRunning: boolean
+  skillCounts: { active: number; archived: number }
+  now?: number
+}
+
+export function buildStatusReport(input: StatusInput) {
+  const {
+    events,
+    summaryText,
+    harvesterSummaryText,
+    running,
+    harvesterRunning,
+    skillCounts,
+    now = Date.now(),
+  } = input
   const lastSuccess = newest(events, ["gardener_completed"])
   const lastResult = newest(events, ["gardener_completed", "gardener_failed"])
+  const harvesterResult = newest(events, ["harvester_completed", "harvester_failed"])
   const last30 = eventsSince(events, now, 30 * DAY_MS)
   const last7 = eventsSince(events, now, WEEK_MS)
   const loads = last30.filter((event) => event.event === "skill_loaded")
@@ -123,7 +195,7 @@ export function buildStatusReport(
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, 3)
   const recent = events
-    .filter((event) => !["project_seen", "gardener_result_notified"].includes(event.event))
+    .filter((event) => !["project_seen", "gardener_result_notified", "harvester_result_notified"].includes(event.event))
     .sort((a, b) => eventTime(b) - eventTime(a))
     .slice(0, 10)
   const recentText = recent.length
@@ -133,6 +205,15 @@ export function buildStatusReport(
     ? mostLoaded.map(([name, count], index) => `${index + 1}. ${name} — ${count} loads`).join("\n")
     : "- none"
   const resultText = summaryText.trim() || "not available"
+  const harvesterResultText = harvesterResult?.event === "harvester_failed"
+    ? "failed; check harvester.log"
+    : harvesterSummaryText.trim() || "not available"
+  // Child runs stamp their agent name on every event, so the harvester's own
+  // skill writes are separable from the main agent's.
+  const harvesterSkills7 = last7.filter(
+    (event) => event.event === "managed_skill_changed" && event.agent === "ct-skill-harvester",
+  ).length
+  const gateCounts = (window: EventRecord[], name: string) => window.filter((event) => event.event === name).length
 
   return `# Claptrap status
 
@@ -141,6 +222,13 @@ Gardener
 - Next due: ${formatTime(lastSuccess ? eventTime(lastSuccess) + WEEK_MS : now)}
 - Running: ${running ? "yes" : "no"}
 - Last result: ${lastResult?.event === "gardener_failed" ? "failed; check gardener.log" : resultText}
+
+Skill-harvester
+- Last run: ${formatTime(harvesterResult ? eventTime(harvesterResult) : undefined)}
+- Running: ${harvesterRunning ? "yes" : "no"}
+- Runs (7d): ${last7.filter((event) => event.event === "harvester_started").length}
+- Skills created/updated (7d): ${harvesterSkills7}
+- Last result: ${harvesterResultText}
 
 Managed Skills
 - Active: ${skillCounts.active}
@@ -151,12 +239,16 @@ Last 7 days
 - Mnemosyne recalls: ${last7.filter((event) => event.event === "memory_recalled").length}
 - Mnemosyne stores: ${last7.filter((event) => event.event === "memory_stored").length}
 - Managed-Skill changes: ${last7.filter((event) => event.event === "managed_skill_changed").length}
+- Recall-gate warnings: ${gateCounts(last7, "gate_recall_warned")}
+- Store-gate warnings: ${gateCounts(last7, "gate_store_warned")}
 
 Last 30 days
 - Skill loads: ${loads.length}
 - Mnemosyne recalls: ${last30.filter((event) => event.event === "memory_recalled").length}
 - Mnemosyne stores: ${last30.filter((event) => event.event === "memory_stored").length}
 - Managed-Skill changes: ${last30.filter((event) => event.event === "managed_skill_changed").length}
+- Recall-gate warnings: ${gateCounts(last30, "gate_recall_warned")}
+- Store-gate warnings: ${gateCounts(last30, "gate_store_warned")}
 
 Most-loaded Skills
 ${mostLoadedText}

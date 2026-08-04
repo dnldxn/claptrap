@@ -4,25 +4,55 @@ import { spawn } from "node:child_process"
 import { homedir } from "node:os"
 import { join } from "node:path"
 import {
+  applyToolToGate,
   buildStatusReport,
   classifyManagedSkillEdit,
   classifyToolCall,
   isGardenerDue,
   isGardenerLive,
+  newGateState,
   needsFailureBackfill,
+  RECALL_REMINDER,
+  shouldRunHarvester,
+  shouldWarnStore,
+  type GateState,
   type TrackedEvent,
   type EventRecord,
 } from "./logic"
 
 const STATE_DIR = join(homedir(), ".local/state/claptrap")
-const GARDENER_AGENT = "ct-gardener"
-const CHILD_ENV = "CLAPTRAP_GARDENER_CHILD"
+const CHILD_ENV = "CLAPTRAP_AGENT_CHILD"
 
 const EVENTS_FILE = join(STATE_DIR, "events.jsonl")
-const GARDENER_LOG = join(STATE_DIR, "gardener.log")
-const GARDENER_LOCK = join(STATE_DIR, "gardener.lock")
-const GARDENER_PID_FILE = join(GARDENER_LOCK, "pid")
-const SUMMARY_FILE = join(STATE_DIR, "last-gardener-summary.md")
+type AgentRun = {
+  agent: string
+  prefix: "gardener" | "harvester"
+  lockDir: string
+  pidFile: string
+  logFile: string
+  summaryFile: string
+  toasts: { started: string; completed: string; failed: string }
+}
+
+function agentRun(agent: string, prefix: AgentRun["prefix"], label: string): AgentRun {
+  const lockDir = join(STATE_DIR, `${prefix}.lock`)
+  return {
+    agent,
+    prefix,
+    lockDir,
+    pidFile: join(lockDir, "pid"),
+    logFile: join(STATE_DIR, `${prefix}.log`),
+    summaryFile: join(STATE_DIR, `last-${prefix}-summary.md`),
+    toasts: {
+      started: `CT: ${label} started in background`,
+      completed: `CT: ${label} completed; run /ct-status`,
+      failed: `CT: ${label} failed; check ${prefix}.log`,
+    },
+  }
+}
+
+const GARDENER = agentRun("ct-gardener", "gardener", "weekly gardener")
+const HARVESTER = agentRun("ct-skill-harvester", "harvester", "skill-harvester")
 type PluginContext = PluginInput
 
 function timestamp() {
@@ -35,7 +65,8 @@ function ensureStateDirectory() {
 
 function appendEvent(event: Omit<EventRecord, "ts">) {
   ensureStateDirectory()
-  appendFileSync(EVENTS_FILE, `${JSON.stringify({ ts: timestamp(), ...event })}\n`)
+  const agent = process.env[CHILD_ENV]
+  appendFileSync(EVENTS_FILE, `${JSON.stringify({ ts: timestamp(), ...(agent ? { agent } : {}), ...event })}\n`)
 }
 
 function readEvents(): EventRecord[] {
@@ -95,14 +126,18 @@ async function recordAndNotify(ctx: PluginContext, tracked: TrackedEvent) {
   }
 }
 
-function gardenerToast(ctx: PluginContext, event: "gardener_started" | "gardener_completed" | "gardener_failed") {
-  const message = event === "gardener_started"
-    ? "CT: weekly gardener started in background"
-    : event === "gardener_completed"
-      ? "CT: weekly gardener completed; run /ct-status"
-      : "CT: weekly gardener failed; check gardener.log"
+function agentToast(ctx: PluginContext, run: AgentRun, kind: "started" | "completed" | "failed") {
+  const event = `${run.prefix}_${kind}`
+  const message = run.toasts[kind]
   void ctx.client.app.log({ body: { service: "claptrap", level: "info", message, extra: { event } } })
   void ctx.client.tui.showToast({ body: { message, variant: "info", duration: 3000 } }).catch(() => {
+    // A detached run may not have a TUI.
+  })
+}
+
+function gateToast(ctx: PluginContext, message: string) {
+  void ctx.client.app.log({ body: { service: "claptrap", level: "info", message, extra: { event: "gate" } } })
+  void ctx.client.tui.showToast({ body: { message, variant: "warning", duration: 3000 } }).catch(() => {
     // A detached run may not have a TUI.
   })
 }
@@ -122,16 +157,16 @@ function processAlive(pid: number) {
   }
 }
 
-function readLockState() {
-  if (!existsSync(GARDENER_LOCK)) return { present: false }
+function readLockState(run: AgentRun) {
+  if (!existsSync(run.lockDir)) return { present: false }
   let mtimeMs: number | undefined
   try {
-    mtimeMs = statSync(GARDENER_LOCK).mtimeMs
+    mtimeMs = statSync(run.lockDir).mtimeMs
   } catch {
     mtimeMs = undefined
   }
   try {
-    const pid = Number.parseInt(readFileSync(GARDENER_PID_FILE, "utf8").trim(), 10)
+    const pid = Number.parseInt(readFileSync(run.pidFile, "utf8").trim(), 10)
     if (Number.isFinite(pid) && pid > 0) return { present: true, mtimeMs, pidAlive: processAlive(pid) }
   } catch {
     // No pid recorded (pre-pid run, or the wrapper died before writing it).
@@ -139,23 +174,23 @@ function readLockState() {
   return { present: true, mtimeMs }
 }
 
-function clearLock() {
-  rmSync(GARDENER_LOCK, { recursive: true, force: true })
+function clearLock(run: AgentRun) {
+  rmSync(run.lockDir, { recursive: true, force: true })
 }
 
-/** A killed gardener never runs its cleanup, so a stale lock and a missing
+/** A killed background agent never runs its cleanup, so a stale lock and a missing
  *  terminal event survive it. Reconcile both instead of waiting out
  *  STALE_LOCK_MS, which would otherwise report "Running: yes" for 12h. */
-function reconcileGardenerState(ctx: PluginContext) {
-  const lock = readLockState()
+function reconcileAgentState(ctx: PluginContext, run: AgentRun) {
+  const lock = readLockState(run)
   if (isGardenerLive(lock)) return
-  if (!needsFailureBackfill(readEvents(), false)) {
-    if (lock.present) clearLock()
+  if (!needsFailureBackfill(readEvents(), false, run.prefix)) {
+    if (lock.present) clearLock(run)
     return
   }
-  if (lock.present) clearLock()
-  appendEvent({ event: "gardener_failed", reason: "process died without recording a result" })
-  gardenerToast(ctx, "gardener_failed")
+  if (lock.present) clearLock(run)
+  appendEvent({ event: `${run.prefix}_failed`, reason: "process died without recording a result" })
+  agentToast(ctx, run, "failed")
 }
 
 function hasSystemdRun() {
@@ -163,7 +198,7 @@ function hasSystemdRun() {
   return ["/usr/bin/systemd-run", "/bin/systemd-run"].some((path) => existsSync(path))
 }
 
-function spawnCommand(wrapper: string) {
+function spawnCommand(run: AgentRun, wrapper: string) {
   if (!hasSystemdRun()) return ["/bin/sh", "-c", wrapper]
   return [
     "systemd-run",
@@ -171,48 +206,52 @@ function spawnCommand(wrapper: string) {
     "--scope",
     "--quiet",
     "--collect",
-    `--unit=ct-gardener-${Date.now()}`,
+    `--unit=${run.agent}-${Date.now()}`,
     "/bin/sh",
     "-c",
     wrapper,
   ]
 }
 
-function appendResultFromShell(event: "gardener_completed" | "gardener_failed") {
+function appendResultFromShell(event: string) {
   return `printf '{"ts":"%s","event":"${event}"}\\n' "$(date -u +%Y-%m-%dT%H:%M:%S.%3NZ)" >> ${shellQuote(EVENTS_FILE)}`
 }
 
-function startGardener(ctx: PluginContext, reason: "weekly" | "manual") {
+function runBackgroundAgent(
+  ctx: PluginContext,
+  run: AgentRun,
+  options: { dir: string; title: string; prompt: string; reason: string },
+) {
   ensureStateDirectory()
-  const lock = readLockState()
+  const lock = readLockState(run)
   if (lock.present) {
     if (isGardenerLive(lock)) return "already running"
-    clearLock()
+    clearLock(run)
   }
 
   try {
-    mkdirSync(GARDENER_LOCK)
+    mkdirSync(run.lockDir)
   } catch {
     return "already running"
   }
 
-  appendEvent({ event: "gardener_started", reason })
-  gardenerToast(ctx, "gardener_started")
+  appendEvent({ event: `${run.prefix}_started`, reason: options.reason })
+  agentToast(ctx, run, "started")
   const wrapper = `#!/bin/sh
 set +e
-echo $$ > ${shellQuote(GARDENER_PID_FILE)}
-CLAPTRAP_GARDENER_CHILD=1 opencode run \\
-  --agent ${GARDENER_AGENT} --auto \\
-  --dir "$HOME/.config/opencode" \\
-  --title "[ct-gardener] weekly review" \\
-  "Run the complete weekly Claptrap Skill garden now." >> ${shellQuote(GARDENER_LOG)} 2>&1
+echo $$ > ${shellQuote(run.pidFile)}
+${CHILD_ENV}=${run.agent} opencode run \\
+  --agent ${run.agent} --auto \\
+  --dir ${shellQuote(options.dir)} \\
+  --title ${shellQuote(options.title)} \\
+  ${shellQuote(options.prompt)} >> ${shellQuote(run.logFile)} 2>&1
 status=$?
 if [ "$status" -eq 0 ]; then
-  ${appendResultFromShell("gardener_completed")}
+  ${appendResultFromShell(`${run.prefix}_completed`)}
 else
-  ${appendResultFromShell("gardener_failed")}
+  ${appendResultFromShell(`${run.prefix}_failed`)}
 fi
-rm -rf ${shellQuote(GARDENER_LOCK)}
+rm -rf ${shellQuote(run.lockDir)}
 exit "$status"
 `
 
@@ -223,32 +262,59 @@ exit "$status"
   // manager so it survives. Fall back to a bare spawn where systemd-run is
   // absent (non-systemd hosts); there the old race remains, but the pid file
   // still lets us detect the death.
-  const command = spawnCommand(wrapper)
+  const command = spawnCommand(run, wrapper)
   try {
     const child = spawn(command[0]!, command.slice(1), {
-      cwd: join(homedir(), ".config/opencode"),
+      cwd: options.dir,
       detached: true,
       stdio: "ignore",
-      env: { ...process.env, [CHILD_ENV]: "1" },
+      env: { ...process.env, [CHILD_ENV]: run.agent },
     })
     child.unref()
   } catch (error) {
-    clearLock()
-    appendEvent({ event: "gardener_failed", reason: String(error) })
-    gardenerToast(ctx, "gardener_failed")
-    return `failed to start gardener: ${error instanceof Error ? error.message : String(error)}`
+    clearLock(run)
+    appendEvent({ event: `${run.prefix}_failed`, reason: String(error) })
+    agentToast(ctx, run, "failed")
+    return `failed to start ${run.agent}: ${error instanceof Error ? error.message : String(error)}`
   }
   return "started"
 }
 
-function notifyGardenerResultIfNeeded(ctx: PluginContext) {
+function startGardener(ctx: PluginContext, reason: "weekly" | "manual") {
+  return runBackgroundAgent(ctx, GARDENER, {
+    dir: join(homedir(), ".config/opencode"),
+    title: "[ct-gardener] weekly review",
+    prompt: "Run the complete weekly Claptrap Skill garden now.",
+    reason,
+  })
+}
+
+function startHarvester(ctx: PluginContext, sessionID: string) {
+  const project = projectFor(ctx)
+  return runBackgroundAgent(ctx, HARVESTER, {
+    // Unlike the gardener: session storage, project-scoped skills, and the
+    // repo-vs-global placement decision all need the session's project root.
+    dir: project,
+    title: `[ct-skill-harvester] session ${sessionID}`,
+    reason: "idle",
+    prompt: [
+      `Review OpenCode session ${sessionID} and decide whether it contains a verified, non-obvious, likely-to-recur procedure worth capturing as a managed ct-* Skill.`,
+      `Project root: ${project}.`,
+      `Read the transcript with: opencode export ${sessionID}`,
+      `Session storage is a SQLite database (~/.local/share/opencode/opencode.db) — do not read it directly; if the export fails, exit with a "no changes — transcript unavailable" summary.`,
+      `Default outcome is no change. Create at most one Skill.`,
+    ].join(" "),
+  })
+}
+
+function notifyResultIfNeeded(ctx: PluginContext, run: AgentRun) {
   const events = readEvents()
-  const result = newest(events, ["gardener_completed", "gardener_failed"])
-  const notified = newest(events, ["gardener_result_notified"])
+  const result = newest(events, [`${run.prefix}_completed`, `${run.prefix}_failed`])
+  const notified = newest(events, [`${run.prefix}_result_notified`])
   if (!result || (notified && eventTime(notified) >= eventTime(result))) return
-  const failed = result.event === "gardener_failed"
-  const message = failed ? "CT: weekly gardener failed; check gardener.log" : "CT: weekly gardener completed; run /ct-status"
-  appendEvent({ event: "gardener_result_notified" })
+  const failed = result.event === `${run.prefix}_failed`
+  const message = failed ? run.toasts.failed : run.toasts.completed
+  appendEvent({ event: `${run.prefix}_result_notified` })
   void ctx.client.app.log({ body: { service: "claptrap", level: "info", message, extra: { event: result.event } } })
   void ctx.client.tui.showToast({ body: { message, variant: failed ? "warning" : "success", duration: 3000 } }).catch(() => {
     // Startup in a detached run may not have a TUI.
@@ -293,9 +359,16 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
   ensureStateDirectory()
   appendEvent({ event: "project_seen", project: projectFor(ctx) })
 
-  if (process.env[CHILD_ENV] !== "1") {
-    reconcileGardenerState(ctx)
-    notifyGardenerResultIfNeeded(ctx)
+  // Per-session gate + activity state. In-memory and best-effort by design:
+  // lost on plugin restart, which at worst re-fires a gate or re-reviews a
+  // transcript the harvester is already conservative about.
+  const gates = new Map<string, GateState>()
+
+  if (!process.env[CHILD_ENV]) {
+    for (const run of [GARDENER, HARVESTER]) {
+      reconcileAgentState(ctx, run)
+      notifyResultIfNeeded(ctx, run)
+    }
     if (isGardenerDue(readEvents())) startGardener(ctx, "weekly")
   }
 
@@ -313,8 +386,16 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
         args: {},
         async execute() {
           const events = readEvents()
-          const summary = existsSync(SUMMARY_FILE) ? readFileSync(SUMMARY_FILE, "utf8") : ""
-          return buildStatusReport(events, summary, isGardenerLive(readLockState()), skillCounts(ctx, events))
+          const summary = (run: AgentRun) =>
+            existsSync(run.summaryFile) ? readFileSync(run.summaryFile, "utf8") : ""
+          return buildStatusReport({
+            events,
+            summaryText: summary(GARDENER),
+            harvesterSummaryText: summary(HARVESTER),
+            running: isGardenerLive(readLockState(GARDENER)),
+            harvesterRunning: isGardenerLive(readLockState(HARVESTER)),
+            skillCounts: skillCounts(ctx, events),
+          })
         },
       }),
     },
@@ -326,7 +407,15 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
         const match = command.match(/(?:^|[\s/'"])(?:[^\s/'"]+\/)?skills(?:-archive)?\/claptrap\/(ct-[^/\s/'"]+)/)
         if (match) await recordAndNotify(ctx, { event: "managed_skill_changed", name: match[1] })
       }
-      void output
+      const sessionID = input.sessionID
+      if (!sessionID) return
+      const { state, warnRecall } = applyToolToGate(gates.get(sessionID) ?? newGateState(), input.tool)
+      gates.set(sessionID, state)
+      if (!warnRecall) return
+      // Verified to reach the model: mutating output.output propagates.
+      output.output = `${output.output}\n\n${RECALL_REMINDER}`
+      appendEvent({ event: "gate_recall_warned", project: projectFor(ctx), session_id: sessionID })
+      gateToast(ctx, "CT: mutating files without a Mnemosyne recall this session")
     },
     event: async ({ event }) => {
       if (event.type === "file.edited") {
@@ -334,10 +423,31 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
         const tracked = file ? classifyManagedSkillEdit(file) : undefined
         if (tracked) await recordAndNotify(ctx, tracked)
       }
-      if (event.type === "session.idle" && process.env[CHILD_ENV] !== "1") {
-        reconcileGardenerState(ctx)
-        notifyGardenerResultIfNeeded(ctx)
+      if (event.type === "session.idle" && !process.env[CHILD_ENV]) {
+        for (const run of [GARDENER, HARVESTER]) {
+          reconcileAgentState(ctx, run)
+          notifyResultIfNeeded(ctx, run)
+        }
         if (isGardenerDue(readEvents())) startGardener(ctx, "weekly")
+
+        const sessionID = (event.properties as { sessionID?: string } | undefined)?.sessionID
+        const state = sessionID ? gates.get(sessionID) : undefined
+        if (!sessionID || !state) return
+
+        if (shouldWarnStore(state)) {
+          gates.set(sessionID, { ...state, warnedStore: true })
+          appendEvent({ event: "gate_store_warned", project: projectFor(ctx), session_id: sessionID })
+          gateToast(ctx, "CT: session mutated files without storing a Mnemosyne memory")
+        }
+
+        // idle fires after every completed turn; the watermark is the only
+        // debounce. A live harvester blocks other sessions — they retry at
+        // their next idle, and the weekly gardener is the backstop.
+        const current = gates.get(sessionID)!
+        if (shouldRunHarvester(current.counter, current.watermark, isGardenerLive(readLockState(HARVESTER)))) {
+          gates.set(sessionID, { ...current, watermark: current.counter })
+          startHarvester(ctx, sessionID)
+        }
       }
       if (event.type === "session.error") {
         appendEvent({ event: "session_error", project: projectFor(ctx) })
