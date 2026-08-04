@@ -6,8 +6,8 @@ package.json
 package-lock.json
 .env
 bun.lock
-!opencode/package.json
-!opencode/bun.lock
+!opencode/claptrap-plugin/package.json
+!opencode/claptrap-plugin/bun.lock
 
 secrets.toml
 

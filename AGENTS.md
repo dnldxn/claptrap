@@ -12,14 +12,14 @@ A personal AI agent configuration toolkit ("claptrap") — a collection of skill
 python bootstrap/install.py
 ```
 
-The installer is stdlib-only and installs the OpenCode continuous-learning system from `opencode/`. It creates guarded symlinks for the Claptrap instructions, plugin, gardener agent, and three `/ct-*` commands. It also sweeps stale symlinks that resolve into this repository and warns about the two manual `opencode.json` registrations.
+The installer is stdlib-only and installs the OpenCode continuous-learning system from `opencode/claptrap-plugin/`. It creates guarded symlinks for the Claptrap instructions, plugin, agents, commands, and managed skills. It also sweeps stale symlinks that resolve into this repository and warns about the two manual `opencode.json` registrations.
 
 Manual setup steps are documented in `README.md`, including the `skill-gardener` model entry.
 
 ## Repository Structure
 
 - `bootstrap/install.py` — stdlib-only OpenCode installer
-- `opencode/` — Claptrap instructions, plugin, gardener agent, commands, and tests
+- `opencode/claptrap-plugin/` — Claptrap plugin (`plugin.ts`, `logic.ts`), instructions, `agents/`, `commands/`, `skills/`, and `tests/`
 - `skills/ct-grill-me/` — design/spec workflow wrapper
 - `skills/ct-writing-plans/` — implementation-plan workflow wrapper
 - `skills/ct-implement/` — plan execution workflow wrapper

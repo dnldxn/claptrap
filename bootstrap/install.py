@@ -9,13 +9,18 @@ PROJECT_ROOT = Path(__file__).resolve().parents[1]
 HOME = Path.home()
 OPENCODE_ROOT = HOME / ".config/opencode"
 
+PLUGIN_ROOT = PROJECT_ROOT / "opencode/claptrap-plugin"
+
 INSTRUCTIONS_LINK = OPENCODE_ROOT / "claptrap/instructions.md"
+INSTRUCTIONS_ENTRY = "~/.config/opencode/claptrap/instructions.md"
 
 LINKS = {
-    INSTRUCTIONS_LINK: PROJECT_ROOT / "opencode/claptrap/instructions.md",
-    OPENCODE_ROOT / "claptrap/plugin.ts": PROJECT_ROOT / "opencode/claptrap/plugin.ts",
-    OPENCODE_ROOT / "agents/claptrap": PROJECT_ROOT / "opencode/agents/claptrap",
-    OPENCODE_ROOT / "commands/claptrap": PROJECT_ROOT / "opencode/commands/claptrap",
+    INSTRUCTIONS_LINK: PLUGIN_ROOT / "instructions.md",
+    # plugin.ts imports ./logic; Bun resolves that against the symlink's real
+    # path in the repo, so logic.ts needs no link of its own.
+    OPENCODE_ROOT / "claptrap/plugin.ts": PLUGIN_ROOT / "plugin.ts",
+    OPENCODE_ROOT / "agents/claptrap": PLUGIN_ROOT / "agents",
+    OPENCODE_ROOT / "commands/claptrap": PLUGIN_ROOT / "commands",
 }
 
 SWEEP_ROOTS = [
@@ -120,12 +125,16 @@ def print_config_warnings() -> None:
     config = OPENCODE_ROOT / "opencode.json"
     # `instructions` entries resolve against the *project* cwd, not the config
     # file, so a relative "./claptrap/instructions.md" silently loads nothing
-    # outside ~/.config/opencode. Only an absolute path works globally.
-    missing_instructions = not config_contains(config, "instructions", str(INSTRUCTIONS_LINK))
+    # outside ~/.config/opencode. "~/" and absolute paths both work; accept
+    # either so an existing absolute entry keeps validating.
+    missing_instructions = not any(
+        config_contains(config, "instructions", value)
+        for value in (INSTRUCTIONS_ENTRY, str(INSTRUCTIONS_LINK))
+    )
     missing_plugin = not config_contains(config, "plugin", "./claptrap/plugin.ts")
     if missing_instructions or missing_plugin:
         warning("Add these entries to ~/.config/opencode/opencode.json, merging with existing arrays:")
-        print(f'  "instructions": ["{INSTRUCTIONS_LINK}"],')
+        print(f'  "instructions": ["{INSTRUCTIONS_ENTRY}"],')
         print('  "plugin": ["./claptrap/plugin.ts"]')
     else:
         success("OpenCode instructions and plugin are registered")
