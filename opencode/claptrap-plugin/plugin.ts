@@ -17,8 +17,12 @@ import {
   needsFailureBackfill,
   pruneEvents,
   RECALL_REMINDER,
+  recordSkillAnnouncement,
+  shouldAnnounceSkillChange,
   shouldRunHarvester,
   shouldWarnStore,
+  transcriptBanner,
+  transcriptNotice,
   type GateState,
   type TrackedEvent,
   type EventRecord,
@@ -36,6 +40,9 @@ type AgentRun = {
   logFile: string
   summaryFile: string
   toasts: { started: string; completed: string; failed: string }
+  /** Transcript wording. Shorter than the toast: the "CT: " prefix is added by
+   *  transcriptNotice, and this text is permanent context. */
+  transcript: { completed: string; failed: string }
 }
 
 function agentRun(agent: string, prefix: AgentRun["prefix"], label: string): AgentRun {
@@ -51,6 +58,10 @@ function agentRun(agent: string, prefix: AgentRun["prefix"], label: string): Age
       started: `CT: ${label} started in background`,
       completed: `CT: ${label} completed; run /ct-status`,
       failed: `CT: ${label} failed; check ${prefix}.log`,
+    },
+    transcript: {
+      completed: `${label} completed — run /ct-status`,
+      failed: `${label} failed — check ${prefix}.log`,
     },
   }
 }
@@ -117,6 +128,23 @@ function notify(ctx: PluginInput, message: string, event: string, variant: Toast
   void ctx.client.tui.showToast({ body: { message, variant, duration: TOAST_MS } }).catch(() => {
     // Detached `opencode run` processes do not always have a TUI.
   })
+}
+
+/** Write one line into the session transcript, where it survives the 5s toast.
+ *  `noReply` stops it starting a model turn. The text must NOT be marked
+ *  `synthetic`: verified against a live server on 1.18.11 — synthetic parts are
+ *  stored and fed to the model but filtered out of every TUI render path, so a
+ *  synthetic notice would be invisible, which is the opposite of the point.
+ *  This costs context on every subsequent turn; callers must rate-limit. */
+function postTranscript(ctx: PluginInput, sessionID: string, message: string) {
+  void ctx.client.session
+    .promptAsync({
+      path: { id: sessionID },
+      body: { noReply: true, parts: [{ type: "text", text: transcriptNotice(message) }] },
+    })
+    .catch(() => {
+      // Best-effort: a missing session or a headless run must not break the hook.
+    })
 }
 
 function recordAndNotify(ctx: PluginInput, tracked: TrackedEvent) {
@@ -307,23 +335,34 @@ function startHarvester(ctx: PluginInput, sessionID: string) {
   })
 }
 
-function notifyResultIfNeeded(ctx: PluginInput, run: AgentRun, events: EventRecord[]): EventRecord | undefined {
+function notifyResultIfNeeded(
+  ctx: PluginInput,
+  run: AgentRun,
+  events: EventRecord[],
+  sessionID?: string,
+): EventRecord | undefined {
   const result = newest(events, [`${run.prefix}_completed`, `${run.prefix}_failed`])
   const notified = newest(events, [`${run.prefix}_result_notified`])
   if (!result || (notified && eventTime(notified) >= eventTime(result))) return undefined
   const failed = result.event === `${run.prefix}_failed`
   notify(ctx, failed ? run.toasts.failed : run.toasts.completed, String(result.event), failed ? "warning" : "success")
+  // A background run finishes long after the toast that announced its start,
+  // so this is the notice most likely to be missed. The _result_notified
+  // event is the rate limit: one transcript line per run, never per idle.
+  if (sessionID) postTranscript(ctx, sessionID, failed ? run.transcript.failed : run.transcript.completed)
   return appendEvent({ event: `${run.prefix}_result_notified` })
 }
 
 /** Startup and idle share this: reconcile dead runs, surface unseen results,
- *  and kick the weekly gardener — with one events read for everything. */
-function reconcileAndSchedule(ctx: PluginInput) {
+ *  and kick the weekly gardener — with one events read for everything.
+ *  `sessionID` is present only on the idle path, where a transcript line has
+ *  somewhere to land; at startup the toast is all we can offer. */
+function reconcileAndSchedule(ctx: PluginInput, sessionID?: string) {
   const events = readEvents()
   for (const run of [GARDENER, HARVESTER]) {
     const backfilled = reconcileAgentState(ctx, run, events)
     if (backfilled) events.push(backfilled)
-    const notified = notifyResultIfNeeded(ctx, run, events)
+    const notified = notifyResultIfNeeded(ctx, run, events, sessionID)
     if (notified) events.push(notified)
   }
   if (isGardenerDue(events)) startGardener(ctx, "weekly")
@@ -372,6 +411,11 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
   // transcript the harvester is already conservative about.
   const gates = new Map<string, GateState>()
 
+  // Managed-Skill names seen via file.edited, waiting for the next tool result
+  // to carry them into the transcript. Bounded by the drain in the tool hook;
+  // if no tool call follows (session ends mid-edit) the note is simply dropped.
+  const pendingSkillNotes: string[] = []
+
   if (!process.env[CHILD_ENV]) {
     pruneEventsFile()
     reconcileAndSchedule(ctx)
@@ -407,10 +451,10 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
     "tool.execute.after": async (input, output) => {
       const tracked = classifyToolCall(input)
       if (tracked) recordAndNotify(ctx, { ...tracked, ...(input.sessionID ? { session_id: input.sessionID } : {}) })
-      if (input.tool === "bash" && typeof input.args?.command === "string") {
-        const changed = classifyManagedSkillBashCommand(input.args.command)
-        if (changed) recordAndNotify(ctx, changed)
-      }
+      const skillChange = input.tool === "bash" && typeof input.args?.command === "string"
+        ? classifyManagedSkillBashCommand(input.args.command)
+        : undefined
+      if (skillChange) recordAndNotify(ctx, skillChange)
       // Child agents (gardener/harvester) have their own instructions; the
       // recall/store gates and harvester counters are for main sessions only.
       if (process.env[CHILD_ENV]) return
@@ -418,6 +462,19 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
       if (!sessionID) return
       const { state, warnRecall } = applyToolToGate(gates.get(sessionID) ?? newGateState(), input.tool)
       gates.set(sessionID, state)
+
+      // A managed-Skill write outlives the session, so it earns a permanent
+      // line rather than a 5s toast — but only the first time this session
+      // touches that skill. `edit`/`write` arrive via the file.edited event
+      // instead, which drains through pendingSkillNotes.
+      const announce = [...(skillChange ? [skillChange.name] : []), ...pendingSkillNotes.splice(0)]
+      for (const name of announce) {
+        const current = gates.get(sessionID)!
+        if (!shouldAnnounceSkillChange(current, name)) continue
+        gates.set(sessionID, recordSkillAnnouncement(current, name))
+        output.output = `${output.output}${transcriptBanner(`updated managed Skill ${name}`)}`
+      }
+
       if (!warnRecall) return
       // Verified to reach the model: mutating output.output propagates.
       output.output = `${output.output}\n\n${RECALL_REMINDER}`
@@ -428,12 +485,23 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
       if (event.type === "file.edited") {
         const file = (event.properties as { file?: string } | undefined)?.file
         const tracked = file ? classifyManagedSkillEdit(file) : undefined
-        if (tracked) recordAndNotify(ctx, tracked)
+        if (tracked) {
+          recordAndNotify(ctx, tracked)
+          // file.edited carries no sessionID, so it cannot post on its own.
+          // Park the name for the next tool result to carry. If that is the
+          // edit's own result the line lands immediately; if the ordering puts
+          // it later, it lands on the following tool call — still in the
+          // transcript, still deduped. Skipped for child agents, whose writes
+          // are the harvester doing its job, not news for this session.
+          if (!process.env[CHILD_ENV] && !pendingSkillNotes.includes(tracked.name)) {
+            pendingSkillNotes.push(tracked.name)
+          }
+        }
       }
       if (event.type === "session.idle" && !process.env[CHILD_ENV]) {
-        reconcileAndSchedule(ctx)
-
         const sessionID = (event.properties as { sessionID?: string } | undefined)?.sessionID
+        reconcileAndSchedule(ctx, sessionID)
+
         const state = sessionID ? gates.get(sessionID) : undefined
         if (!sessionID || !state) return
 
@@ -441,6 +509,10 @@ const ClaptrapPlugin: Plugin = async (ctx) => {
           gates.set(sessionID, { ...state, warnedStore: true })
           appendEvent({ event: "gate_store_warned", project: projectFor(ctx), session_id: sessionID })
           notify(ctx, "CT: session mutated files without storing a Mnemosyne memory", "gate", "warning")
+          // The recall gate already lands in the transcript via tool output;
+          // this one fires at idle with nothing to ride. warnedStore caps it
+          // at one line per session.
+          postTranscript(ctx, sessionID, "files changed with no Mnemosyne memory stored")
         }
 
         // idle fires after every completed turn; the watermark is the only

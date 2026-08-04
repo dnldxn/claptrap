@@ -64,6 +64,21 @@ Every toast is also written to the OpenCode log. All stay visible for 5 seconds 
 
 Both gates fire at most once per session and never inside gardener or harvester runs. Routine Mnemosyne calls are recorded to `events.jsonl` and counted by `/ct-status`, but deliberately do not toast — they fire on every recall and store.
 
+## Transcript lines
+
+A toast disappears after 5 seconds. Four notices are important enough to also leave a permanent `CT: ...` line in the conversation history.
+
+| Notice | How it lands | Rate limit |
+| --- | --- | --- |
+| Recall gate | appended to the triggering tool result | once per session |
+| `CT: updated managed Skill <name>` | appended to the triggering tool result | once per skill per session |
+| `CT: files changed with no Mnemosyne memory stored` | standalone message at idle | once per session |
+| `CT: <agent> completed / failed` | standalone message at next idle | once per background run |
+
+Everything else stays toast-only. Transcript text is permanent context — it is re-sent to the model on every later turn — so each line is one short sentence, and high-frequency events (skill loads, Mnemosyne recalls and stores) are deliberately excluded.
+
+Standalone lines are posted with `session.promptAsync({ noReply: true })`. The text must not be marked `synthetic`: synthetic parts are stored and sent to the model but filtered out of every TUI render path, so they would be invisible to the user. Verified against a live server on OpenCode 1.18.11.
+
 ## Commands
 
 - `/ct-status` — recent skill, memory, and background-run activity

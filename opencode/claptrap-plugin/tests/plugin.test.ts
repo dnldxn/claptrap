@@ -13,8 +13,12 @@ import {
   isGardenerLive,
   isLockStale,
   needsFailureBackfill,
+  recordSkillAnnouncement,
+  shouldAnnounceSkillChange,
   shouldRunHarvester,
   shouldWarnStore,
+  transcriptBanner,
+  transcriptNotice,
 } from "../logic.ts"
 
 const day = 24 * 60 * 60 * 1000
@@ -264,6 +268,28 @@ test("runs the harvester at the threshold only when idle past the watermark", ()
   expect(shouldRunHarvester(50, 0, true)).toBe(false)
   expect(shouldRunHarvester(9, 5, false)).toBe(false)
   expect(shouldRunHarvester(10, 5, false)).toBe(true)
+})
+
+test("announces each managed skill once per session and never an unnamed one", () => {
+  const state = newGateState()
+  expect(shouldAnnounceSkillChange(state, "ct-foo")).toBe(true)
+
+  const announced = recordSkillAnnouncement(state, "ct-foo")
+  expect(shouldAnnounceSkillChange(announced, "ct-foo")).toBe(false)
+  // A different skill in the same session still earns its one line.
+  expect(shouldAnnounceSkillChange(announced, "ct-bar")).toBe(true)
+  // Unknown name would render "CT: updated Skill undefined" — say nothing.
+  expect(shouldAnnounceSkillChange(state, undefined)).toBe(false)
+  // Re-recording is a no-op, so repeated edits cannot grow the list.
+  expect(recordSkillAnnouncement(announced, "ct-foo")).toBe(announced)
+})
+
+test("keeps transcript text to a single short prefixed line", () => {
+  expect(transcriptNotice("weekly gardener finished")).toBe("CT: weekly gardener finished")
+  expect(transcriptBanner("updated Skill ct-foo")).toBe("\n\nCT: updated Skill ct-foo")
+  // One line each: transcript text is permanent context, so no newlines inside.
+  expect(transcriptNotice("x").split("\n")).toHaveLength(1)
+  expect(transcriptBanner("x").trim().split("\n")).toHaveLength(1)
 })
 
 test("backfills failures for the harvester prefix too", () => {

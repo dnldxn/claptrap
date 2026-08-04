@@ -61,6 +61,23 @@ export function classifyToolCall(input: ToolInput): TrackedEvent | undefined {
 export const HARVESTER_THRESHOLD = 5
 export const MUTATING_TOOLS = ["edit", "write", "patch", "bash"]
 export const RECALL_REMINDER = "<system-reminder>No mnemosyne_recall yet this session — recall relevant memories before continuing, or state why this task needs no prior context.</system-reminder>"
+
+export const TRANSCRIPT_PREFIX = "CT"
+
+/** A standalone transcript message. Unlike a toast this is a permanent user
+ *  message: it stays in the scroll history AND costs context on every later
+ *  turn, so keep it to one short line and reserve it for notices that would
+ *  otherwise be missed entirely. */
+export function transcriptNotice(message: string) {
+  return `${TRANSCRIPT_PREFIX}: ${message}`
+}
+
+/** Suffix appended to a tool result. Same permanence as transcriptNotice, but
+ *  it rides an existing message instead of adding one. */
+export function transcriptBanner(message: string) {
+  return `\n\n${TRANSCRIPT_PREFIX}: ${message}`
+}
+
 export function isMutatingTool(tool: string) {
   return MUTATING_TOOLS.includes(tool.toLowerCase())
 }
@@ -73,6 +90,7 @@ export type GateState = {
   warnedStore: boolean
   counter: number
   watermark: number
+  announcedSkills: string[]
 }
 
 export function newGateState(): GateState {
@@ -84,7 +102,23 @@ export function newGateState(): GateState {
     warnedStore: false,
     counter: 0,
     watermark: 0,
+    announcedSkills: [],
   }
+}
+
+/** Managed-Skill writes are the only routine event worth a transcript line:
+ *  they change behaviour that outlives the session, and a 5s toast is easy to
+ *  miss. Announce each skill at most once per session so a multi-edit pass
+ *  costs one line, not one per edit. Skill loads and Mnemosyne traffic stay
+ *  toast-only — they fire constantly and would drown the transcript. */
+export function shouldAnnounceSkillChange(state: GateState, name: string | undefined) {
+  return name !== undefined && !state.announcedSkills.includes(name)
+}
+
+export function recordSkillAnnouncement(state: GateState, name: string): GateState {
+  return state.announcedSkills.includes(name)
+    ? state
+    : { ...state, announcedSkills: [...state.announcedSkills, name] }
 }
 
 export function applyToolToGate(
