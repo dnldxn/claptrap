@@ -24,10 +24,6 @@ Be helpful, honest, precise, and pragmatic.
 Use `Mnemosyne` as your long-term memory. Before starting any task, while gathering context, recall relevant memories (`mnemosyne_recall`). When the task is done, remember (`mnemosyne_remember`) anything useful for future agents: lessons learned, mistakes made, operational instructions (e.g. how you connected to and used a system), work completed, and other non-obvious context.
 <!-- mnemosyne -->
 
-<!-- rtk -->
-The `rtk` CLI intercepts Bash commands to optimize token usage. Commands like `git status` are automatically rewritten (e.g. `rtk git status` or `rtk vitest ...`). This is transparent and expected. Do not try to work around it.
-<!-- rtk -->
-
 <!-- context7 -->
 Use the `ctx7` CLI to fetch current documentation whenever the user asks about a library, framework, SDK, API, CLI tool, or cloud service -- even well-known ones like React, Next.js, Prisma, Express, Tailwind, Django, or Spring Boot. This includes API syntax, configuration, version migration, library-specific debugging, setup instructions, and CLI tool usage. Use even when you think you know the answer -- your training data may not reflect recent changes. Prefer this over web search for library docs.
 

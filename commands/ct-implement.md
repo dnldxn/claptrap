@@ -1,8 +1,5 @@
 ---
 description: Run the `dd-implement` Skill
-agent: build
 ---
 
-/dd-implement
-
-$ARGUMENTS
+@~/.agents/skills/dd-implement/SKILL.md
