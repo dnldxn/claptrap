@@ -218,6 +218,18 @@ function reconcileAgentState(ctx: PluginInput, run: AgentRun, events: EventRecor
   return appendEvent({ event: `${run.prefix}_failed`, reason: "process died without recording a result" })
 }
 
+/** The server is often started by systemd with a minimal PATH that omits
+ *  ~/.opencode/bin, so a bare `opencode` in the wrapper dies with
+ *  "command not found". Resolve an absolute path instead. */
+function opencodeBin() {
+  const candidates = [
+    process.execPath,
+    join(homedir(), ".opencode/bin/opencode"),
+    "/usr/local/bin/opencode",
+  ]
+  return candidates.find((path) => path.endsWith("/opencode") && existsSync(path)) ?? "opencode"
+}
+
 function hasSystemdRun() {
   if (process.platform !== "linux" || !process.env.XDG_RUNTIME_DIR) return false
   return ["/usr/bin/systemd-run", "/bin/systemd-run"].some((path) => existsSync(path))
@@ -268,7 +280,7 @@ function runBackgroundAgent(
   const wrapper = `#!/bin/sh
 set +e
 echo $$ > ${shellQuote(run.pidFile)}
-${CHILD_ENV}=${run.agent} opencode run \\
+${CHILD_ENV}=${run.agent} ${shellQuote(opencodeBin())} run \\
   --agent ${run.agent} --auto \\
   --dir ${shellQuote(options.dir)} \\
   --title ${shellQuote(options.title)} \\
