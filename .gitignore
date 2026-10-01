@@ -11,6 +11,7 @@ bun.lock
 
 secrets.toml
 
+.agents/
 .planning/
 .hermes/
 .cursor/

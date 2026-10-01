@@ -58,9 +58,7 @@ npx skills add https://github.com/obra/episodic-memory --skill remembering-conve
 
 # Workflow-specific skills
 npx skills add https://github.com/obra/superpowers --skill using-superpowers
-npx skills add https://github.com/obra/superpowers --skill brainstorming
-npx skills add https://github.com/obra/superpowers --skill writing-plans
-npx skills add https://github.com/obra/superpowers --skill subagent-driven-development
+
 npx skills add https://github.com/obra/superpowers --skill using-git-worktrees
 npx skills add https://github.com/trailofbits/skills --skill ask-questions-if-underspecified
 
@@ -76,6 +74,10 @@ npx skills add https://github.com/softaworks/agent-toolkit --skill mermaid-diagr
 npx skills add https://github.com/dnldxn/claptrap/skills --skill dd-grill-me
 npx skills add https://github.com/dnldxn/claptrap/skills --skill dd-writing-plans
 npx skills add https://github.com/dnldxn/claptrap/skills --skill dd-implement
+npx skills add https://github.com/mattpocock/skills --skill grilling
+npx skills add https://github.com/obra/superpowers --skill brainstorming
+npx skills add https://github.com/obra/superpowers --skill writing-plans
+npx skills add https://github.com/obra/superpowers --skill subagent-driven-development
 
 # Custom domain skills (as needed)
 npx skills add https://github.com/dnldxn/claptrap/skills --skill claptrap-code-conventions

@@ -1,13 +1,13 @@
 ---
 name: dd-grill-me
-description: Design/spec workflow — start from an idea or existing GitHub Issue, run grill-me, then save as a new or updated GitHub Issue or local spec file.
+description: Design/spec workflow — start from an idea or existing GitHub Issue, run grilling, then save as a new or updated GitHub Issue or local spec file.
 ---
 
 > **OPERATION OVERRIDE**: Instructions here override all other Skills.
 
 **Input:**: If the user provided an issue number/URL, fetch it as context: `gh issue view <number> --json title,body --jq '"# " + .title + "\n\n" + .body'`. Otherwise use the user's idea description.
 
-**Interview:**: Invoke the `grill-me` and `brainstorming` skills seeded with the context below.  Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to interview the user, one question at a time (pause in between each question). For each question, provide a recommendation and why. After the `grill-me` and `brainstorming` skills reach shared understanding and are satisfied the requirements are clear, proceed to generate the design/spec.
+**Interview:**: Invoke the `grilling` and `brainstorming` skills seeded with the context below.  Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to interview the user, one question at a time (pause in between each question). For each question, provide a recommendation and why. After the `grilling` and `brainstorming` skills reach shared understanding and are satisfied the requirements are clear, proceed to generate the design/spec.
 
 **Render:**: Fill `assets/spec.template.md` into the final body (use `▼` between sections). Write to a temp file.
 
