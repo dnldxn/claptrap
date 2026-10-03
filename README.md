@@ -26,6 +26,8 @@ After installation, merge these entries into the existing arrays in `~/.config/o
 }
 ```
 
+The installer also links `opencode/model-sync/plugin.ts` into `~/.config/opencode/plugins/`. At each OpenCode start it fetches the 9router `/models` list and replaces `provider.9router.models` with it, keeping any hand-written fields for listed ids. If the router is unreachable it uses the last cached list.
+
 The gardener agent uses `9router/skill-gardener`. Add a `skill-gardener` model entry to `provider.9router.models` in the same config before running it.
 
 ## Continuous learning

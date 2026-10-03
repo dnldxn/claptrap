@@ -10,6 +10,7 @@ HOME = Path.home()
 OPENCODE_ROOT = HOME / ".config/opencode"
 
 PLUGIN_ROOT = PROJECT_ROOT / "opencode/claptrap-plugin"
+MODEL_SYNC_ROOT = PROJECT_ROOT / "opencode/model-sync"
 
 INSTRUCTIONS_LINK = OPENCODE_ROOT / "claptrap/instructions.md"
 INSTRUCTIONS_ENTRY = "~/.config/opencode/claptrap/instructions.md"
@@ -21,6 +22,8 @@ LINKS = {
     OPENCODE_ROOT / "claptrap/plugin.ts": PLUGIN_ROOT / "plugin.ts",
     OPENCODE_ROOT / "agents/claptrap": PLUGIN_ROOT / "agents",
     OPENCODE_ROOT / "commands/claptrap": PLUGIN_ROOT / "commands",
+    # OpenCode auto-loads plugins/*.ts, so this one needs no config entry.
+    OPENCODE_ROOT / "plugins/claptrap-model-sync.ts": MODEL_SYNC_ROOT / "plugin.ts",
 }
 
 SWEEP_ROOTS = [
@@ -28,6 +31,7 @@ SWEEP_ROOTS = [
     OPENCODE_ROOT / "skills",
     OPENCODE_ROOT / "commands",
     OPENCODE_ROOT / "claptrap",
+    OPENCODE_ROOT / "plugins",
     HOME / ".claude/agents",
     HOME / ".claude/skills",
     HOME / ".claude/commands",

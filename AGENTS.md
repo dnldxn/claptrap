@@ -20,6 +20,7 @@ Manual setup steps are documented in `README.md`, including the `skill-gardener`
 
 - `bootstrap/install.py` — stdlib-only OpenCode installer
 - `opencode/claptrap-plugin/` — Claptrap plugin (`plugin.ts`, `logic.ts`), instructions, `agents/`, `commands/`, `skills/`, and `tests/`
+- `opencode/model-sync/` — OpenCode plugin that replaces the `9router` provider's model list with the router's live `/models` list at startup (cached for offline starts)
 - `skills/ct-grill-me/` — design/spec workflow wrapper
 - `skills/ct-writing-plans/` — implementation-plan workflow wrapper
 - `skills/ct-implement/` — plan execution workflow wrapper
