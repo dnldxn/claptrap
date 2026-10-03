@@ -14,9 +14,9 @@ Run scripts from the target repo root so they detect the correct GitHub repo. Us
 
 **Clarify:** Before scoping, resolve every ambiguity, gap, or undecided detail in the spec by asking the user — keep asking until the work is fully clear and well-defined. Guessing here compounds into flawed plans.
 
-**Scope:** Based on spec size and complexity, decide on one plan or multiple. Use multiple plans when work spans distinct subsystems or can be parallelized.
+**Scope:** Default to one plan; split only when separate plans materially improve execution. Before delegating, the main agent must review the breakdown for a simpler way to meet all spec goals, merging unnecessary splits.
 
-**Write:** Spawn one sub-agent per plan, in parallel. Give each sub-agent the full spec, the overall design, and the slice of scope it owns — enough context that it can write its plan standalone, without needing to come back for clarification. Each sub-agent invokes the `writing-plans` skill, renders the result into `assets/plan.template.md` (objective, tasks, verification), and saves it to its own temp file. Each sub-agent should ensure its plan is under 65,536 characters (it can be shorter if needed). Wait for every sub-agent to finish, then read each plan file and check it's complete, correctly scoped, and consistent with the others — send any that fall short back for a fix before moving on.
+**Write:** Spawn one sub-agent per plan, in parallel. Give each sub-agent the full spec, the overall design, and the slice of scope it owns — enough context that it can write its plan standalone, without needing to come back for clarification. Each sub-agent invokes the `writing-plans` skill, renders the result into `assets/plan.template.md` (objective, tasks, verification), and saves it to its own temp file. Before returning, each planner must remove over-engineering and simplify wordy or complex language while preserving required work and verification. Keep plans under 65,536 characters; this is a ceiling, not a target. Wait for every sub-agent to finish, then read each plan file and check it's complete, correctly scoped, simple, concise, and consistent with the others — send any that fall short back for a fix before moving on.
 
 **Save:** Use the `question`, `AskUserQuestion`, `clarify`, `request_user_input`, or equivalent tool to ask where to save the plan or plans:
 
